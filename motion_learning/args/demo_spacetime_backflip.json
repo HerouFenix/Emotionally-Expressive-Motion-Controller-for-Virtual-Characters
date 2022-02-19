@@ -1,0 +1,25 @@
+{
+  "env_name": "spacetime",
+  "env_args":
+  {
+    "task": "backflip",
+    "model": "humanoid3d",
+    "engine": "pybullet",
+    "contact": "walk",
+    "self_collision": true,
+    "enable_draw": false,
+    "record_contact": false,
+    "record_torques": false,
+
+    "use_global_root_ori": true,
+    "heading_vec": [0, 0, 1],
+    "use_spacetime_bounds": true,
+    "bound": "data/bounds/default.txt",
+    "rel_root_pos": false,
+    "rel_root_ori": false,
+    "rel_endeffector": true
+  },
+
+  "ckpt": "data/policies/rwd_elimination/backflip.tar" 
+
+}
