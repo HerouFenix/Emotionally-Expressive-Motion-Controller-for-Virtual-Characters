@@ -1,9 +1,0 @@
-{
-  "env_name": "spacetime",
-  "env_args":
-  {
-    "task": "cartwheel",
-    "contact": "cartwheel"
-  },
-  "ckpt": "data/policies/rwd_elimination/cartwheel.tar"
-}

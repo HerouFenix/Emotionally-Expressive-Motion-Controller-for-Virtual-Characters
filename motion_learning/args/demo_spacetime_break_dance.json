@@ -1,8 +1,0 @@
-{
-  "env_name": "spacetime",
-  "env_args":
-  {
-    "task": "break_dance"
-  },
-  "ckpt": "data/policies/challenging/break_dance.tar"
-}
