@@ -1,0 +1,8 @@
+{
+  "env_name": "spacetime",
+  "env_args":
+  {
+    "task": "run"
+  },
+  "ckpt": "data/policies/rwd_elimination/run.tar"
+}
