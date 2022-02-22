@@ -25,6 +25,14 @@ def write_mocap(outfile, start_phase, frames):
     wh.write(']\n')
     wh.write("}")
 
+def write_link_data(outfile, link_data):
+  with open(outfile, 'w') as wh:
+
+    for link in link_data:
+      wh.write(link + "\n")
+      wh.write("  " + str(link_data[link]) + "\n")
+    wh.write("----------")
+
 def test_model(env, model, select_set=None, record=False, random=True):
   env.set_mode(1)
   #env.set_task_t(20)
@@ -67,8 +75,9 @@ def test_model(env, model, select_set=None, record=False, random=True):
 
   done = False
   start_time = time.time()
-  while True:
 
+  
+  while True:    
     # record
     sim_pose, sim_vel = env._engine.get_pose()
     frames.append(sim_pose)
@@ -138,7 +147,8 @@ def test_model(env, model, select_set=None, record=False, random=True):
 
       start_time = time.time()
 
-      sim_pose, sim_vel = env._engine.get_pose()
+      #sim_pose, sim_vel = env._engine.get_pose()
+      sim_pose, sim_vel, link_pos, link_vel, link_orn, link_ang = env._engine.get_pose_and_links()
       frames.append(sim_pose)
       kin_t = env.curr_phase * env._mocap._cycletime
       cnt, kin_pose, kin_vel = env._mocap.slerp(kin_t)
@@ -148,6 +158,8 @@ def test_model(env, model, select_set=None, record=False, random=True):
       if record:
         write_mocap("sim_mocap_%d.txt" % outcount, start_phase, frames)
         write_mocap("kin_mocap_%d.txt" % outcount, start_phase, kin_frames)
+        
+        write_link_data("link_data_test.txt", link_pos)
         torch.save(contact_forces, "contacts_%d.tar" % outcount)
 
         outcount += 1
