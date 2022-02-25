@@ -9,6 +9,14 @@ import pybullet as p1
 #from IPython import embed
 import time
 
+import sys
+import os
+current = os.path.dirname(os.path.realpath(__file__))
+parent = os.path.dirname(current)
+sys.path.append(parent)
+  
+from lma_extractor import LMAExtractor
+
 ###
 ACT_STEPTIME  = 1./30.
 SUBSTEPS = 20
@@ -25,6 +33,9 @@ class VisMocapEnv():
       self.follow_character = True
       self._model = model
       self.init()
+      self.has_looped = False
+      self._previous_mocap_phase = 0.0
+      self._current_mocap_phase = 0.0
 
     def init(self):
       """
@@ -62,11 +73,14 @@ class VisMocapEnv():
       self._play_speed = self._pybullet_client.addUserDebugParameter("play_speed", 0, 2, 1.0)
       self._phase_ctrl = self._pybullet_client.addUserDebugParameter("frame", 0, 1, 0)
 
+
     def reset(self, phase=None):
       startTime = self.rand_state.rand() if phase is None else phase
       startTime *= self._mocap._cycletime
       self.t = startTime
       self.start_phase = self._mocap.get_phase(self.t)
+      self._previous_mocap_phase = self.start_phase
+
       count, pose, vel = self._mocap.slerp(startTime)
 
       if self.enable_draw:
@@ -78,8 +92,16 @@ class VisMocapEnv():
       speed = self._pybullet_client.readUserDebugParameter(self._play_speed)
       phase = self._pybullet_client.readUserDebugParameter(self._phase_ctrl)
       #phase /= self._mocap.num_frames
+      
       if (self.start_phase != phase):
         self.reset(phase)
+
+      self._current_mocap_phase = self._mocap.get_phase(self.t)
+      if(self._previous_mocap_phase > self._current_mocap_phase):
+        self.has_looped = True
+
+      self._previous_mocap_phase = self._current_mocap_phase
+
       self.update(VIS_STEP, speed)
 
     def update(self, timeStep, speed):
@@ -115,18 +137,89 @@ class VisMocapEnv():
         time.sleep(time_remain)
       self._prev_clock = time.time()
 
-def show_mocap(mocap_file, model):
+    def get_pose_and_links(self):
+      return self._get_full_model_pose(self._visual.characters["mocap"])
+    
+    def _get_full_model_pose(self, phys_model):
+      """ Get current pose and velocity expressed in general coordinate
+        Unlike _get_model_pose it also returns the Position and Velocity of each link/joint.
+        Inputs:
+          phys_model
+
+        Outputs:
+          pose
+          vel
+      """
+      pose = []
+      vel = []
+
+      links_pos = {}
+      links_orn = {}
+
+      vel_dict = {}
+
+      # root position/orientation and vel/angvel
+      pos, orn = self._pybullet_client.getBasePositionAndOrientation(self._visual.characters["mocap"])
+      linvel, angvel = self._pybullet_client.getBaseVelocity(self._visual.characters["mocap"])
+      pose += pos
+      if orn[3] < 0:
+        orn = [-orn[0], -orn[1], -orn[2], -orn[3]]
+      pose.append(orn[3])  # w
+      pose += orn[:3] # x, y, z
+      vel += linvel
+      vel += angvel
+
+      vel_dict["root"] = [linvel, angvel]
+
+      for i in range(self._skeleton.num_joints):
+        j_info = self._pybullet_client.getJointStateMultiDof(phys_model, i)
+        orn = j_info[0]
+        if len(orn) == 4:
+          pose.append(orn[3])  # w
+          pose += orn[:3] # x, y, z
+        else:
+          pose += orn
+        vel += j_info[1]
+
+        l_info = self._pybullet_client.getJointInfo(phys_model, i)
+        
+        if(not l_info[12].decode('UTF-8') == "root"):
+          vel_dict[l_info[12].decode('UTF-8')] = j_info[1]
+        
+        link_name = l_info[12].decode('UTF-8')
+        
+        l_info = self._pybullet_client.getLinkState(phys_model, i)
+        
+        links_pos[link_name] = l_info[0]
+        links_orn[link_name] = l_info[1]
+
+      pose = np.array(pose)
+      vel = self._skeleton.padVel(vel)
+      
+      return pose, vel, links_pos, links_orn, vel_dict
+
+
+def show_mocap(mocap_file, model, extract_lma=False):
   env = VisMocapEnv(mocap_file, None, model)
   #env._mocap.show_com()
   env.reset()
+  lma_extractor = LMAExtractor(env, "test_lma_extractor_kin", write_to_file=True)
+
   while True:
+    # LMA Features
+
+    if(extract_lma and not env.has_looped):
+      lma_extractor.record_frame()
+
     env.step()
+
 
 if __name__=="__main__":
   import argparse
   parser = argparse.ArgumentParser()
   parser.add_argument("--mocap", type=str, default='data/motions/humanoid3d_jump.txt', help="task to perform")
   parser.add_argument("--model", type=str, default='humanoid3d', help="model")
+  parser.add_argument("--lma", action="store_true")
   args = parser.parse_args()
 
-  show_mocap(args.mocap, args.model)
+  show_mocap(args.mocap, args.model, args.lma)

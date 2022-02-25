@@ -200,6 +200,7 @@ class PyBulletEngine(SimEngine):
         pose += orn[:3] # x, y, z
       else:
         pose += orn
+
       vel += j_info[1]
 
     pose = np.array(pose)
@@ -208,7 +209,7 @@ class PyBulletEngine(SimEngine):
 
   def _get_full_model_pose(self, phys_model):
     """ Get current pose and velocity expressed in general coordinate
-      Unlike _get_model_pose it also returns the Position and Velocity of each Link
+      Unlike _get_model_pose it also returns the Position and Velocity of each link/joint.
       Inputs:
         phys_model
 
@@ -220,9 +221,11 @@ class PyBulletEngine(SimEngine):
     vel = []
 
     links_pos = {}
-    links_vel = {}
+    #links_vel = {}
     links_orn = {}
-    links_ang = {}
+    #links_ang = {}
+
+    vel_dict = {}
 
     # root position/orientation and vel/angvel
     pos, orn = self._pybullet_client.getBasePositionAndOrientation(self._sim_model)
@@ -235,6 +238,8 @@ class PyBulletEngine(SimEngine):
     vel += linvel
     vel += angvel
 
+    vel_dict["root"] = [linvel, angvel]
+
     for i in range(self._skeleton.num_joints):
       j_info = self._pybullet_client.getJointStateMultiDof(phys_model, i)
       orn = j_info[0]
@@ -245,30 +250,30 @@ class PyBulletEngine(SimEngine):
         pose += orn
       vel += j_info[1]
 
-
-      #print()
+      l_info = self._pybullet_client.getJointInfo(phys_model, i)
       
-      link_name = self._pybullet_client.getJointInfo(phys_model, i)[12].decode('UTF-8')
-      #print(link_name)
+      if(not l_info[12].decode('UTF-8') == "root"):
+        vel_dict[l_info[12].decode('UTF-8')] = j_info[1]
+      
+      link_name = l_info[12].decode('UTF-8')
       
       l_info = self._pybullet_client.getLinkState(phys_model, i)
-      #print(l_info[0])
       
       links_pos[link_name] = l_info[0]
       links_orn[link_name] = l_info[1]
       
-      if(len(l_info) > 6):
-        links_vel[link_name] = l_info[6]
-        links_ang[link_name] = l_info[7]
-      else:
-        links_vel[link_name] = []
-        links_ang[link_name] = []
+      #if(len(l_info) > 6):
+      #  links_vel[link_name] = l_info[6]
+      #  links_ang[link_name] = l_info[7]
+      #else:
+      #  links_vel[link_name] = []
+      #  links_ang[link_name] = []
 
     pose = np.array(pose)
     vel = self._skeleton.padVel(vel)
     
     # print(links_pos)
-    return pose, vel, links_pos, links_vel, links_orn, links_ang
+    return pose, vel, links_pos, links_orn, vel_dict
 
   def _get_base_pos(self):
     pos, orn = self._pybullet_client.getBasePositionAndOrientation(self._sim_model)

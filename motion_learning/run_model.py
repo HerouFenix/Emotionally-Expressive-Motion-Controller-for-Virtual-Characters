@@ -1,6 +1,17 @@
 import numpy as np
 import time
 
+
+## TODO: see if theres a better way to do this import
+import sys
+import os
+current = os.path.dirname(os.path.realpath(__file__))
+parent = os.path.dirname(current)
+sys.path.append(parent)
+  
+from lma_extractor import LMAExtractor
+
+
 def write_mocap(outfile, start_phase, frames):
   """
     Inputs:
@@ -33,7 +44,7 @@ def write_link_data(outfile, link_data):
       wh.write("  " + str(link_data[link]) + "\n")
     wh.write("----------")
 
-def test_model(env, model, select_set=None, record=False, random=True):
+def test_model(env, model, select_set=None, record=False, random=True, extract_lma = False):
   env.set_mode(1)
   #env.set_task_t(20)
 
@@ -76,6 +87,8 @@ def test_model(env, model, select_set=None, record=False, random=True):
   done = False
   start_time = time.time()
 
+  lma_extractor = LMAExtractor(env._engine, "test_lma_extractor", write_to_file=True)
+  has_reset = False
   
   while True:    
     # record
@@ -84,6 +97,10 @@ def test_model(env, model, select_set=None, record=False, random=True):
     kin_t = env.curr_phase * env._mocap._cycletime
     cnt, kin_pose, kin_vel = env._mocap.slerp(kin_t)
     kin_frames.append(kin_pose)
+
+    # LMA Features
+    if(extract_lma and not has_reset):
+      lma_extractor.record_frame()
 
     dnn_timer.start()
     with torch.no_grad():
@@ -113,6 +130,7 @@ def test_model(env, model, select_set=None, record=False, random=True):
     print(rwd)
 
     if done:
+
       end_time = time.time()
       duration = end_time - start_time
       speed = step_num / duration
@@ -147,8 +165,7 @@ def test_model(env, model, select_set=None, record=False, random=True):
 
       start_time = time.time()
 
-      #sim_pose, sim_vel = env._engine.get_pose()
-      sim_pose, sim_vel, link_pos, link_vel, link_orn, link_ang = env._engine.get_pose_and_links()
+      sim_pose, sim_vel = env._engine.get_pose()
       frames.append(sim_pose)
       kin_t = env.curr_phase * env._mocap._cycletime
       cnt, kin_pose, kin_vel = env._mocap.slerp(kin_t)
@@ -159,13 +176,14 @@ def test_model(env, model, select_set=None, record=False, random=True):
         write_mocap("sim_mocap_%d.txt" % outcount, start_phase, frames)
         write_mocap("kin_mocap_%d.txt" % outcount, start_phase, kin_frames)
         
-        write_link_data("link_data_test.txt", link_pos)
         torch.save(contact_forces, "contacts_%d.tar" % outcount)
 
         outcount += 1
       frames = []
       kin_frames = []
       contact_forces = []
+
+      has_reset = True
 
       step_num = 0
       acc_rwd = 0
@@ -193,6 +211,8 @@ if __name__=="__main__":
   parser.add_argument("--ckpt", type=str, default=None, help="checkpoint that stores trained model")
   parser.add_argument("--record", action="store_true")
   parser.add_argument("--random", action="store_true")
+
+  parser.add_argument("--lma", action="store_true")
   args = parser.parse_args()
 
   # load env
@@ -222,4 +242,4 @@ if __name__=="__main__":
     select_set = data["select_set"]
   else:
     select_set = None
-  test_model(test_env, model, select_set, args.record, args.random)
+  test_model(test_env, model, select_set, args.record, args.random, args.lma)
