@@ -203,7 +203,8 @@ def show_mocap(mocap_file, model, extract_lma=False):
   env = VisMocapEnv(mocap_file, None, model)
   #env._mocap.show_com()
   env.reset()
-  lma_extractor = LMAExtractor(env, "test_lma_extractor_kin", write_to_file=True)
+  if(extract_lma):
+    lma_extractor = LMAExtractor(env, "test_lma_extractor_kin", write_to_file=True)
 
   while True:
     # LMA Features
@@ -219,7 +220,7 @@ if __name__=="__main__":
   parser = argparse.ArgumentParser()
   parser.add_argument("--mocap", type=str, default='data/motions/humanoid3d_jump.txt', help="task to perform")
   parser.add_argument("--model", type=str, default='humanoid3d', help="model")
-  parser.add_argument("--lma", action="store_true")
+  parser.add_argument("--lma",default=False, action="store_true")
   args = parser.parse_args()
 
   show_mocap(args.mocap, args.model, args.lma)

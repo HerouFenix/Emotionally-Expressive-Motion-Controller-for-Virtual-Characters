@@ -1,7 +1,7 @@
 import numpy as np
 
 class LMAExtractor():
-    def __init__(self, engine, outfile = "lma_features", write_to_file=False, pool_rate = 30, label=(0,0,0)):
+    def __init__(self, engine, outfile = "lma_features", write_to_file=False, pool_rate = 30, label=(0,0,0), ignore_first = False):
         self._engine = engine
         self._pooling_rate = pool_rate
         self._frame_counter = 0
@@ -17,6 +17,8 @@ class LMAExtractor():
 
         self._label = label
 
+        self._ignore_first = ignore_first
+        self._first_write = True
 
     def record_frame(self):
         sim_pose, sim_vel, link_pos, link_orn, vel_dict = self._engine.get_pose_and_links()
@@ -72,7 +74,13 @@ class LMAExtractor():
             self._currentData = []
 
             if(self._write_to_file):
-                self._append_lma_features()
+                if(not self._ignore_first):
+                    if(not self._first_write):
+                        self._append_lma_features()
+                else:
+                    self._append_lma_features()
+
+            self._first_write = False
 
             return True, current_lma_features
 
@@ -208,8 +216,8 @@ class LMAExtractor():
             ## Right Foot Velocity
             r_foot_velocities.append(data["right_ankle"][2])
 
-            ## Upper Body Volume (elbow to elbow, head to pelvis)
-            upper_body_volumes.append(self._compute_pyramid_volume(data["left_elbow"][0], data["right_elbow"][0], data["neck"][0], data["root"][0]))
+            ## Upper Body Volume (shoulder to shoulder, head to pelvis)
+            upper_body_volumes.append(self._compute_pyramid_volume(data["left_shoulder"][0], data["right_shoulder"][0], data["neck"][0], data["root"][0]))
 
             ## Total Volume (shoulder to shoulder, head to toe)
             total_body_volumes.append(self._compute_box_volume(data["left_shoulder"][0], data["right_shoulder"][0], data["neck"][0], self._compute_midpoint(data["left_ankle"][0], data["right_ankle"][0])))
