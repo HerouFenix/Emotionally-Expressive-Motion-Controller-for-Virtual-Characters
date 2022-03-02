@@ -87,7 +87,7 @@ def test_model(env, model, select_set=None, record=False, random=True, extract_l
   done = False
   start_time = time.time()
 
-  lma_extractor = LMAExtractor(env._engine, "test_lma_extractor", write_to_file=True)
+  lma_extractor = LMAExtractor(env._engine, "test_lma_extractor.txt", append_to_file=True)
   has_reset = False
   
   while True:    

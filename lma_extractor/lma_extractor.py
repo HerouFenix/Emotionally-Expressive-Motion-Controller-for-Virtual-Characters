@@ -1,15 +1,17 @@
 import numpy as np
+import os.path
 
 class LMAExtractor():
-    def __init__(self, engine, outfile = "lma_features", write_to_file=False, pool_rate = 30, label=(0,0,0), ignore_first = False):
+    def __init__(self, engine, outfile = "lma_features", append_to_file=False, pool_rate = 30, label=(0,0,0), ignore_first = False, round_values=False):
         self._engine = engine
         self._pooling_rate = pool_rate
         self._frame_counter = 0
 
         self._outfile = outfile
-        open(outfile +'.txt', 'w').close() #Clear file
+        if(append_to_file and os.path.exists(outfile)):
+            open(outfile, 'w').close() #Clear file
 
-        self._write_to_file = write_to_file
+        self._append_to_file = append_to_file
 
         self._currentData = []
         
@@ -19,6 +21,8 @@ class LMAExtractor():
 
         self._ignore_first = ignore_first
         self._first_write = True
+
+        self._round_values = round_values
 
     def record_frame(self):
         sim_pose, sim_vel, link_pos, link_orn, vel_dict = self._engine.get_pose_and_links()
@@ -67,20 +71,20 @@ class LMAExtractor():
         self._frame_counter += 1
 
         if(self._frame_counter % self._pooling_rate == 0 and self._frame_counter != 0):
+
+            if(self._ignore_first and self._first_write): # We want to ignore the first x frames and this is our first time writing
+                self._first_write = False
+                self._currentData = []
+                return False, []
+
             current_lma_features = self._compute_LMA_features()
-
-            self._lma_features.append(current_lma_features)
-
             self._currentData = []
 
-            if(self._write_to_file):
-                if(not self._ignore_first):
-                    if(not self._first_write):
-                        self._append_lma_features()
-                else:
-                    self._append_lma_features()
+            self._lma_features.append(current_lma_features)
+            
+            if(self._append_to_file):
+                self._append_lma_features()
 
-            self._first_write = False
 
             return True, current_lma_features
 
@@ -90,7 +94,8 @@ class LMAExtractor():
         return self._lma_features
 
     def reset(self):
-        open(self.outfile +'.txt', 'w').close() #Clear file
+        if(self._append_to_file and os.path.exists(self._outfile)):
+            open(self._outfile, 'w').close() #Clear file
         self._lma_features = []
         self._currentData = []
         self._frame_counter = 0
@@ -255,6 +260,18 @@ class LMAExtractor():
 
         lma_features.append(self._compute_average_distance_traveled(distance_traveled))
 
+        if(self._round_values):
+            for i in range(0,len(lma_features)):
+                if(type(lma_features[i]) is tuple):
+                    new_tuple = ()
+                    for j in range(0, len(lma_features[i])):
+                        new_tuple_add = (round(lma_features[i][j],10),)
+                        new_tuple = new_tuple + new_tuple_add
+
+                    lma_features[i] = new_tuple 
+                else:
+                    lma_features[i] = round(lma_features[i],10)
+
         current_lma_features = {}
         current_lma_features["frame_counter"] = self._frame_counter
         current_lma_features["label"] = self._label
@@ -315,14 +332,14 @@ class LMAExtractor():
 
     def _append_lma_features(self):
         # Appends the last entry of the lma_features array to a file
-        with open(self._outfile + ".txt", 'a') as wh:
+        with open(self._outfile, 'a') as wh:
             wh.write(str(self._lma_features[-1]) + "\n")
 
         return
 
     def write_lma_features(self):
         # Writes entire lma feature array to a file
-        with open(self._outfile + ".txt", 'w') as wh:
+        with open(self._outfile, 'w') as wh:
             for frame in self._lma_features:
                 wh.write(str(frame) + "\n")
 
@@ -331,7 +348,7 @@ class LMAExtractor():
     def write_lma_features_mult(self):
         # Writes each entry of the lma feature array to a different file
         for frame in self._lma_features:
-            with open(self._outfile + "_" + str(frame['frame_number']) + ".txt", 'w') as wh:
+            with open(self._outfile + "_" + str(frame['frame_number']), 'w') as wh:
                 wh.write(str(frame) + "\n")
     
         return

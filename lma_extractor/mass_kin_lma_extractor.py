@@ -1,19 +1,32 @@
+import sys
+import os
+current = os.path.dirname(os.path.realpath(__file__))
+parent = os.path.dirname(current)
+print(parent)
+sys.path.append(parent)
+sys.path.append(os.path.join(parent, "motion_learning"))
+
 import numpy as np
 import math
 from utils import bullet_client
 from utils.humanoid_kin import HumanoidSkeleton
 from utils.humanoid_mocap import HumanoidMocap
-from utils.humanoid_vis import HumanoidVis
+from utils.humanoid_vis import HumanoidKinNoVis
 import pybullet as p1
+
+from utils.humanoid_kin import JointType
 
 #from IPython import embed
 import time
 
-import sys
-import os
-current = os.path.dirname(os.path.realpath(__file__))
-parent = os.path.dirname(current)
-sys.path.append(parent)
+# This script extracts all Deepmimic mocap files in the mocap_data directory's LMA features
+
+input_directory = 'mocap_data'
+
+output_directory = 'lma_features'
+
+
+
   
 from lma_extractor import LMAExtractor
 
@@ -24,13 +37,15 @@ VIS_STEP = 1.0/150
 SIM_STEPTIME  = ACT_STEPTIME / SUBSTEPS
 ###
 
-class VisMocapEnv():
+class LMAMocapEnv():
     def __init__(self, mocap_file, pybullet_client=None, model="humanoid3d"):
       self._isInitialized = False
       self.rand_state = np.random.RandomState()
       self._motion_file = mocap_file
+      
       self.enable_draw = True
       self.follow_character = True
+
       self._model = model
       self.init()
       self.has_looped = False
@@ -63,15 +78,11 @@ class VisMocapEnv():
       else:
         assert(False)
 
-      self._visual = HumanoidVis(self._skeleton, self._model)
-      #color = [227/255, 170/255, 14/255, 1] # sim
-      color = [44/255, 160/255, 44/255, 1] # ref
-      self._char = self._visual.add_character("mocap", color)
-      self._visual.camera_follow(self._char, 2, 0, 0)
+      self._visual = HumanoidKinNoVis(self._skeleton, self._model)
+      self._char = self._visual.add_character("mocap")
 
       self._pybullet_client = self._visual._pybullet_client
-      self._play_speed = self._pybullet_client.addUserDebugParameter("play_speed", 0, 2, 1.0)
-      self._phase_ctrl = self._pybullet_client.addUserDebugParameter("frame", 0, 1, 0)
+
 
 
     def reset(self, phase=None):
@@ -86,12 +97,10 @@ class VisMocapEnv():
       if self.enable_draw:
         self.synchronize_sim_char()
         self._prev_clock = time.time()
-        self._visual.camera_follow(self._char)
 
     def step(self):
-      speed = self._pybullet_client.readUserDebugParameter(self._play_speed)
-      phase = self._pybullet_client.readUserDebugParameter(self._phase_ctrl)
-      #phase /= self._mocap.num_frames
+      speed = 1.0
+      phase = 0
       
       if (self.start_phase != phase):
         self.reset(phase)
@@ -107,12 +116,6 @@ class VisMocapEnv():
     def update(self, timeStep, speed):
       self.wait_till_timestep(VIS_STEP)
       self.synchronize_sim_char()
-      if self.follow_character:
-        self._visual.camera_follow(self._char)
-        #cnt, pos = self._mocap.get_com_pos(self.t, True)
-        #pos += cnt * self._mocap._cyc_offset
-        #pos[1] = 1
-        #self._visual.camera_follow(self._char, None, None, None, pos)
 
       self.t += timeStep * speed
 
@@ -199,18 +202,21 @@ class VisMocapEnv():
       return pose, vel, links_pos, links_orn, vel_dict
 
 
-def show_mocap(mocap_file, model, extract_lma=False):
-  env = VisMocapEnv(mocap_file, None, model)
-  #env._mocap.show_com()
+def extract_features(mocap_file, output_file, model, emotion):
+  env = LMAMocapEnv(mocap_file, None, model)
+
   env.reset()
-  if(extract_lma):
-    lma_extractor = LMAExtractor(env, "test_lma_extractor_kin.txt", append_to_file=True)
+
+  lma_extractor = LMAExtractor(env, append_to_file=False, outfile=output_file, label=emotion ,ignore_first=True)
 
   while True:
     # LMA Features
-
-    if(extract_lma and not env.has_looped):
+    if(not env.has_looped):
       lma_extractor.record_frame()
+    else:
+      # We reached the end of the mocap so we can stop recording
+      lma_extractor.write_lma_features()
+      break
 
     env.step()
 
@@ -218,9 +224,18 @@ def show_mocap(mocap_file, model, extract_lma=False):
 if __name__=="__main__":
   import argparse
   parser = argparse.ArgumentParser()
-  parser.add_argument("--mocap", type=str, default='data/motions/humanoid3d_jump.txt', help="task to perform")
   parser.add_argument("--model", type=str, default='humanoid3d', help="model")
-  parser.add_argument("--lma",default=False, action="store_true")
   args = parser.parse_args()
 
-  show_mocap(args.mocap, args.model, args.lma)
+  for filename in os.listdir(input_directory):
+    f = os.path.join(input_directory, filename)
+    if os.path.isfile(f):
+        print(f)
+
+        emotion = filename.split("_")[0]
+
+        o = os.path.join(output_directory, filename)
+        if(os.path.exists(o)): # To avoid repeats/allow to stop and resume mass extractions
+            continue
+
+        extract_features(f, o, args.model, emotion)
