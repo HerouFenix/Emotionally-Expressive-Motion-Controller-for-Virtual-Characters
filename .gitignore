@@ -4,6 +4,7 @@ build
 __pycache__
 KinematicCore.py
 mocap_converter/bvh_data/kin_emotions
+mocap_converter/bvh_data/kin_emotions_full
 mocap_converter/deepmimic_data/kin
 mocap_converter/settings/dance_scales
 
