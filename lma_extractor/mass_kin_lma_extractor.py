@@ -2,7 +2,7 @@ import sys
 import os
 current = os.path.dirname(os.path.realpath(__file__))
 parent = os.path.dirname(current)
-print(parent)
+
 sys.path.append(parent)
 sys.path.append(os.path.join(parent, "motion_learning"))
 
@@ -230,7 +230,7 @@ if __name__=="__main__":
   for filename in os.listdir(input_directory):
     f = os.path.join(input_directory, filename)
     if os.path.isfile(f):
-        print(f)
+        print("New File: " + f + "\n")
 
         emotion = filename.split("_")[0]
 
@@ -239,3 +239,5 @@ if __name__=="__main__":
             continue
 
         extract_features(f, o, args.model, emotion)
+
+        print("============================================\n")

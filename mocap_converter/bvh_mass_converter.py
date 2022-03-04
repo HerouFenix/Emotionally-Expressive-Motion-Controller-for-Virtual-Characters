@@ -20,6 +20,18 @@ kin_conv_dict = {"A": "angry", "D": "disgusted", "F": "afraid", "H": "happy", "N
 kin_count = {"A": 0, "D": 0, "F": 0, "H": 0, "N": 0, "S": 0}
  
 
+meta_file_path = "deepmimic_data/META.txt"
+files = []
+
+
+# Read  META File
+with open(meta_file_path, 'r') as r:
+    for file in r.readlines():
+        files.append(file.replace("\n",""))
+
+# Overwrite META File
+meta_file = open(meta_file_path, "a")
+
 # Walk
 for filename in os.listdir(walk_directory):
     f = os.path.join(walk_directory, filename)
@@ -33,9 +45,11 @@ for filename in os.listdir(walk_directory):
         converter = BvhConverter(walk_settings)
 
         o = os.path.join(walk_output, filename.replace(".bvh", ".txt"))
-        if(os.path.exists(o)):
+
+        if(os.path.exists(o) or o in files):
             continue
 
+        meta_file.write(o + "\n")
         converter.writeDeepMimicFile(f, o)
 
 
@@ -52,9 +66,11 @@ for filename in os.listdir(dance_directory):
         converter = BvhConverter(dance_settings)
 
         o = os.path.join(dance_output, filename.replace(".bvh", ".txt"))
-        if(os.path.exists(o)):
+
+        if(os.path.exists(o) or o in files):
             continue
         
+        meta_file.write(o + "\n")
         converter.writeDeepMimicFile(f, o)
 
 # Kin
@@ -77,7 +93,11 @@ for child_directory in os.listdir(kin_directory):
             converter = BvhConverter(kin_settings)
 
             o = os.path.join(kin_output, output_filename)
-            if(os.path.exists(o)):
+
+            if(os.path.exists(o) or o in files):
                 continue
             
+            meta_file.write(o + "\n")
             converter.writeDeepMimicFile(f, o)
+
+meta_file.close()
