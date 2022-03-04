@@ -1,6 +1,8 @@
 from bvhtomimic import BvhConverter
 import os
 
+import shutil
+
 # This script converts all BVH files in the dance_emotions, kin_emotions and walk_emotions directories into the Deepmimic
 # friendly format
 
@@ -99,5 +101,7 @@ for child_directory in os.listdir(kin_directory):
             
             meta_file.write(o + "\n")
             converter.writeDeepMimicFile(f, o)
+
+            shutil.copyfile(o, os.path.join("../lma_extractor/lma_features", output_filename)) ## Feed directly into lma_extractor
 
 meta_file.close()
