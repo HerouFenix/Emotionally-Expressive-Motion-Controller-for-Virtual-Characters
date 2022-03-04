@@ -25,7 +25,15 @@ input_directory = 'mocap_data'
 
 output_directory = 'lma_features'
 
+e_meta_file_path = "EMOTIONS_META.txt"
+f_meta_file_path = "FILES_META.txt"
 
+files = []
+
+# Read  META File
+with open(f_meta_file_path, 'r') as r:
+    for file in r.readlines():
+        files.append(file.replace("\n",""))
 
   
 from lma_extractor import LMAExtractor
@@ -227,6 +235,10 @@ if __name__=="__main__":
   parser.add_argument("--model", type=str, default='humanoid3d', help="model")
   args = parser.parse_args()
 
+  # Overwrite META File
+  f_meta_file = open(f_meta_file_path, "a")
+  e_meta_file = open(e_meta_file_path, "a")
+
   for filename in os.listdir(input_directory):
     f = os.path.join(input_directory, filename)
     if os.path.isfile(f):
@@ -235,9 +247,16 @@ if __name__=="__main__":
         emotion = filename.split("_")[0]
 
         o = os.path.join(output_directory, filename)
-        if(os.path.exists(o)): # To avoid repeats/allow to stop and resume mass extractions
+
+        if(os.path.exists(o) or o in files): # To avoid repeats/allow to stop and resume mass extractions
             continue
+
+        f_meta_file.write(o + "\n")
+        e_meta_file.write(emotion + "\n")
 
         extract_features(f, o, args.model, emotion)
 
         print("============================================\n")
+
+  f_meta_file.close()
+  e_meta_file.close()
