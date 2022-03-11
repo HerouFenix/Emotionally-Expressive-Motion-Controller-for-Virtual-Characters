@@ -8,6 +8,7 @@ import shutil
 
 walk_directory = 'bvh_data/walk_emotions'
 dance_directory = 'bvh_data/dance_emotions'
+dance_directory2 = 'bvh_data/dance_emotions_extra'
 kin_directory = 'bvh_data/kin_emotions'
 
 walk_settings = 'settings/walk_settings.json'
@@ -16,13 +17,14 @@ kin_settings = 'settings/kin_settings.json'
 
 walk_output = 'deepmimic_data/walk'
 dance_output = 'deepmimic_data/dance'
+dance_output2 = 'deepmimic_data/dance_extra'
 kin_output = 'deepmimic_data/kin'
 
 kin_conv_dict = {"A": "angry", "D": "disgusted", "F": "afraid", "H": "happy", "N": "neutral", "S": "sad"}
 kin_count = {"A": 0, "D": 0, "F": 0, "H": 0, "N": 0, "S": 0}
  
 
-meta_file_path = "deepmimic_data/META.txt"
+meta_file_path = "deepmimic_data/META_EXTRA.txt"
 files = []
 
 
@@ -103,5 +105,28 @@ for child_directory in os.listdir(kin_directory):
             converter.writeDeepMimicFile(f, o)
 
             shutil.copyfile(o, os.path.join("../lma_extractor/lma_features", output_filename)) ## Feed directly into lma_extractor
+
+# Dance 2
+for filename in os.listdir(dance_directory2):
+    f = os.path.join(dance_directory2, filename)
+    if os.path.isfile(f):
+        print(f)
+
+        # File args: emotion, index, type
+        #file_args = filename.split("_")
+        #file_args[2] = file_args[2].split(".")[0]
+
+        converter = BvhConverter(dance_settings)
+
+        o = os.path.join(dance_output2, filename.replace(".bvh", ".txt"))
+
+        if(os.path.exists(o) or o in files):
+            continue
+        
+        meta_file.write(o + "\n")
+        converter.writeDeepMimicFile(f, o)
+
+        shutil.copyfile(o, os.path.join("../lma_extractor/mocap_data", filename.replace(".bvh", ".txt"))) ## Feed directly into lma_extractor
+
 
 meta_file.close()

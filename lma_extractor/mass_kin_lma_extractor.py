@@ -25,8 +25,8 @@ input_directory = 'mocap_data'
 
 output_directory = 'lma_features'
 
-e_meta_file_path = "EMOTIONS_META.txt"
-f_meta_file_path = "FILES_META.txt"
+e_meta_file_path = "EMOTIONS_META_EXTRA.txt"
+f_meta_file_path = "FILES_META_EXTRA.txt"
 
 files = []
 
