@@ -23,10 +23,10 @@ import time
 
 input_directory = 'mocap_data'
 
-output_directory = 'lma_features'
+output_directory = 'lma_features_60'
 
-e_meta_file_path = "EMOTIONS_META_EXTRA.txt"
-f_meta_file_path = "FILES_META_EXTRA.txt"
+e_meta_file_path = "EMOTIONS_META_60.txt"
+f_meta_file_path = "FILES_META_60.txt"
 
 files = []
 
@@ -215,7 +215,7 @@ def extract_features(mocap_file, output_file, model, emotion):
 
   env.reset()
 
-  lma_extractor = LMAExtractor(env, append_to_file=False, outfile=output_file, label=emotion ,ignore_first=True)
+  lma_extractor = LMAExtractor(env, append_to_file=False, outfile=output_file, label=emotion ,ignore_first=True, pool_rate=60)
 
   while True:
     # LMA Features

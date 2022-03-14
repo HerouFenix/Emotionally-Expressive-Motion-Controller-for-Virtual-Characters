@@ -31,7 +31,7 @@ class LMAExtractor():
 
         pose = [i for i in sim_pose]
         
-        timestep = 1 / 30
+        timestep = 1 / 30 # Assuming all our animations run at 30 fps which is wrong. But since we don't ever use this it doesnt really matter
         pose.insert(0, timestep)
 
         # Frame Data format: 

@@ -16,6 +16,8 @@ parent = os.path.dirname(current)
 sys.path.append(parent)
   
 from lma_extractor import LMAExtractor
+from emotion_classifier import EmotionClassifier
+
 
 ###
 ACT_STEPTIME  = 1./30.
@@ -199,18 +201,26 @@ class VisMocapEnv():
       return pose, vel, links_pos, links_orn, vel_dict
 
 
-def show_mocap(mocap_file, model, extract_lma=False):
+def show_mocap(mocap_file, model, record_lma='', predict_emotion=True):
   env = VisMocapEnv(mocap_file, None, model)
   #env._mocap.show_com()
   env.reset()
-  if(extract_lma):
-    lma_extractor = LMAExtractor(env, "test_lma_extractor_kin.txt", append_to_file=True)
+  if(record_lma != ""):
+    lma_extractor = LMAExtractor(env, record_lma, append_to_file=True)
+  else:
+    lma_extractor = LMAExtractor(env, append_to_file=False, label="NONE")
+
+  if(predict_emotion):
+    emotion_predictor = EmotionClassifier()
 
   while True:
     # LMA Features
 
-    if(extract_lma and not env.has_looped):
+    if(not env.has_looped):
       lma_extractor.record_frame()
+    else:
+      print(emotion_predictor.predict_emotion_coordinates(lma_extractor.get_lma_features()))
+      break
 
     env.step()
 
@@ -220,7 +230,10 @@ if __name__=="__main__":
   parser = argparse.ArgumentParser()
   parser.add_argument("--mocap", type=str, default='data/motions/humanoid3d_jump.txt', help="task to perform")
   parser.add_argument("--model", type=str, default='humanoid3d', help="model")
-  parser.add_argument("--lma",default=False, action="store_true")
+  parser.add_argument("--record_lma",default='', action="store_true", help="specify a file name if you want to store the lma features on a file")
+
+  parser.add_argument("--predict_emotion",default=True, action="store_true" , help="specify whether you want to output the predicted emotional coordinates")
+
   args = parser.parse_args()
 
-  show_mocap(args.mocap, args.model, args.lma)
+  show_mocap(args.mocap, args.model, args.record_lma, args.predict_emotion)
