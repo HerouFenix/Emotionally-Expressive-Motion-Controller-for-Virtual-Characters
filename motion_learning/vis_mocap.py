@@ -219,9 +219,18 @@ def show_mocap(mocap_file, model, record_lma='', predict_emotion=True):
     if(not env.has_looped):
       lma_extractor.record_frame()
     else:
-      print(emotion_predictor.predict_emotion_coordinates(lma_extractor.get_lma_features()))
+      if(len(lma_extractor.get_lma_features()) >= 1):
+        print(emotion_predictor.predict_emotion_coordinates(lma_extractor.get_lma_features()))
+        lma_extractor.clear()
+
+      print(emotion_predictor.predict_final_emotion())
       break
 
+    # Every 5 LMA features, run predictor
+    if(len(lma_extractor.get_lma_features()) >= 10):
+      print(emotion_predictor.predict_emotion_coordinates(lma_extractor.get_lma_features()))
+      lma_extractor.clear()
+    
     env.step()
 
 

@@ -10,6 +10,8 @@ parent = os.path.dirname(current)
 sys.path.append(parent)
   
 from lma_extractor import LMAExtractor
+from emotion_classifier import EmotionClassifier
+
 
 
 def write_mocap(outfile, start_phase, frames):
@@ -44,7 +46,7 @@ def write_link_data(outfile, link_data):
       wh.write("  " + str(link_data[link]) + "\n")
     wh.write("----------")
 
-def test_model(env, model, select_set=None, record=False, random=True, extract_lma = False):
+def test_model(env, model, select_set=None, record=False, random=True, record_lma='', predict_emotion=True):
   env.set_mode(1)
   #env.set_task_t(20)
 
@@ -87,7 +89,14 @@ def test_model(env, model, select_set=None, record=False, random=True, extract_l
   done = False
   start_time = time.time()
 
-  lma_extractor = LMAExtractor(env._engine, "test_lma_extractor.txt", append_to_file=True)
+  if(record_lma != ""):
+    lma_extractor = LMAExtractor(env._engine, record_lma,pool_rate = 15, append_to_file=True)
+  else:
+    lma_extractor = LMAExtractor(env._engine, append_to_file=False, pool_rate = 15, label="NONE")
+
+  if(predict_emotion):
+    emotion_predictor = EmotionClassifier()
+
   has_reset = False
   
   while True:    
@@ -99,8 +108,21 @@ def test_model(env, model, select_set=None, record=False, random=True, extract_l
     kin_frames.append(kin_pose)
 
     # LMA Features
-    if(extract_lma and not has_reset):
+    if(not has_reset):
       lma_extractor.record_frame()
+    else:
+      if(len(lma_extractor.get_lma_features()) >= 1):
+        print(emotion_predictor.predict_emotion_coordinates(lma_extractor.get_lma_features()))
+        lma_extractor.clear()
+
+      print(emotion_predictor.predict_final_emotion())
+      emotion_predictor.clear()
+      has_reset = False
+
+    # Every 5 LMA features, run predictor
+    if(len(lma_extractor.get_lma_features()) >= 5):
+      print(emotion_predictor.predict_emotion_coordinates(lma_extractor.get_lma_features()))
+      lma_extractor.clear()
 
     dnn_timer.start()
     with torch.no_grad():
@@ -127,7 +149,7 @@ def test_model(env, model, select_set=None, record=False, random=True, extract_l
     step_num += 1
     acc_rwd += rwd
 
-    print(rwd)
+    #print(rwd)
 
     if done:
 
@@ -212,7 +234,9 @@ if __name__=="__main__":
   parser.add_argument("--record", action="store_true")
   parser.add_argument("--random", action="store_true")
 
-  parser.add_argument("--lma", action="store_true")
+  parser.add_argument("--record_lma",default='', action="store_true", help="specify a file name if you want to store the lma features on a file")
+  parser.add_argument("--predict_emotion",default=True, action="store_true" , help="specify whether you want to output the predicted emotional coordinates")
+
   args = parser.parse_args()
 
   # load env
@@ -242,4 +266,4 @@ if __name__=="__main__":
     select_set = data["select_set"]
   else:
     select_set = None
-  test_model(test_env, model, select_set, args.record, args.random, args.lma)
+  test_model(test_env, model, select_set, args.record, args.random, args.record_lma, args.predict_emotion)

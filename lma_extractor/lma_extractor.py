@@ -100,6 +100,10 @@ class LMAExtractor():
         self._currentData = []
         self._frame_counter = 0
 
+    def clear(self):
+        self._lma_features = []
+        self._currentData = []
+
     def _compute_LMA_features(self):
         # LMA Data format: 
         #   {
