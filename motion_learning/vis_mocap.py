@@ -227,7 +227,7 @@ def show_mocap(mocap_file, model, record_lma='', predict_emotion=True):
       break
 
     # Every 5 LMA features, run predictor
-    if(len(lma_extractor.get_lma_features()) >= 10):
+    if(len(lma_extractor.get_lma_features()) >= 5):
       print(emotion_predictor.predict_emotion_coordinates(lma_extractor.get_lma_features()))
       lma_extractor.clear()
     
