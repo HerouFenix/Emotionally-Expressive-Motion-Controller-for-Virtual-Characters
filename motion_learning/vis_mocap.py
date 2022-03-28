@@ -1,3 +1,4 @@
+from concurrent.futures import process
 import numpy as np
 import math
 from utils import bullet_client
@@ -5,6 +6,9 @@ from utils.humanoid_kin import HumanoidSkeleton
 from utils.humanoid_mocap import HumanoidMocap
 from utils.humanoid_vis import HumanoidVis
 import pybullet as p1
+
+from multiprocessing import Process
+import threading
 
 #from IPython import embed
 import time
@@ -213,22 +217,33 @@ def show_mocap(mocap_file, model, record_lma='', predict_emotion=True):
   if(predict_emotion):
     emotion_predictor = EmotionClassifier()
 
+  processes = []
+
   while True:
     # LMA Features
 
     if(not env.has_looped):
       lma_extractor.record_frame()
     else:
-      if(len(lma_extractor.get_lma_features()) >= 1):
-        print(emotion_predictor.predict_emotion_coordinates(lma_extractor.get_lma_features()))
-        lma_extractor.clear()
+      # Wait for all child processes to be done before computing the final coordinates
+      for p in processes:
+        p.join()
 
-      print(emotion_predictor.predict_final_emotion())
+      lma_extractor.clear()
+      processes = []
+
+      emotion_predictor.predict_final_emotion()
+      emotion_predictor.clear()
       break
 
-    # Every 5 LMA features, run predictor
-    if(len(lma_extractor.get_lma_features()) >= 5):
-      print(emotion_predictor.predict_emotion_coordinates(lma_extractor.get_lma_features()))
+    # Every 10 LMA features, run predictor
+    if(len(lma_extractor.get_lma_features()) >= 10):
+      
+      new_process = threading.Thread(target=emotion_predictor.predict_emotion_coordinates, args=(lma_extractor.get_lma_features(),))
+      #new_process = Process(target=emotion_predictor.predict_emotion_coordinates, args=(lma_extractor.get_lma_features(),))
+      processes.append(new_process)
+      new_process.start()
+
       lma_extractor.clear()
     
     env.step()

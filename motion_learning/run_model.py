@@ -1,6 +1,9 @@
 import numpy as np
 import time
 
+from multiprocessing import Process
+import threading
+
 
 ## TODO: see if theres a better way to do this import
 import sys
@@ -97,6 +100,8 @@ def test_model(env, model, select_set=None, record=False, random=True, record_lm
   if(predict_emotion):
     emotion_predictor = EmotionClassifier()
 
+  processes = []
+
   has_reset = False
   
   while True:    
@@ -111,17 +116,25 @@ def test_model(env, model, select_set=None, record=False, random=True, record_lm
     if(not has_reset):
       lma_extractor.record_frame()
     else:
-      if(len(lma_extractor.get_lma_features()) >= 1):
-        print(emotion_predictor.predict_emotion_coordinates(lma_extractor.get_lma_features()))
-        lma_extractor.clear()
+      # Wait for all child processes to be done before computing the final coordinates
+      for p in processes:
+        p.join()
 
-      print(emotion_predictor.predict_final_emotion())
+      lma_extractor.clear()
+      processes = []
+
+      emotion_predictor.predict_final_emotion()
+      
       emotion_predictor.clear()
       has_reset = False
 
     # Every 5 LMA features, run predictor
     if(len(lma_extractor.get_lma_features()) >= 5):
-      print(emotion_predictor.predict_emotion_coordinates(lma_extractor.get_lma_features()))
+      new_process = threading.Thread(target=emotion_predictor.predict_emotion_coordinates, args=(lma_extractor.get_lma_features(),))
+      #new_process = Process(target=emotion_predictor.predict_emotion_coordinates, args=(lma_extractor.get_lma_features(),))
+      processes.append(new_process)
+      new_process.start()
+
       lma_extractor.clear()
 
     dnn_timer.start()

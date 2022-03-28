@@ -73,13 +73,14 @@ class EmotionClassifier():
 
 
         # Normalize data
-        rows = self.normalizer.transform(rows)
-
         df = pd.DataFrame(rows, columns=['avg_hand_distance', 'avg_l_hand_hip_distance', 'avg_r_hand_hip_distance', 'avg_feet_distance', 'avg_l_hand_chest_distance', 'avg_r_hand_chest_distance', 'avg_l_elbow_hip_distance', 'avg_r_elbow_hip_distance', 'avg_chest_pelvis_distance', 'avg_neck_chest_distance', 'avg_neck_rotation_w', 'avg_neck_rotation_x', 'avg_neck_rotation_y', 'avg_neck_rotation_z',
          'avg_pelvis_rotation_w', 'avg_pelvis_rotation_x', 'avg_pelvis_rotation_y', 'avg_pelvis_rotation_z', 'std_l_hand_position', 'std_r_hand_position', 'avg_l_forearm_velocity', 
          'avg_r_forearm_velocity', 'avg_pelvis_velocity_x', 'avg_pelvis_velocity_y', 'avg_pelvis_velocity_z', 'avg_l_foot_velocity_x', 
          'avg_l_foot_velocity_y', 'avg_l_foot_velocity_z', 'avg_r_foot_velocity_x', 'avg_r_foot_velocity_y', 'avg_r_foot_velocity_z', 'avg_upper_body_volume', 
          'avg_distance_traveled'])
+        
+        df = self.normalizer.transform(df)
+
 
         y_p = self._model_p.predict(df)
         y_a = self._model_a.predict(df)
@@ -128,6 +129,8 @@ class EmotionClassifier():
         self.a_predictions.append(self.predicted_a)
         self.d_predictions.append(self.predicted_d)
 
+        print((self.predicted_p, self.predicted_a, self.predicted_d))
+
         return (self.predicted_p, self.predicted_a, self.predicted_d)
 
     def predict_final_emotion(self):
@@ -153,6 +156,8 @@ class EmotionClassifier():
         else:
             self.predicted_d = sum(self.d_predictions)/len(self.d_predictions)
 
+
+        print((self.predicted_p, self.predicted_a, self.predicted_d))
         return (self.predicted_p, self.predicted_a, self.predicted_d)
 
     def clear(self):
