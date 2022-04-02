@@ -143,7 +143,7 @@ class EmotionClassifier():
         max_a_i = self.a_predictions.index(largest_a)
         
         largest_d = max(self.d_predictions, key=abs)
-        max_d_i = self.d_predictions.index(largest_d))
+        max_d_i = self.d_predictions.index(largest_d)
 
         # Get # pos and neg
         p_neg_count = len(list(filter(lambda x: (x < 0), self.p_predictions)))
@@ -158,19 +158,19 @@ class EmotionClassifier():
 
         if((p_pos_count > p_neg_count and largest_p > 0) or (p_neg_count > p_pos_count and largest_p < 0)):
             self.p_predictions.pop(max_p_i)
-            self.predicted_p = (sum(self.p_predictions)/len(self.p_predictions)) * 0.5 + largest_p * 0.5
+            self.predicted_p = (sum(self.p_predictions)/len(self.p_predictions)) * 0.2 + largest_p * 0.8
         else:
             self.predicted_p = sum(self.p_predictions)/len(self.p_predictions)
 
         if((a_pos_count > a_neg_count and largest_a > 0) or (a_neg_count > a_pos_count and largest_a < 0)):
             self.a_predictions.pop(max_a_i)
-            self.predicted_a = (sum(self.a_predictions)/len(self.a_predictions)) * 0.5 + largest_a * 0.5
+            self.predicted_a = (sum(self.a_predictions)/len(self.a_predictions)) * 0.2 + largest_a * 0.8
         else:
             self.predicted_a = sum(self.a_predictions)/len(self.a_predictions)
 
         if((d_pos_count > d_neg_count and largest_d > 0) or (d_neg_count > d_pos_count and largest_d < 0)):
             self.d_predictions.pop(max_d_i)
-            self.predicted_d = (sum(self.d_predictions)/len(self.d_predictions)) * 0.5 + largest_d * 0.5
+            self.predicted_d = (sum(self.d_predictions)/len(self.d_predictions)) * 0.2 + largest_d * 0.8
         else:
             self.predicted_d = sum(self.d_predictions)/len(self.d_predictions)
 
