@@ -93,9 +93,9 @@ def test_model(env, model, select_set=None, record=False, random=True, record_lm
   start_time = time.time()
 
   if(record_lma != ""):
-    lma_extractor = LMAExtractor(env._engine, record_lma,pool_rate = 15, append_to_file=True)
+    lma_extractor = LMAExtractor(env._engine, record_lma, append_to_file=True)
   else:
-    lma_extractor = LMAExtractor(env._engine, append_to_file=False, pool_rate = 15, label="NONE")
+    lma_extractor = LMAExtractor(env._engine, append_to_file=False, label="NONE")
 
   if(predict_emotion):
     emotion_predictor = EmotionClassifier()

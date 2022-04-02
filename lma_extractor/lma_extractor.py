@@ -2,8 +2,6 @@ import numpy as np
 import math
 import os.path
 
-from sympy import fps, sec, true
-
 class LMAExtractor():
     def __init__(self, engine, outfile = "lma_features", append_to_file=False, pool_rate = 1, label=(0,0,0), ignore_amount = 0, round_values=False):
         self._engine = engine
