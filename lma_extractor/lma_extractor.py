@@ -1,10 +1,19 @@
 import numpy as np
+import math
 import os.path
 
+from sympy import fps, sec, true
+
 class LMAExtractor():
-    def __init__(self, engine, outfile = "lma_features", append_to_file=False, pool_rate = 30, label=(0,0,0), ignore_amount = 0, round_values=False):
+    def __init__(self, engine, outfile = "lma_features", append_to_file=False, pool_rate = 1, label=(0,0,0), ignore_amount = 0, round_values=False):
         self._engine = engine
-        self._pooling_rate = pool_rate
+
+        self._frame_duration = self._engine._mocap._durations[0]
+        self._fps = 1/self._frame_duration
+
+        self._time_between_recordings = pool_rate
+        self._pooling_rate = math.floor(self._fps * pool_rate) # Pooling rate defined as seconds (0.5 = we want to get LMA features every 0.5 seconds)
+
         self._frame_counter = 0
 
         self._outfile = outfile
@@ -24,15 +33,15 @@ class LMAExtractor():
 
         self._round_values = round_values
 
+        self._last_velocities = [(0,0,0), (0,0,0), (0,0,0), (0,0,0), (0,0,0)] # Used when computing accelerations (l_hand, r_hand, l_foot, r_foot, neck)
+        self._last_accelerations = [(0,0,0), (0,0,0), (0,0,0), (0,0,0), (0,0,0)] # Used when computing accelerations (l_hand, r_hand, l_foot, r_foot, neck)
+
     def record_frame(self):
         sim_pose, sim_vel, link_pos, link_orn, vel_dict = self._engine.get_pose_and_links()
 
-        new_frame_data = {}
-
         pose = [i for i in sim_pose]
-        
-        timestep = 1 / 30 # Assuming all our animations run at 30 fps which is wrong. But since we don't ever use this it doesnt really matter
-        pose.insert(0, timestep)
+
+        new_frame_data = {}
 
         # Frame Data format: 
         #   {
@@ -72,12 +81,13 @@ class LMAExtractor():
 
         if(self._frame_counter % self._pooling_rate == 0 and self._frame_counter != 0):
 
-            if(self._number_ignored < self._ignore_amount): # If we want to ignore the first X set of frames
+            current_lma_features = self._compute_LMA_features()
+
+            if(self._number_ignored < self._ignore_amount): # If we want to ignore the first X set of frames, then compute the current lma features (to get last velocities and accelerations and stuff), but dont append to lma feature array
                 self._number_ignored += self._pooling_rate
                 self._currentData = []
                 return False, []
 
-            current_lma_features = self._compute_LMA_features()
             self._currentData = []
 
             self._lma_features.append(current_lma_features)
@@ -103,6 +113,7 @@ class LMAExtractor():
     def clear(self):
         self._lma_features = []
         self._currentData = []
+        self._first = True
 
     def _compute_LMA_features(self):
         # LMA Data format: 
@@ -179,11 +190,6 @@ class LMAExtractor():
         r_foot_positions = []
         neck_positions = []
 
-        l_foot_velocities = []
-        r_foot_velocities = []
-        neck_velocities = []
-
-
         for data in self._currentData:
             # == POSITIONAL FEATURES ==
 
@@ -251,45 +257,42 @@ class LMAExtractor():
 
             ## Neck Position (for speed)
             neck_positions.append(data["neck"][0])
-            
-            ## Left Foot Velocity
-            l_foot_velocities.append(data["left_ankle"][2])
-
-            ## Right Foot Velocity
-            r_foot_velocities.append(data["right_ankle"][2])
-
-            ## Neck Velocity
-            neck_velocities.append(data["neck"][2])
 
 
         # Compute averages and stuff
-        l_hand_velocities = self._compute_velocities_from_positions(l_hand_positions, data["frame"][0]) # TODO: Check that this is correct. Somewhy some of the computed values are SUPER high
-        r_hand_velocities = self._compute_velocities_from_positions(r_hand_positions, data["frame"][0]) # TODO: Check that this is correct. Somewhy some of the computed values are SUPER high
+        l_hand_velocity = self._compute_velocities_from_positions(l_hand_positions) 
+        r_hand_velocity = self._compute_velocities_from_positions(r_hand_positions) 
+        l_foot_velocity = self._compute_velocities_from_positions(l_foot_positions) 
+        r_foot_velocity = self._compute_velocities_from_positions(r_foot_positions) 
+        neck_velocity = self._compute_velocities_from_positions(neck_positions) 
 
-        l_hand_accelerations = self._compute_accelerations_from_velocities(l_hand_velocities, data["frame"][0])
-        r_hand_accelerations = self._compute_accelerations_from_velocities(r_hand_velocities, data["frame"][0])
-        l_foot_accelerations = self._compute_accelerations_from_velocities(l_foot_velocities, data["frame"][0])
-        r_foot_accelerations = self._compute_accelerations_from_velocities(r_foot_velocities, data["frame"][0])
-        neck_accelerations = self._compute_accelerations_from_velocities(neck_velocities, data["frame"][0])
+        l_hand_acceleration = self._compute_accelerations_from_velocities(l_hand_velocity, self._last_velocities[0])
+        r_hand_acceleration = self._compute_accelerations_from_velocities(r_hand_velocity, self._last_velocities[1])
+        l_foot_acceleration = self._compute_accelerations_from_velocities(l_foot_velocity, self._last_velocities[2])
+        r_foot_acceleration = self._compute_accelerations_from_velocities(r_foot_velocity, self._last_velocities[3])
+        neck_acceleration = self._compute_accelerations_from_velocities(neck_velocity, self._last_velocities[4])
 
-        l_hand_accelerations_magn = [np.linalg.norm(np.array(accel)) for accel in l_hand_accelerations]
-        r_hand_accelerations_magn = [np.linalg.norm(np.array(accel)) for accel in r_hand_accelerations]
-        l_foot_accelerations_magn = [np.linalg.norm(np.array(accel)) for accel in l_foot_accelerations]
-        r_foot_accelerations_magn = [np.linalg.norm(np.array(accel)) for accel in r_foot_accelerations]
-        neck_accelerations_magn = [np.linalg.norm(np.array(accel)) for accel in neck_accelerations]
+        l_hand_acceleration_magn = np.linalg.norm(np.array(l_hand_acceleration))
+        r_hand_acceleration_magn = np.linalg.norm(np.array(r_hand_acceleration))
+        l_foot_acceleration_magn = np.linalg.norm(np.array(l_foot_acceleration))
+        r_foot_acceleration_magn = np.linalg.norm(np.array(r_foot_acceleration))
+        neck_acceleration_magn = np.linalg.norm(np.array(neck_acceleration))
 
-        l_hand_speed = self._compute_speed_from_positions(l_hand_positions, data["frame"][0])
-        r_hand_speed = self._compute_speed_from_positions(r_hand_positions, data["frame"][0])
-        l_foot_speed = self._compute_speed_from_positions(l_foot_positions, data["frame"][0])
-        r_foot_speed = self._compute_speed_from_positions(r_foot_positions, data["frame"][0])
-        neck_speed = self._compute_speed_from_positions(neck_positions, data["frame"][0])
+        l_hand_speed = self._compute_speed_from_positions(l_hand_positions)
+        r_hand_speed = self._compute_speed_from_positions(r_hand_positions)
+        l_foot_speed = self._compute_speed_from_positions(l_foot_positions)
+        r_foot_speed = self._compute_speed_from_positions(r_foot_positions)
+        neck_speed = self._compute_speed_from_positions(neck_positions)
 
-        l_hand_jerks = self._compute_jerk_from_accelerations(l_hand_accelerations, data["frame"][0])
-        r_hand_jerks = self._compute_jerk_from_accelerations(r_hand_accelerations, data["frame"][0])
-        l_foot_jerks = self._compute_jerk_from_accelerations(l_foot_accelerations, data["frame"][0])
-        r_foot_jerks = self._compute_jerk_from_accelerations(r_foot_accelerations, data["frame"][0])
-        neck_jerks = self._compute_jerk_from_accelerations(neck_accelerations, data["frame"][0])
-        
+        l_hand_jerk = self._compute_jerk_from_accelerations(l_hand_acceleration, self._last_accelerations[0])
+        r_hand_jerk = self._compute_jerk_from_accelerations(r_hand_acceleration, self._last_accelerations[1])
+        l_foot_jerk = self._compute_jerk_from_accelerations(l_foot_acceleration, self._last_accelerations[2])
+        r_foot_jerk = self._compute_jerk_from_accelerations(r_foot_acceleration, self._last_accelerations[3])
+        neck_jerk = self._compute_jerk_from_accelerations(neck_acceleration, self._last_accelerations[4])
+
+        # Update Last Velocities
+        self._last_velocities = [l_hand_velocity, r_hand_velocity, l_foot_velocity, r_foot_velocity, neck_velocity]
+        self._last_accelerations = [l_hand_acceleration, r_hand_acceleration, l_foot_acceleration, r_foot_acceleration, neck_acceleration]
 
         ## == POSITION FEATURES ==
         lma_features.append(self._compute_max_distance(hand_distances))
@@ -313,26 +316,26 @@ class LMAExtractor():
 
         ## == MOVEMENT FEATURES ==
         # Speed
-        lma_features.append(self._compute_average_distance(l_hand_speed))
-        lma_features.append(self._compute_average_distance(r_hand_speed))
-        lma_features.append(self._compute_average_distance(l_foot_speed))
-        lma_features.append(self._compute_average_distance(r_foot_speed))
-        lma_features.append(self._compute_average_distance(neck_speed))
+        lma_features.append(l_hand_speed)
+        lma_features.append(r_hand_speed)
+        lma_features.append(l_foot_speed)
+        lma_features.append(r_foot_speed)
+        lma_features.append(neck_speed)
 
 
         # Acceleration Magnitude
-        lma_features.append(self._compute_average_distance(l_hand_accelerations_magn))
-        lma_features.append(self._compute_average_distance(r_hand_accelerations_magn))
-        lma_features.append(self._compute_average_distance(l_foot_accelerations_magn))
-        lma_features.append(self._compute_average_distance(r_foot_accelerations_magn))
-        lma_features.append(self._compute_average_distance(neck_accelerations_magn))
+        lma_features.append(l_hand_acceleration_magn)
+        lma_features.append(r_hand_acceleration_magn)
+        lma_features.append(l_foot_acceleration_magn)
+        lma_features.append(r_foot_acceleration_magn)
+        lma_features.append(neck_acceleration_magn)
 
         # Movement Jerk
-        lma_features.append(self._compute_average_rotation(l_hand_jerks))
-        lma_features.append(self._compute_average_rotation(r_hand_jerks))
-        lma_features.append(self._compute_average_rotation(l_foot_jerks))
-        lma_features.append(self._compute_average_rotation(r_foot_jerks))
-        lma_features.append(self._compute_average_rotation(neck_jerks))
+        lma_features.append(l_hand_jerk)
+        lma_features.append(r_hand_jerk)
+        lma_features.append(l_foot_jerk)
+        lma_features.append(r_foot_jerk)
+        lma_features.append(neck_jerk)
 
 
         if(self._round_values):
@@ -431,50 +434,34 @@ class LMAExtractor():
     def _compute_max_distance(self, distances):
         return max(distances)
 
-    def _compute_velocities_from_positions(self, positions, frame_duration):
-        velocities = []
-        for i in range(1, len(positions)):
-            velocity_x = (positions[i][0] - positions[i-1][0]) / frame_duration
-            velocity_y = (positions[i][1] - positions[i-1][1]) / frame_duration
-            velocity_z = (positions[i][2] - positions[i-1][2]) / frame_duration
+    def _compute_velocities_from_positions(self, positions):        
+        velocity_x = (positions[len(positions)-1][0] - positions[0][0]) / self._time_between_recordings
+        velocity_y = (positions[len(positions)-1][1] - positions[0][1]) / self._time_between_recordings
+        velocity_z = (positions[len(positions)-1][2] - positions[0][2]) / self._time_between_recordings
 
-            velocities.append((velocity_x, velocity_y, velocity_z))
-
-        return velocities
+        return (velocity_x, velocity_y, velocity_z)
 
 
-    def _compute_accelerations_from_velocities(self, velocities, frame_duration):
-        accelerations = []
-        for i in range(1, len(velocities)):
-            acceleration_x = (velocities[i][0] - velocities[i-1][0]) / frame_duration
-            acceleration_y = (velocities[i][1] - velocities[i-1][1]) / frame_duration
-            acceleration_z = (velocities[i][2] - velocities[i-1][2]) / frame_duration
+    def _compute_accelerations_from_velocities(self, velocities_end, velocities_start):
+        acceleration_x = (velocities_end[0] - velocities_start[0]) / self._time_between_recordings
+        acceleration_y = (velocities_end[1] - velocities_start[1]) / self._time_between_recordings
+        acceleration_z = (velocities_end[2] - velocities_start[2]) / self._time_between_recordings
 
-            accelerations.append((acceleration_x, acceleration_y, acceleration_z))
-
-        return velocities
+        return (acceleration_x, acceleration_y, acceleration_z)
 
 
-    def _compute_speed_from_positions(self, positions, frame_duration):
-        speeds = []
-        for i in range(1, len(positions)):
-            distance = self._compute_distance(positions[i], positions[i-1])
-            speed = distance / frame_duration
+    def _compute_speed_from_positions(self, positions):
+        distance = self._compute_distance(positions[len(positions)-1], positions[0])
+        speed = distance / self._time_between_recordings
 
-            speeds.append(speed)
+        return speed
 
-        return speeds
+    def _compute_jerk_from_accelerations(self, acceleration_end, acceleration_start):
+        jerk_x = (acceleration_end[0] - acceleration_start[0]) / self._time_between_recordings
+        jerk_y = (acceleration_end[1] - acceleration_start[1]) / self._time_between_recordings
+        jerk_z = (acceleration_end[2] - acceleration_start[2]) / self._time_between_recordings
 
-    def _compute_jerk_from_accelerations(self, accelerations, frame_duration):
-        jerks = []
-        for i in range(1, len(accelerations)):
-            jerk_x = (accelerations[i][0] - accelerations[i-1][0]) / frame_duration
-            jerk_y = (accelerations[i][1] - accelerations[i-1][1]) / frame_duration
-            jerk_z = (accelerations[i][2] - accelerations[i-1][2]) / frame_duration
-
-            jerks.append((jerk_x, jerk_y, jerk_z))
-
-        return jerks
+        return (jerk_x, jerk_y, jerk_z)
 
 
     ### FILE WRITING METHODS ###

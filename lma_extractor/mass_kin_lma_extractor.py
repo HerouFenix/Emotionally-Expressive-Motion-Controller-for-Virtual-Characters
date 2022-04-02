@@ -23,7 +23,7 @@ import time
 
 input_directory = 'mocap_data'
 
-output_directory = 'lma_features/new/30frames'
+output_directory = 'lma_features/new/1_sec'
 
 e_meta_file_path = "EMOTIONS_META.txt"
 f_meta_file_path = "FILES_META.txt"
@@ -216,9 +216,9 @@ def extract_features(mocap_file, output_file, model, emotion):
   env.reset()
 
   if "dance" in mocap_file:
-    lma_extractor = LMAExtractor(env, append_to_file=False, outfile=output_file, label=emotion ,ignore_amount=840, pool_rate=30) #Dance motions have a windup time where the character just stands still for a while. We don't want that
+    lma_extractor = LMAExtractor(env, append_to_file=False, outfile=output_file, label=emotion ,ignore_amount=840, pool_rate=1) #Dance motions have a windup time where the character just stands still for a while. We don't want that
   else:
-    lma_extractor = LMAExtractor(env, append_to_file=False, outfile=output_file, label=emotion, ignore_amount=0, pool_rate=30)
+    lma_extractor = LMAExtractor(env, append_to_file=False, outfile=output_file, label=emotion, ignore_amount=0, pool_rate=1)
 
   while True:
     # LMA Features
