@@ -8,5 +8,4 @@ mocap_converter/bvh_data/kin_emotions_full
 mocap_converter/deepmimic_data/kin
 mocap_converter/settings/dance_scales
 
-lma_extractor/lma_features
 lma_extractor/mocap_data
