@@ -131,7 +131,7 @@ class LMAExtractor():
         #                       average chest_pelvis_distance (1D),
         #                       average neck_chest_distance (1D),
         #
-        #                       average neck_rotation (3D)
+        #                       average neck_rotation (4D)
         #
         #                       average total_body_volume (1D)
         #
@@ -141,23 +141,23 @@ class LMAExtractor():
         #
         # Movement Features:
         #
-        #                       average l_hand speed (1D)
-        #                       average r_hand speed (1D)
-        #                       average l_foot_speed (1D)
-        #                       average r_foot_speed (1D)                 
-        #                       average neck speed (1D)
+        #                       l_hand speed (1D)
+        #                       r_hand speed (1D)
+        #                       l_foot_speed (1D)
+        #                       r_foot_speed (1D)                 
+        #                       neck speed (1D)
         #                       
-        #                       average l_hand acceleration magnitude (1D)
-        #                       average r_hand acceleration magnitude (1D)
-        #                       average l_foot acceleration magnitude (1D)
-        #                       average r_foot acceleration magnitude (1D)                 
-        #                       average neck acceleration magnitude (1D)
+        #                       l_hand acceleration magnitude (1D)
+        #                       r_hand acceleration magnitude (1D)
+        #                       l_foot acceleration magnitude (1D)
+        #                       r_foot acceleration magnitude (1D)                 
+        #                       neck acceleration magnitude (1D)
         # 
-        #                       average l_hand movement jerk (3D)
-        #                       average r_hand movement jerk (3D)
-        #                       average l_foot movement jerk (3D)
-        #                       average r_foot movement jerk (3D)                  
-        #                       average head movement jerk (3D)
+        #                       l_hand movement jerk (3D)
+        #                       r_hand movement jerk (3D)
+        #                       l_foot movement jerk (3D)
+        #                       r_foot movement jerk (3D)                  
+        #                       head movement jerk (3D)
         #                     ] 
         #   }
 
