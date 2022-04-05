@@ -153,11 +153,11 @@ class LMAExtractor():
         #                       r_foot acceleration magnitude (1D)                 
         #                       neck acceleration magnitude (1D)
         # 
-        #                       l_hand movement jerk (3D)
-        #                       r_hand movement jerk (3D)
-        #                       l_foot movement jerk (3D)
-        #                       r_foot movement jerk (3D)                  
-        #                       head movement jerk (3D)
+        #                       l_hand movement jerk (3D) [REMOVED]
+        #                       r_hand movement jerk (3D) [REMOVED]
+        #                       l_foot movement jerk (3D) [REMOVED]
+        #                       r_foot movement jerk (3D) [REMOVED]        
+        #                       head movement jerk (3D) [REMOVED]
         #                     ] 
         #   }
 
@@ -329,11 +329,11 @@ class LMAExtractor():
         lma_features.append(neck_acceleration_magn)
 
         # Movement Jerk
-        lma_features.append(l_hand_jerk)
-        lma_features.append(r_hand_jerk)
-        lma_features.append(l_foot_jerk)
-        lma_features.append(r_foot_jerk)
-        lma_features.append(neck_jerk)
+        #lma_features.append(l_hand_jerk)
+        #lma_features.append(r_hand_jerk)
+        #lma_features.append(l_foot_jerk)
+        #lma_features.append(r_foot_jerk)
+        #lma_features.append(neck_jerk)
 
 
         if(self._round_values):

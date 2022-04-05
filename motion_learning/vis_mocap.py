@@ -210,9 +210,9 @@ def show_mocap(mocap_file, model, record_lma='', predict_emotion=True):
   #env._mocap.show_com()
   env.reset()
   if(record_lma != ""):
-    lma_extractor = LMAExtractor(env, record_lma, append_to_file=True)
+    lma_extractor = LMAExtractor(env, record_lma, append_to_file=True, pool_rate=0.5)
   else:
-    lma_extractor = LMAExtractor(env, append_to_file=False, label="NONE")
+    lma_extractor = LMAExtractor(env, append_to_file=False, label="NONE", pool_rate=0.5)
 
   if(predict_emotion):
     emotion_predictor = EmotionClassifier()
