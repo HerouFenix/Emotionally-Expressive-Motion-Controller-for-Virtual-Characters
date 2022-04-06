@@ -225,6 +225,14 @@ def show_mocap(mocap_file, model, record_lma='', predict_emotion=True):
     if(not env.has_looped):
       lma_extractor.record_frame()
     else:
+      # Check if there are still lma features that didn't get emotion classified. If so, predict them as a last batch
+      if(len(lma_extractor.get_lma_features()) > 0):
+        new_process = threading.Thread(target=emotion_predictor.predict_emotion_coordinates, args=(lma_extractor.get_lma_features(),))
+        processes.append(new_process)
+        new_process.start()
+
+        lma_extractor.clear()
+
       # Wait for all child processes to be done before computing the final coordinates
       for p in processes:
         p.join()
