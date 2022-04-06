@@ -1,4 +1,3 @@
-
 angry
 happy
 sad
