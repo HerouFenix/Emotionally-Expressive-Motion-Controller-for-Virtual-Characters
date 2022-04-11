@@ -14,13 +14,13 @@ xgb.set_config(verbosity=0)
 class EmotionClassifier():
     def __init__(self):
         self._model_p = xgb.XGBRegressor(verbosity=0)
-        self._model_p.load_model("../emotion_classifier/models/l2p_model_kin.json")
+        self._model_p.load_model("../emotion_classifier/models/l2p_dance_model_kin.json")
 
         self._model_a = xgb.XGBRegressor(verbosity=0)
-        self._model_a.load_model("../emotion_classifier/models/l2a_model_kin.json")
+        self._model_a.load_model("../emotion_classifier/models/l2a_dance_model_kin.json")
 
         self._model_d = xgb.XGBRegressor(verbosity=0)
-        self._model_d.load_model("../emotion_classifier/models/l2d_model_kin.json")
+        self._model_d.load_model("../emotion_classifier/models/l2d_dance_model_kin.json")
 
         self.p_predictions = []
         self.a_predictions = []
