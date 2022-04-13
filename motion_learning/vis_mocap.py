@@ -22,7 +22,6 @@ sys.path.append(parent)
 from lma_extractor import LMAExtractor
 from emotion_classifier import EmotionClassifier
 
-
 ###
 ACT_STEPTIME  = 1./30.
 SUBSTEPS = 20
@@ -216,7 +215,7 @@ def show_mocap(mocap_file, model, record_lma='', predict_emotion=True):
 
   if(predict_emotion):
     emotion_predictor = EmotionClassifier()
-
+  
   processes = []
 
   while True:
