@@ -21,6 +21,7 @@ sys.path.append(parent)
   
 from lma_extractor import LMAExtractor
 from emotion_classifier import EmotionClassifier
+from gui_manager import GUIManager
 
 ###
 ACT_STEPTIME  = 1./30.
@@ -209,52 +210,88 @@ def show_mocap(mocap_file, model, record_lma='', predict_emotion=True):
   #env._mocap.show_com()
   env.reset()
   if(record_lma != ""):
-    lma_extractor = LMAExtractor(env, record_lma, append_to_file=True, pool_rate=0.5)
+    lma_extractor = LMAExtractor(env, env._mocap._durations[0], record_lma, append_to_file=True, pool_rate=0.5)
   else:
-    lma_extractor = LMAExtractor(env, append_to_file=False, label="NONE", pool_rate=0.5)
+    lma_extractor = LMAExtractor(env, env._mocap._durations[0], append_to_file=False, label="NONE", pool_rate=0.5)
 
   if(predict_emotion):
+    gui = GUIManager()
+    gui.change_animation_status(2)
+    gui.change_emotion_prediction_status(0)
+    gui.update()
+    current_emotion = [0.0, 0.0, 0.0]
     emotion_predictor = EmotionClassifier()
   
   processes = []
+  has_looped_once = False
 
   while True:
     # LMA Features
 
     if(not env.has_looped):
       lma_extractor.record_frame()
+
+      if(not has_looped_once and predict_emotion):
+        gui.change_animation_status(0)
+
+      # Every 10 LMA features, run predictor
+      if(predict_emotion):
+        if(len(lma_extractor.get_lma_features()) >= 10):
+          new_process = threading.Thread(target=emotion_predictor.predict_emotion_coordinates, args=(lma_extractor.get_lma_features(),current_emotion,))
+          #new_process = Process(target=emotion_predictor.predict_emotion_coordinates, args=(lma_extractor.get_lma_features(),))
+          processes.append(new_process)
+          new_process.start()
+
+          lma_extractor.clear()
+      
+        # Update GUI
+        gui.change_emotion_coordinates(current_emotion[0], current_emotion[1], current_emotion[2])
+        gui.change_emotion_prediction_status(1)
+        gui.update()
+
     else:
-      # Check if there are still lma features that didn't get emotion classified. If so, predict them as a last batch
-      if(len(lma_extractor.get_lma_features()) > 0):
-        new_process = threading.Thread(target=emotion_predictor.predict_emotion_coordinates, args=(lma_extractor.get_lma_features(),))
-        processes.append(new_process)
-        new_process.start()
+      if(predict_emotion):
+        
+        # Check if there are still lma features that didn't get emotion classified. If so, predict them as a last batch
+        if(len(lma_extractor.get_lma_features()) > 0):
+          new_process = threading.Thread(target=emotion_predictor.predict_emotion_coordinates, args=(lma_extractor.get_lma_features(), ))
+          processes.append(new_process)
+          new_process.start()
+
+          lma_extractor.clear()
+
+        # Wait for all child processes to be done before computing the final coordinates
+        for p in processes:
+          p.join()
 
         lma_extractor.clear()
+        processes = []
 
-      # Wait for all child processes to be done before computing the final coordinates
-      for p in processes:
-        p.join()
+        predicted_p, predicted_a, predicted_d = emotion_predictor.predict_final_emotion()
+        current_emotion = [predicted_p, predicted_a, predicted_d]
+        emotion_predictor.clear()
 
-      lma_extractor.clear()
-      processes = []
+        gui.change_emotion_coordinates(current_emotion[0], current_emotion[1], current_emotion[2])
+        gui.change_emotion_prediction_status(2)
 
-      emotion_predictor.predict_final_emotion()
-      emotion_predictor.clear()
-      break
+      if(env._mocap._is_wrap):
+        env.reset()
+        env.has_looped = False
 
-    # Every 10 LMA features, run predictor
-    if(len(lma_extractor.get_lma_features()) >= 10):
-      
-      new_process = threading.Thread(target=emotion_predictor.predict_emotion_coordinates, args=(lma_extractor.get_lma_features(),))
-      #new_process = Process(target=emotion_predictor.predict_emotion_coordinates, args=(lma_extractor.get_lma_features(),))
-      processes.append(new_process)
-      new_process.start()
+        if(predict_emotion):
+          gui.change_animation_status(1)
+          gui.update()
 
-      lma_extractor.clear()
-    
+        has_looped_once = True
+      else:
+        if(predict_emotion):
+          gui.change_animation_status(2)
+          gui.update()
+
+        while(True):
+          continue #NOTE: this is just here so that the window doesn't immediately close
+
     env.step()
-
 
 if __name__=="__main__":
   import argparse

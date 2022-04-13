@@ -14,6 +14,7 @@ sys.path.append(parent)
   
 from lma_extractor import LMAExtractor
 from emotion_classifier import EmotionClassifier
+from gui_manager import GUIManager
 
 
 
@@ -93,11 +94,16 @@ def test_model(env, model, select_set=None, record=False, random=True, record_lm
   start_time = time.time()
 
   if(record_lma != ""):
-    lma_extractor = LMAExtractor(env._engine, record_lma, append_to_file=True)
+    lma_extractor = LMAExtractor(env._engine,  env._mocap._durations[0], record_lma, append_to_file=True, pool_rate=0.5)
   else:
-    lma_extractor = LMAExtractor(env._engine, append_to_file=False, label="NONE")
+    lma_extractor = LMAExtractor(env._engine, env._mocap._durations[0], append_to_file=False, label="NONE", pool_rate=0.5)
 
   if(predict_emotion):
+    gui = GUIManager()
+    gui.change_animation_status(2)
+    gui.change_emotion_prediction_status(0)
+    gui.update()
+    current_emotion = [0.0, 0.0, 0.0]
     emotion_predictor = EmotionClassifier()
 
   processes = []
@@ -113,29 +119,26 @@ def test_model(env, model, select_set=None, record=False, random=True, record_lm
     kin_frames.append(kin_pose)
 
     # LMA Features
-    if(not has_reset):
-      lma_extractor.record_frame()
-    else:
-      # Wait for all child processes to be done before computing the final coordinates
-      for p in processes:
-        p.join()
+    lma_extractor.record_frame()
 
-      lma_extractor.clear()
-      processes = []
+    if(not has_reset and predict_emotion):
+        gui.change_animation_status(0)
+        gui.update()
 
-      emotion_predictor.predict_final_emotion()
-      
-      emotion_predictor.clear()
-      has_reset = False
+    # Every 10 LMA features, run predictor
+    if(predict_emotion):
+      if(len(lma_extractor.get_lma_features()) >= 10):
+        new_process = threading.Thread(target=emotion_predictor.predict_emotion_coordinates, args=(lma_extractor.get_lma_features(),current_emotion,))
+        #new_process = Process(target=emotion_predictor.predict_emotion_coordinates, args=(lma_extractor.get_lma_features(),))
+        processes.append(new_process)
+        new_process.start()
 
-    # Every 5 LMA features, run predictor
-    if(len(lma_extractor.get_lma_features()) >= 5):
-      new_process = threading.Thread(target=emotion_predictor.predict_emotion_coordinates, args=(lma_extractor.get_lma_features(),))
-      #new_process = Process(target=emotion_predictor.predict_emotion_coordinates, args=(lma_extractor.get_lma_features(),))
-      processes.append(new_process)
-      new_process.start()
-
-      lma_extractor.clear()
+        lma_extractor.clear()
+    
+      # Update GUI
+      gui.change_emotion_coordinates(current_emotion[0], current_emotion[1], current_emotion[2])
+      gui.change_emotion_prediction_status(1)
+      gui.update()
 
     dnn_timer.start()
     with torch.no_grad():
@@ -165,6 +168,34 @@ def test_model(env, model, select_set=None, record=False, random=True, record_lm
     #print(rwd)
 
     if done:
+      if(predict_emotion):
+        if(env._mocap._is_wrap):
+          gui.change_animation_status(1)
+        else:
+          gui.change_animation_status(2)
+        
+        # Check if there are still lma features that didn't get emotion classified. If so, predict them as a last batch
+        if(len(lma_extractor.get_lma_features()) > 0):
+          new_process = threading.Thread(target=emotion_predictor.predict_emotion_coordinates, args=(lma_extractor.get_lma_features(), ))
+          processes.append(new_process)
+          new_process.start()
+
+          lma_extractor.clear()
+
+        # Wait for all child processes to be done before computing the final coordinates
+        for p in processes:
+          p.join()
+
+        lma_extractor.clear()
+        processes = []
+
+        predicted_p, predicted_a, predicted_d = emotion_predictor.predict_final_emotion()
+        current_emotion = [predicted_p, predicted_a, predicted_d]
+        emotion_predictor.clear()
+
+        gui.change_emotion_coordinates(current_emotion[0], current_emotion[1], current_emotion[2])
+        gui.change_emotion_prediction_status(2)
+        gui.update()
 
       end_time = time.time()
       duration = end_time - start_time

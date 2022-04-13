@@ -3,10 +3,10 @@ import math
 import os.path
 
 class LMAExtractor():
-    def __init__(self, engine, outfile = "lma_features", append_to_file=False, pool_rate = 1, label=(0,0,0), ignore_amount = 0, round_values=False):
+    def __init__(self, engine, frame_duration, outfile = "lma_features", append_to_file=False, pool_rate = 1, label=(0,0,0), ignore_amount = 0, round_values=False):
         self._engine = engine
 
-        self._frame_duration = self._engine._mocap._durations[0]
+        self._frame_duration = frame_duration
         self._fps = 1/self._frame_duration
 
         self._time_between_recordings = pool_rate
