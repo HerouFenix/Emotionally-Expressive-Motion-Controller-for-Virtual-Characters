@@ -31,6 +31,7 @@ class GUIManager():
     def __init__(self):
         self.window = tk.Tk()
         self.window.minsize(400,475)
+        self.window.title("Emotion Prediction and Synthesis")
 
         # Emotion Classification frame
         tk.Label(self.window, text = '== EMOTION PREDICTION ==', 
