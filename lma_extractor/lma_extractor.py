@@ -3,7 +3,7 @@ import math
 import os.path
 
 class LMAExtractor():
-    def __init__(self, engine, frame_duration, outfile = "lma_features", append_to_file=False, pool_rate = 1, label=(0,0,0), ignore_amount = 0, round_values=False):
+    def __init__(self, engine, frame_duration, outfile = "lma_features", append_to_file=False, pool_rate = 1, label=(0,0,0), ignore_amount = 0, round_values=False, write_mocap=False, write_mocap_file = ''):
         self._engine = engine
 
         self._frame_duration = frame_duration
@@ -33,6 +33,11 @@ class LMAExtractor():
 
         self._last_velocities = [(0,0,0), (0,0,0), (0,0,0), (0,0,0), (0,0,0)] # Used when computing accelerations (l_hand, r_hand, l_foot, r_foot, neck)
         self._last_accelerations = [(0,0,0), (0,0,0), (0,0,0), (0,0,0), (0,0,0)] # Used when computing accelerations (l_hand, r_hand, l_foot, r_foot, neck)
+
+        self._write_mocap = write_mocap
+        self._write_mocap_file = write_mocap_file
+        if(write_mocap and os.path.exists(write_mocap_file)):
+            open(write_mocap_file, 'w').close() #Clear file
 
     def record_frame(self):
         sim_pose, sim_vel, link_pos, link_orn, vel_dict = self._engine.get_pose_and_links()
@@ -73,6 +78,8 @@ class LMAExtractor():
             #print(link)
             #print(new_frame_data[link])
 
+        if(self._write_mocap):
+            self._append_mocap(new_frame_data)
 
         self._currentData.append(new_frame_data) #Add current data
         self._frame_counter += 1
@@ -468,6 +475,13 @@ class LMAExtractor():
         # Appends the last entry of the lma_features array to a file
         with open(self._outfile, 'a') as wh:
             wh.write(str(self._lma_features[-1]) + "\n")
+
+        return
+
+    def _append_mocap(self, mocap_data):
+        # Appends the last entry of the lma_features array to a file
+        with open(self._write_mocap_file, 'a') as wh:
+            wh.write(str(mocap_data) + "\n")
 
         return
 

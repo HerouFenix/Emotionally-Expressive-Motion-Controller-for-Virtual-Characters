@@ -205,12 +205,15 @@ class VisMocapEnv():
       return pose, vel, links_pos, links_orn, vel_dict
 
 
-def show_mocap(mocap_file, model, record_lma='', predict_emotion=True):
+def show_mocap(mocap_file, model, record_lma='', predict_emotion=True, record_mocap=''):
   env = VisMocapEnv(mocap_file, None, model)
   #env._mocap.show_com()
   env.reset()
   if(record_lma != ""):
-    lma_extractor = LMAExtractor(env, env._mocap._durations[0], record_lma, append_to_file=True, pool_rate=0.5)
+    if(record_mocap != ''):
+      lma_extractor = LMAExtractor(env, env._mocap._durations[0], record_lma, append_to_file=True, pool_rate=0.5, write_mocap=True, write_mocap_file=record_mocap)
+    else:
+      lma_extractor = LMAExtractor(env, env._mocap._durations[0], record_lma, append_to_file=True, pool_rate=0.5)
   else:
     lma_extractor = LMAExtractor(env, env._mocap._durations[0], append_to_file=False, label="NONE", pool_rate=0.5)
 
@@ -283,13 +286,19 @@ def show_mocap(mocap_file, model, record_lma='', predict_emotion=True):
           gui.update()
 
         has_looped_once = True
+
+        if(lma_extractor._append_to_file):
+          lma_extractor._append_to_file = False
+        if(lma_extractor._write_mocap):
+          lma_extractor._write_mocap = False
+
       else:
         if(predict_emotion):
           gui.change_animation_status(2)
           gui.update()
 
         while(True):
-          continue #NOTE: this is just here so that the window doesn't immediately close
+          continue #NOTE: this is just here so that the window doesn't immediately close (so that the user has to manually close the window to terminate the program)
 
     env.step()
 
@@ -298,10 +307,11 @@ if __name__=="__main__":
   parser = argparse.ArgumentParser()
   parser.add_argument("--mocap", type=str, default='data/motions/humanoid3d_jump.txt', help="task to perform")
   parser.add_argument("--model", type=str, default='humanoid3d', help="model")
-  parser.add_argument("--record_lma",default='', action="store_true", help="specify a file name if you want to store the lma features on a file")
-
+  parser.add_argument("--record_lma", type=str, default='lma.txt', help="specify a file name if you want to store the lma features on a file")
+  parser.add_argument("--record_mocap", type=str, default='mocap.txt', help="specify a file name if you want to store the mocap on a file")
+  
   parser.add_argument("--predict_emotion",default=True, action="store_true" , help="specify whether you want to output the predicted emotional coordinates")
 
   args = parser.parse_args()
 
-  show_mocap(args.mocap, args.model, args.record_lma, args.predict_emotion)
+  show_mocap(args.mocap, args.model, args.record_lma, args.predict_emotion, args.record_mocap)
