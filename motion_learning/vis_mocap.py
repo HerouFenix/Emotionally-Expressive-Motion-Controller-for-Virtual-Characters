@@ -307,8 +307,8 @@ if __name__=="__main__":
   parser = argparse.ArgumentParser()
   parser.add_argument("--mocap", type=str, default='data/motions/humanoid3d_jump.txt', help="task to perform")
   parser.add_argument("--model", type=str, default='humanoid3d', help="model")
-  parser.add_argument("--record_lma", type=str, default='lma.txt', help="specify a file name if you want to store the lma features on a file")
-  parser.add_argument("--record_mocap", type=str, default='mocap.txt', help="specify a file name if you want to store the mocap on a file")
+  parser.add_argument("--record_lma", type=str, default='', help="specify a file name if you want to store the lma features on a file")
+  parser.add_argument("--record_mocap", type=str, default='', help="specify a file name if you want to store the mocap on a file")
   
   parser.add_argument("--predict_emotion",default=True, action="store_true" , help="specify whether you want to output the predicted emotional coordinates")
 
