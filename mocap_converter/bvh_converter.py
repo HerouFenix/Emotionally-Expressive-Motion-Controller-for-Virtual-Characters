@@ -5,7 +5,7 @@ from bvhtomimic import BvhConverter
 #outputPath = input("Output File Path:")
 
 inputPath = "./walk_sad.bvh"
-settingsPath = "settings/example_settings.json"
+settingsPath = "settings/bandai_settings.json"
 outputPath = "../motion_learning/walk_sad.txt"
 
 converter = BvhConverter(settingsPath)

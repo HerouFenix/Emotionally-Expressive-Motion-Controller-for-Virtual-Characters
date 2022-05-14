@@ -89,14 +89,8 @@ with open("walk_sad_og.bvh",'r') as f:
 
                 new_data = [float(frame[frame_index[joint][0]]),float(frame[frame_index[joint][1]]),float(frame[frame_index[joint][2]]), float(frame[frame_index[joint][3]]), float(frame[frame_index[joint][4]]), float(frame[frame_index[joint][5]])]
 
-                if(joint == "LeftShoulder"):
-                    for i in range(3):
-                        mapping = abs(int(mappings[joint][i]))
-
-                        if "-" in mappings[joint][i]:
-                            new_data[mapping] = -float(frame[frame_index[joint][i]])
-                        else:
-                            new_data[mapping] = float(frame[frame_index[joint][i]])
+                if(joint in ["LeftUpShoulder"]):
+                    new_data = [float(frame[frame_index[joint][0]]),float(frame[frame_index[joint][1]]),float(frame[frame_index[joint][2]]), float(frame[frame_index[joint][4]]), float(frame[frame_index[joint][5]]), float(frame[frame_index[joint][3]])]
 
             
                 new_frame += new_data

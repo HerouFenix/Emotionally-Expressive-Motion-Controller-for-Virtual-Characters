@@ -1,23 +1,23 @@
 HIERARCHY
 ROOT Hips
 {
-  OFFSET -3 -15 -0
+  OFFSET 0 -80 -3
   CHANNELS 6 Xposition Yposition Zposition Zrotation Xrotation Yrotation
   JOINT Spine
   {
-    OFFSET 0 15.7357 0
+    OFFSET 15.7357 0 0
     CHANNELS 6 Xposition Yposition Zposition Zrotation Xrotation Yrotation
     JOINT Spine1
     {
-      OFFSET 0 8.98455 -0.406207
+      OFFSET 8.98455 -0.406207 0
       CHANNELS 6 Xposition Yposition Zposition Zrotation Xrotation Yrotation
       JOINT Neck
       {
-        OFFSET 0 16.3773 0
+        OFFSET 16.3773 0 0
         CHANNELS 6 Xposition Yposition Zposition Zrotation Xrotation Yrotation
         JOINT Head
         {
-          OFFSET 0 6.45672 0
+          OFFSET 6.45672 0 0
           CHANNELS 6 Xposition Yposition Zposition Zrotation Xrotation Yrotation
           End Site
           {
@@ -27,7 +27,7 @@ ROOT Hips
       }
       JOINT LeftShoulder
       {
-        OFFSET 4.98039 12.9942 -0.242716
+        OFFSET 12.9942 -0.242716 4.98039
         CHANNELS 6 Xposition Yposition Zposition Zrotation Xrotation Yrotation
         JOINT LeftArm
         {
@@ -35,11 +35,11 @@ ROOT Hips
           CHANNELS 6 Xposition Yposition Zposition Zrotation Xrotation Yrotation
           JOINT LeftForeArm
           {
-            OFFSET 1.87007e-05 -24.3286 0
+            OFFSET 24.3286 1.87007e-05 0
             CHANNELS 6 Xposition Yposition Zposition Zrotation Xrotation Yrotation
             JOINT LeftHand
             {
-              OFFSET 0 -22.2916 0
+              OFFSET 22.2916 0 0
               CHANNELS 6 Xposition Yposition Zposition Zrotation Xrotation Yrotation
               End Site
               {
@@ -51,7 +51,7 @@ ROOT Hips
       }
       JOINT RightShoulder
       {
-        OFFSET -4.98039 12.9945 -0.242716
+        OFFSET 12.9945 -0.242716 -4.98039
         CHANNELS 6 Xposition Yposition Zposition Zrotation Xrotation Yrotation
         JOINT RightArm
         {
@@ -59,11 +59,11 @@ ROOT Hips
           CHANNELS 6 Xposition Yposition Zposition Zrotation Xrotation Yrotation
           JOINT RightForeArm
           {
-            OFFSET 0.000322201 -24.3289 0
+            OFFSET -24.3289 0.000322201 0
             CHANNELS 6 Xposition Yposition Zposition Zrotation Xrotation Yrotation
             JOINT RightHand
             {
-              OFFSET -0.000108084 -22.2915 0
+              OFFSET -22.2915 -0.000108084 0
               CHANNELS 6 Xposition Yposition Zposition Zrotation Xrotation Yrotation
               End Site
               {
@@ -77,19 +77,19 @@ ROOT Hips
   }
   JOINT LeftUpLeg
   {
-    OFFSET 6.46944 -2.19248 0
+    OFFSET -2.19248 -6.46944 0
     CHANNELS 6 Xposition Yposition Zposition Zrotation Xrotation Yrotation
     JOINT LeftLeg
     {
-      OFFSET 0 -39.0811 -1.23785e-05
+      OFFSET 39.0811 0 -1.23785e-05
       CHANNELS 6 Xposition Yposition Zposition Zrotation Xrotation Yrotation
       JOINT LeftFoot
       {
-        OFFSET 0 -40.9854 -1.26872e-05
+        OFFSET 40.9854 0 -1.26872e-05
         CHANNELS 6 Xposition Yposition Zposition Zrotation Xrotation Yrotation
         JOINT LeftToeBase
         {
-          OFFSET 0 -11.7543 0
+          OFFSET 11.7543 0 0
           CHANNELS 6 Xposition Yposition Zposition Zrotation Xrotation Yrotation
           End Site
           {
@@ -101,19 +101,19 @@ ROOT Hips
   }
   JOINT RightUpLeg
   {
-    OFFSET -6.46944 -2.19251 0
+    OFFSET -2.19251 6.46944 0
     CHANNELS 6 Xposition Yposition Zposition Zrotation Xrotation Yrotation
     JOINT RightLeg
     {
-      OFFSET -0.00228153 -39.0811 0.0401928
+      OFFSET -39.0811 -0.00228153 -0.0401928
       CHANNELS 6 Xposition Yposition Zposition Zrotation Xrotation Yrotation
       JOINT RightFoot
       {
-        OFFSET 0 -40.9854 0
+        OFFSET -40.9854 0 0
         CHANNELS 6 Xposition Yposition Zposition Zrotation Xrotation Yrotation
         JOINT RightToeBase
         {
-          OFFSET 0 -11.7543 0
+          OFFSET -11.7543 0 0
           CHANNELS 6 Xposition Yposition Zposition Zrotation Xrotation Yrotation
           End Site
           {
@@ -124,6 +124,7 @@ ROOT Hips
     }
   }
 }
+
 MOTION
 Frames:	347
 Frame Time:	0.0333333
