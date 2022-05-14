@@ -6,7 +6,7 @@ from bvhtomimic import BvhConverter
 
 inputPath = "./walk_sad.bvh"
 settingsPath = "settings/bandai_settings.json"
-outputPath = "../motion_learning/walk_sad.txt"
+outputPath = "../walk_sad.txt"
 
 converter = BvhConverter(settingsPath)
 converter.writeDeepMimicFile(inputPath, outputPath)
