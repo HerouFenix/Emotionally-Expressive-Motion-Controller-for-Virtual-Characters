@@ -10,4 +10,7 @@ mocap_converter/deepmimic_data/kin
 mocap_converter/deepmimic_data/kin_full
 mocap_converter/settings/dance_scales
 
+*.tar.gz
+*.tar
+
 lma_extractor/mocap_data
