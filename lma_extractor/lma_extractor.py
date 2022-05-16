@@ -165,6 +165,10 @@ class LMAExtractor():
         #                       l_foot movement jerk (3D) [REMOVED]
         #                       r_foot movement jerk (3D) [REMOVED]        
         #                       head movement jerk (3D) [REMOVED]
+        #
+        # Extras:
+        #                       average upper_body_volume (1D)
+        #                       average lower_body_volume (1D)
         #                     ] 
         #   }
 
@@ -185,6 +189,8 @@ class LMAExtractor():
         neck_rotations = []
 
         total_body_volumes = []
+        upper_body_volumes = []
+        lower_body_volumes = []
 
         hands_neck_triangles = []
         feet_root_triangles = []
@@ -236,6 +242,14 @@ class LMAExtractor():
             ## Total Body Volumes
             positions = [data[link][0] for link in data.keys() if link != "frame"]
             total_body_volumes.append(self._compute_box_volume(positions))
+
+            ## Upper Body Volumes
+            positions = [data[link][0] for link in ["root", "chest", "neck", "right_shoulder", "right_elbow", "right_wrist", "left_shoulder", "left_elbow", "left_wrist",]]
+            upper_body_volumes.append(self._compute_box_volume(positions))
+
+            ## Lower Body Volumes
+            positions = [data[link][0] for link in ["root", "right_hip", "right_knee", "right_ankle", "left_hip", "left_knee", "left_ankle"]]
+            lower_body_volumes.append(self._compute_box_volume(positions))
 
 
             ## Hands-Neck Triangle Area
@@ -336,11 +350,15 @@ class LMAExtractor():
         lma_features.append(neck_acceleration_magn)
 
         # Movement Jerk
-        #lma_features.append(l_hand_jerk)
-        #lma_features.append(r_hand_jerk)
-        #lma_features.append(l_foot_jerk)
-        #lma_features.append(r_foot_jerk)
-        #lma_features.append(neck_jerk)
+        lma_features.append(l_hand_jerk)
+        lma_features.append(r_hand_jerk)
+        lma_features.append(l_foot_jerk)
+        lma_features.append(r_foot_jerk)
+        lma_features.append(neck_jerk)
+
+        # Extras
+        lma_features.append(self._compute_average_distance(upper_body_volumes))
+        lma_features.append(self._compute_average_distance(lower_body_volumes))
 
 
         if(self._round_values):
