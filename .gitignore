@@ -14,3 +14,4 @@ mocap_converter/settings/dance_scales
 *.tar
 
 lma_extractor/mocap_data
+lma_extractor/mocap_data_2
