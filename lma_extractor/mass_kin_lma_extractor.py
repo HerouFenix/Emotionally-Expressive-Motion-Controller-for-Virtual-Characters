@@ -21,12 +21,12 @@ import time
 
 # This script extracts all Deepmimic mocap files in the mocap_data directory's LMA features
 
-input_directory = 'mocap_data'
+input_directory = 'mocap_data_2'
 
-output_directory = 'lma_features/new/0.5_sec'
+output_directory = 'lma_features/new_2/'
 
-e_meta_file_path = "EMOTIONS_META.txt"
-f_meta_file_path = "FILES_META.txt"
+e_meta_file_path = "EMOTIONS_META_KIN_FULL.txt"
+f_meta_file_path = "FILES_META_KIN_FULL.txt"
 
 files = []
 
