@@ -3,7 +3,7 @@ import math
 import os.path
 
 class LMAExtractor():
-    def __init__(self, engine, frame_duration, outfile = "lma_features", append_to_file=False, pool_rate = 1, label=(0,0,0), ignore_amount = 0, round_values=False, write_mocap=False, write_mocap_file = ''):
+    def __init__(self, engine, frame_duration, outfile = "lma_features", append_to_file=False, pool_rate = 0.5, label=(0,0,0), ignore_amount = 0, round_values=False, write_mocap=False, write_mocap_file = ''):
         self._engine = engine
 
         self._frame_duration = frame_duration

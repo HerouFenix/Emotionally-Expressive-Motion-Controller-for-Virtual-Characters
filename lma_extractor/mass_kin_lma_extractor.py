@@ -216,9 +216,9 @@ def extract_features(mocap_file, output_file, model, emotion):
   env.reset()
 
   if "dance" in mocap_file:
-    lma_extractor = LMAExtractor(env, append_to_file=False, outfile=output_file, label=emotion ,ignore_amount=840, pool_rate=0.5) #Dance motions have a windup time where the character just stands still for a while. We don't want that
+    lma_extractor = LMAExtractor(env,env._mocap._durations[0], append_to_file=False, outfile=output_file, label=emotion ,ignore_amount=840, pool_rate=0.5) #Dance motions have a windup time where the character just stands still for a while. We don't want that
   else:
-    lma_extractor = LMAExtractor(env, append_to_file=False, outfile=output_file, label=emotion, ignore_amount=0, pool_rate=0.5)
+    lma_extractor = LMAExtractor(env,env._mocap._durations[0], append_to_file=False, outfile=output_file, label=emotion, ignore_amount=0, pool_rate=0.5)
 
   while True:
     # LMA Features
