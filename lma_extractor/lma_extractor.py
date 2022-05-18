@@ -167,8 +167,8 @@ class LMAExtractor():
         #                       head movement jerk (3D) [REMOVED]
         #
         # Extras:
-        #                       average upper_body_volume (1D)
-        #                       average lower_body_volume (1D)
+        #                       average upper_body_volume (1D) [REMOVED]
+        #                       average lower_body_volume (1D) [REMOVED]
         #                     ] 
         #   }
 
@@ -350,11 +350,11 @@ class LMAExtractor():
         lma_features.append(neck_acceleration_magn)
 
         # Movement Jerk
-        lma_features.append(l_hand_jerk)
-        lma_features.append(r_hand_jerk)
-        lma_features.append(l_foot_jerk)
-        lma_features.append(r_foot_jerk)
-        lma_features.append(neck_jerk)
+        #lma_features.append(l_hand_jerk)
+        #lma_features.append(r_hand_jerk)
+        #lma_features.append(l_foot_jerk)
+        #lma_features.append(r_foot_jerk)
+        #lma_features.append(neck_jerk)
 
         # Extras
         lma_features.append(self._compute_average_distance(upper_body_volumes))
