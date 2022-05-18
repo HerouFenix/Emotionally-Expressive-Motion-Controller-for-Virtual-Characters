@@ -15,4 +15,5 @@ mocap_converter/settings/dance_scales
 
 lma_extractor/mocap_data
 lma_extractor/mocap_data_2
+lma_extractor/mocap_data_3
 motion_synthesizer/model_training/models/
