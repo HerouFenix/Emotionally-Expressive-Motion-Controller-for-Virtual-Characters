@@ -72,6 +72,23 @@ class HumanoidVis(object):
 
     return kin_model
 
+  def accurateCalculateInverseKinematics(self, numJoints, modelID, endEffectorId, targetPos, threshold, maxIter):
+    closeEnough = False
+    iter = 0
+    dist2 = 1e30
+    while (not closeEnough and iter < maxIter):
+      jointPoses = self._pybullet_client.calculateInverseKinematics(modelID, endEffectorId, targetPos)
+      for i in range(numJoints):
+        self._pybullet_client.resetJointState(modelID, i, jointPoses[i])
+      ls = self._pybullet_client.getLinkState(modelID, endEffectorId)
+      newPos = ls[4]
+      diff = [targetPos[0] - newPos[0], targetPos[1] - newPos[1], targetPos[2] - newPos[2]]
+      dist2 = (diff[0] * diff[0] + diff[1] * diff[1] + diff[2] * diff[2])
+      closeEnough = (dist2 < threshold)
+      iter = iter + 1
+    print ("Num iter: "+str(iter) + " Threshold: "+str(dist2))
+    return jointPoses
+
   def set_pose(self, char_name, pose, vel):
     """ Set character state in physics engine
       Inputs:
@@ -97,42 +114,56 @@ class HumanoidVis(object):
       ll += list(joint.limlow)
       ul += list(joint.limhigh)
 
-    endEffector = 8
+    endEffector = 14
+
+    curPos = self._get_joint_pose(phys_model, endEffector)[0]
 
     if(self.first):
       self.first = False
-      #curPos = self._get_joint_pose(phys_model, endEffector)[0]
-      
-      curPos = self._pybullet_client.getBasePositionAndOrientation(phys_model)[0]
-      
+            
       self.c = [self._pybullet_client.addUserDebugParameter("lWrist x", -2, 2, curPos[0]), self._pybullet_client.addUserDebugParameter("lWrist y", -2, 2, curPos[1]), self._pybullet_client.addUserDebugParameter("lWrist z", -2, 2, curPos[2])]
 
+
+    print("Current: " + str(curPos))
+
     targetPos = [self._pybullet_client.readUserDebugParameter(self.c[0]), self._pybullet_client.readUserDebugParameter(self.c[1]), self._pybullet_client.readUserDebugParameter(self.c[2])]
+    print("Target: " + str(targetPos))
+
     jointPoses = self._pybullet_client.calculateInverseKinematics(phys_model,
                                               endEffector,
                                               targetPos,
                                               lowerLimits=ll,
                                               upperLimits=ul,
-                                              #jointDamping=[0.1]*s.num_joints,
                                               )
-    
+
+    #threshold = 0.001
+    #maxIter = 100
+    #jointPoses = self.accurateCalculateInverseKinematics(s.num_joints, phys_model, endEffector, targetPos,
+    #                                                threshold, maxIter)
+
+    #pose = s.targ_pose_to_exp(np.array(jointPoses))
+
+    #chest chest chest neck neck neck right_hip right_hip right_hip right_knee right_ankle right_ankle right_ankle right_shoulder right_shoulder right_shoulder right_elbow left_hip left_hip left_hip left_knee left_ankle left_ankle left_ankle left_shoulder left_shoulder left_shoulder left_elbow
+
     currentPointer = 0
-    #CURRENT PROBLEM: SHOULDER AINT GOING
     for i in range(s.num_joints):
       jtype = s.joint_types[i]
 
-      if jtype is JointType.BASE:
+      if jtype is JointType.BASE: #Root
         pass
-      elif jtype is JointType.FIXED:
+      elif jtype is JointType.FIXED: #R/L Wrist
         pass
-      elif jtype is JointType.REVOLUTE:
-        self._pybullet_client.resetJointState(phys_model, i, jointPoses[currentPointer])
+      elif jtype is JointType.REVOLUTE: #R/L Knee ; R/L Elbow
+        self._pybullet_client.resetJointStateMultiDof(phys_model, i, [jointPoses[currentPointer]])
         currentPointer += 1
-      elif jtype is JointType.SPHERE:
-        self._pybullet_client.resetJointStateMultiDof(phys_model, i, [jointPoses[currentPointer], jointPoses[currentPointer+1], jointPoses[currentPointer+2], 1.0])
+      elif jtype is JointType.SPHERE: #Chest ; Neck ; R/L Hip ; R/L Ankle ; R/L Shoulder
+        quat = self._pybullet_client.getQuaternionFromEuler([jointPoses[currentPointer], jointPoses[currentPointer+1], jointPoses[currentPointer+2]])
+        self._pybullet_client.resetJointStateMultiDof(phys_model, i, quat)
         currentPointer += 3
 
-    print(jointPoses)
+    print("Final: " + str(self._get_joint_pose(phys_model, endEffector)[0]))
+    print()
+
 
   def camera_follow(self, char_name, dis=None, yaw=None, pitch=None, pos=None):
     assert(char_name in self.characters.keys())
