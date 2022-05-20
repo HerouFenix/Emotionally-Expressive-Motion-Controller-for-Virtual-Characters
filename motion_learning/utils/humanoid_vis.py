@@ -141,7 +141,7 @@ class HumanoidVis(object):
     #jointPoses = self.accurateCalculateInverseKinematics(s.num_joints, phys_model, endEffector, targetPos,
     #                                                threshold, maxIter)
 
-    #pose = s.targ_pose_to_exp(np.array(jointPoses))
+    #pose = s.exp_to_targ_pose(np.array(jointPoses)) 
 
     #chest chest chest neck neck neck right_hip right_hip right_hip right_knee right_ankle right_ankle right_ankle right_shoulder right_shoulder right_shoulder right_elbow left_hip left_hip left_hip left_knee left_ankle left_ankle left_ankle left_shoulder left_shoulder left_shoulder left_elbow
 
