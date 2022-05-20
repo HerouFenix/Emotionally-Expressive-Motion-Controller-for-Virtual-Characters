@@ -104,8 +104,8 @@ class EmotionClassifier():
         self.a_predictions += y_a.tolist()
         self.d_predictions += y_d.tolist()
 
-        for i in range(len(y_p)):
-            print((y_p[i], y_a[i], y_d[i]))
+        #for i in range(len(y_p)):
+        #    print((y_p[i], y_a[i], y_d[i]))
 
         if(results_store is not None):
             results_store[0] = self.predicted_p
@@ -183,7 +183,7 @@ class EmotionClassifier():
             self.predicted_d = sum(self.d_predictions)/len(self.d_predictions)
 
 
-        print("==Final Prediction==\n",(self.predicted_p, self.predicted_a, self.predicted_d))
+        #print("==Final Prediction==\n",(self.predicted_p, self.predicted_a, self.predicted_d))
         return (self.predicted_p, self.predicted_a, self.predicted_d)
 
     def clear(self):

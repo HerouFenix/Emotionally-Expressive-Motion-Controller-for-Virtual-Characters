@@ -14,6 +14,8 @@ class HumanoidVis(object):
     # init pybullet client
     self._init_physics()
     self._model = model # humanoid3d or atlas
+    self.first = True
+    self.c = []
 
   def _init_physics(self):
     self._pybullet_client =  bullet_client.BulletClient(connection_mode=p1.GUI)
@@ -23,6 +25,7 @@ class HumanoidVis(object):
     # load ground plane
     self._pybullet_client.setAdditionalSearchPath(URDF_DIR)
     z2y = self._pybullet_client.getQuaternionFromEuler([-math.pi*0.5,0,0])
+    #z2y = self._pybullet_client.getQuaternionFromEuler([0,0,0])
     self._planeId = self._pybullet_client.loadURDF("plane_implicit.urdf",[0,0,0],z2y, useMaximalCoordinates=True)
 
     # set simulation environment parameters
@@ -79,33 +82,57 @@ class HumanoidVis(object):
 
         phys_model  pybullet model unique Id, self._sim_model or self._kin_model
     """
+
+    #{'base': -1, 'root': 0, 'chest': 1, 'neck': 2, 'right_hip': 3, 'right_knee': 4, 'right_ankle': 5, 'right_shoulder': 6, 'right_elbow': 7, 'right_wrist': 8, 'left_hip': 9, 'left_knee': 10, 'left_ankle': 11, 'left_shoulder': 12, 'left_elbow': 13, 'left_wrist': 14}
+
     assert(char_name in self.characters.keys())
     phys_model = self.characters[char_name]
     s = self._skeleton
-    pos = pose[:3]
-    orn_wxyz = pose[3:7]
-    orn = [orn_wxyz[1], orn_wxyz[2], orn_wxyz[3], orn_wxyz[0]]
-    v   = vel[:3]
-    omg = vel[3:6]
-    self._pybullet_client.resetBasePositionAndOrientation(phys_model, pos, orn)
-    self._pybullet_client.resetBaseVelocity(phys_model, v, omg)
+    ll = []
+    ul = []
+    for i in range(s.num_joints):
+      joint = s.joints[i]
+      if(s.joint_types[i] != JointType.SPHERE and s.joint_types[i] != JointType.REVOLUTE):
+        continue
+      ll += list(joint.limlow)
+      ul += list(joint.limhigh)
 
+    endEffector = 8
+
+    if(self.first):
+      self.first = False
+      #curPos = self._get_joint_pose(phys_model, endEffector)[0]
+      
+      curPos = self._pybullet_client.getBasePositionAndOrientation(phys_model)[0]
+      
+      self.c = [self._pybullet_client.addUserDebugParameter("lWrist x", -2, 2, curPos[0]), self._pybullet_client.addUserDebugParameter("lWrist y", -2, 2, curPos[1]), self._pybullet_client.addUserDebugParameter("lWrist z", -2, 2, curPos[2])]
+
+    targetPos = [self._pybullet_client.readUserDebugParameter(self.c[0]), self._pybullet_client.readUserDebugParameter(self.c[1]), self._pybullet_client.readUserDebugParameter(self.c[2])]
+    jointPoses = self._pybullet_client.calculateInverseKinematics(phys_model,
+                                              endEffector,
+                                              targetPos,
+                                              lowerLimits=ll,
+                                              upperLimits=ul,
+                                              #jointDamping=[0.1]*s.num_joints,
+                                              )
+    
+    currentPointer = 0
+    #CURRENT PROBLEM: SHOULDER AINT GOING
     for i in range(s.num_joints):
       jtype = s.joint_types[i]
-      p_off = s.pos_start[i]
+
       if jtype is JointType.BASE:
         pass
       elif jtype is JointType.FIXED:
         pass
       elif jtype is JointType.REVOLUTE:
-        orn = [pose[p_off]]
-        omg = [vel[p_off]]
-        self._pybullet_client.resetJointStateMultiDof(phys_model, i, orn, omg)
+        self._pybullet_client.resetJointState(phys_model, i, jointPoses[currentPointer])
+        currentPointer += 1
       elif jtype is JointType.SPHERE:
-        orn_wxyz = pose[p_off : p_off+4]
-        orn = [orn_wxyz[1], orn_wxyz[2], orn_wxyz[3], orn_wxyz[0]]
-        omg = vel[p_off : p_off+3]
-        self._pybullet_client.resetJointStateMultiDof(phys_model, i, orn, omg)
+        self._pybullet_client.resetJointStateMultiDof(phys_model, i, [jointPoses[currentPointer], jointPoses[currentPointer+1], jointPoses[currentPointer+2], 1.0])
+        currentPointer += 3
+
+    print(jointPoses)
 
   def camera_follow(self, char_name, dis=None, yaw=None, pitch=None, pos=None):
     assert(char_name in self.characters.keys())

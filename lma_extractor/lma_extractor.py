@@ -357,8 +357,8 @@ class LMAExtractor():
         #lma_features.append(neck_jerk)
 
         # Extras
-        lma_features.append(self._compute_average_distance(upper_body_volumes))
-        lma_features.append(self._compute_average_distance(lower_body_volumes))
+        #lma_features.append(self._compute_average_distance(upper_body_volumes))
+        #lma_features.append(self._compute_average_distance(lower_body_volumes))
 
 
         if(self._round_values):

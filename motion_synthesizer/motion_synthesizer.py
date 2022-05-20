@@ -63,6 +63,7 @@ class MotionSynthesizer():
                 line = literal_eval(line)
                 del line["frame"]
                 self._mocap.append(line)
+                print(line["right_wrist"])
 
                 if(first):
                     first = False
