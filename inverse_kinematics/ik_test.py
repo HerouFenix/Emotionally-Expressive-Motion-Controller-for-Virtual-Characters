@@ -13,7 +13,7 @@ p.setAdditionalSearchPath(pybullet_data.getDataPath())
 
 kukaId = p.loadURDF("humanoid_2.urdf", [0, 0, 0])
 p.resetBasePositionAndOrientation(kukaId, [0, 0, 0], [0, 0, 0, 1])
-kukaEndEffectorIndex = 28
+kukaEndEffectorIndex = 17
 
 # Good ones: 8 - chest ; 10 - rshoulder
 numJoints = p.getNumJoints(kukaId)
@@ -84,6 +84,8 @@ while 1:
 
   ls = p.getLinkState(kukaId, kukaEndEffectorIndex)
   print("Final: " + str(ls[4]))
+
+  print("Joint Poses: " + str(jointPoses))
   print()
 
 p.disconnect()
@@ -95,6 +97,8 @@ p.disconnect()
 """
 JOINTPOSE:
 [b'root_chest_joint1', b'root_chest_joint2', b'root_chest_joint3', b'chest_neck_joint1', b'chest_neck_joint2', b'chest_neck_joint3', b'chest_right_shoulder_joint1', b'chest_right_shoulder_joint2', b'chest_right_shoulder_joint3', b'right_elbow', b'chest_left_shoulder_joint1', b'chest_left_shoulder_joint2', b'chest_left_shoulder_joint3', b'left_elbow', b'root_right_hip_joint1', b'root_right_hip_joint2', b'root_right_hip_joint3', b'right_knee', b'right_knee_right_ankle_joint1', b'right_knee_right_ankle_joint2', b'right_knee_right_ankle_joint3', b'root_left_hip_joint1', b'root_left_hip_joint2', b'root_left_hip_joint3', b'left_knee', b'left_knee_left_ankle_joint1', b'left_knee_left_ankle_joint2', b'left_knee_left_ankle_joint3']
+
+(-0.04673124029572879, -0.17368473610432916, 0.04654908533054814, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.480219482848072, -0.20724234344843553, -0.08050166649627483, -5.01473520474913e-15, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
 """
 
 """

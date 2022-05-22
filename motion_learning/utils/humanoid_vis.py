@@ -105,36 +105,26 @@ class HumanoidVis(object):
     assert(char_name in self.characters.keys())
     phys_model = self.characters[char_name]
     s = self._skeleton
-    ll = []
-    ul = []
-    for i in range(s.num_joints):
-      joint = s.joints[i]
-      if(s.joint_types[i] != JointType.SPHERE and s.joint_types[i] != JointType.REVOLUTE):
-        continue
-      ll += list(joint.limlow)
-      ul += list(joint.limhigh)
 
-    endEffector = 14
+    #TODO: Pass current pose to IKSolver ; Pass desired position to IKSolver
+    #TODO: Get jointPoses from IKSolver
+    #jointPoses = IKSolver.computeInverseKinematics(current_pose, desired_positions)
+    jointPoses = [-1.4606487387620555, -0.861686020530726, 0.09230053991733346, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.9884745715857743, 1.8293280170440733, 0.7547371658637096, -0.06251594145376464, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    mapping = {"chest": [0,1,2],
+               "neck": [3,4,5],
 
-    curPos = self._get_joint_pose(phys_model, endEffector)[0]
+               "right_hip": [14,15,16],
+               "right_knee": [17],
+               "right_ankle": [18, 19, 20],
+               "right_shoulder": [6,7,8],
+               "right_elbow": [9],
 
-    if(self.first):
-      self.first = False
-            
-      self.c = [self._pybullet_client.addUserDebugParameter("lWrist x", -2, 2, curPos[0]), self._pybullet_client.addUserDebugParameter("lWrist y", -2, 2, curPos[1]), self._pybullet_client.addUserDebugParameter("lWrist z", -2, 2, curPos[2])]
+               "left_hip": [21, 22, 23],
+               "left_knee": [24],
+               "left_ankle": [25, 26, 27],
+               "left_shoulder": [10,11,12],
+               "left_elbow": [13],}
 
-
-    print("Current: " + str(curPos))
-
-    targetPos = [self._pybullet_client.readUserDebugParameter(self.c[0]), self._pybullet_client.readUserDebugParameter(self.c[1]), self._pybullet_client.readUserDebugParameter(self.c[2])]
-    print("Target: " + str(targetPos))
-
-    jointPoses = self._pybullet_client.calculateInverseKinematics(phys_model,
-                                              endEffector,
-                                              targetPos,
-                                              )
-
-    currentPoses = []
     for i in range(s.num_joints):
       jtype = s.joint_types[i]
 
@@ -143,37 +133,16 @@ class HumanoidVis(object):
       elif jtype is JointType.FIXED: #R/L Wrist
         pass
       elif jtype is JointType.REVOLUTE: #R/L Knee ; R/L Elbow
-        currentPoses += self._pybullet_client.getJointStateMultiDof(phys_model, i)[0]
+        joint_name = self._pybullet_client.getJointInfo(phys_model,i)[1].decode("utf-8")
+        orn = [jointPoses[mapping[joint_name][0]]]
+        self._pybullet_client.resetJointStateMultiDof(phys_model, i, orn)
       elif jtype is JointType.SPHERE: #Chest ; Neck ; R/L Hip ; R/L Ankle ; R/L Shoulder
-        currentPoses += self._pybullet_client.getEulerFromQuaternion(self._pybullet_client.getJointStateMultiDof(phys_model, i)[0])
-
-    print("CurrentPoses: " + str(currentPoses))
-    print("JointPoses: " + str(jointPoses))
-
-    #threshold = 0.001
-    #maxIter = 100
-    #jointPoses = self.accurateCalculateInverseKinematics(s.num_joints, phys_model, endEffector, targetPos,
-    #                                                threshold, maxIter)
+        joint_name = self._pybullet_client.getJointInfo(phys_model,i)[1].decode("utf-8")
+        orn = [jointPoses[mapping[joint_name][0]], jointPoses[mapping[joint_name][2]], jointPoses[mapping[joint_name][1]]]
+        orn = self._pybullet_client.getQuaternionFromEuler(orn)
+        self._pybullet_client.resetJointStateMultiDof(phys_model, i, orn)
 
     #chest chest chest neck neck neck right_hip right_hip right_hip right_knee right_ankle right_ankle right_ankle right_shoulder right_shoulder right_shoulder right_elbow left_hip left_hip left_hip left_knee left_ankle left_ankle left_ankle left_shoulder left_shoulder left_shoulder left_elbow
-
-    currentPointer = 0
-    for i in range(s.num_joints):
-      jtype = s.joint_types[i]
-
-      if jtype is JointType.BASE: #Root
-        pass
-      elif jtype is JointType.FIXED: #R/L Wrist
-        pass
-      elif jtype is JointType.REVOLUTE: #R/L Knee ; R/L Elbow
-        self._pybullet_client.resetJointStateMultiDof(phys_model, i, [jointPoses[currentPointer]])
-        currentPointer += 1
-      elif jtype is JointType.SPHERE: #Chest ; Neck ; R/L Hip ; R/L Ankle ; R/L Shoulder
-        self._pybullet_client.resetJointStateMultiDof(phys_model, i, [jointPoses[currentPointer], jointPoses[currentPointer+1], jointPoses[currentPointer+2]])
-        currentPointer += 3
-
-    print("Final: " + str(self._get_joint_pose(phys_model, endEffector)[0]))
-    print()
 
 
   def camera_follow(self, char_name, dis=None, yaw=None, pitch=None, pos=None):
