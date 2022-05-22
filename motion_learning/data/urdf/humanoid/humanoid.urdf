@@ -22,6 +22,7 @@
     </collision>
   </link>
 
+  <!-- joint between base and root -->
   <joint name="root" type="fixed" >
     <parent link = "base" />
     <child link="root" />
@@ -42,6 +43,7 @@
     </collision>
   </link>
 
+  <!-- joint between root and chest -->
   <joint name="chest" type="spherical" >
     <parent link="root" />
     <child link="chest" />
@@ -62,6 +64,7 @@
     </collision>
   </link>
 
+  <!-- joint between chest and neck -->
   <joint name="neck" type="spherical" >
     <parent link="chest" />
     <child link="neck" />
@@ -82,6 +85,7 @@
     </collision>
   </link>
 
+  <!-- joint between root and right_hip -->
   <joint name="right_hip" type="spherical" >
     <parent link="root" />
     <child link="right_hip" />
@@ -102,6 +106,7 @@
     </collision>
   </link>
 
+  <!-- joint between right_hip and right_knee -->
   <joint name="right_knee" type="revolute" >
     <parent link="right_hip" />
     <child link="right_knee" />
@@ -124,6 +129,7 @@
     </collision>
   </link>
 
+  <!-- joint between right_knee and right_ankle -->
   <joint name="right_ankle" type="spherical" >
     <parent link="right_knee" />
     <child link="right_ankle" />
@@ -144,6 +150,7 @@
     </collision>
   </link>
 
+  <!-- joint between chest and right_shoulder -->
   <joint name="right_shoulder" type="spherical" >
     <parent link="chest" />
     <child link="right_shoulder" />

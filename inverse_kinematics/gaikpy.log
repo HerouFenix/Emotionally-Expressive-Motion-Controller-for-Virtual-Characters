@@ -1,0 +1,130 @@
+2022-05-22 14:05:26,524 [MainThread  ] [INFO ]  Logging started on  <module 'gaikpy.robot' from '/home/ds/.local/lib/python3.8/site-packages/gaikpy/robot.py'>
+2022-05-22 14:05:26,737 [MainThread  ] [INFO ]  --Init chain -- chain
+2022-05-22 14:05:31,722 [MainThread  ] [INFO ]  New Generation: Gen: #1 Total error: 12.91374675981082
+
+2022-05-22 14:05:31,722 [MainThread  ] [INFO ]  Min Error: 0.8782512176775653
+2022-05-22 14:05:31,726 [MainThread  ] [INFO ]  New Generation: Gen: #1 Total error: 13.270690943887413
+
+2022-05-22 14:05:31,726 [MainThread  ] [INFO ]  Min Error: 0.8990259396828594
+2022-05-22 14:05:31,732 [MainThread  ] [INFO ]  New Generation: Gen: #1 Total error: 13.857884227602167
+
+2022-05-22 14:05:31,732 [MainThread  ] [INFO ]  Min Error: 0.40075375334872454
+2022-05-22 14:05:31,739 [MainThread  ] [INFO ]  New Generation: Gen: #1 Total error: 14.542048488807303
+
+2022-05-22 14:05:31,740 [MainThread  ] [INFO ]  Min Error: 0.899174562251565
+2022-05-22 14:05:31,747 [MainThread  ] [INFO ]  New Generation: Gen: #1 Total error: 13.917673043724268
+
+2022-05-22 14:05:31,747 [MainThread  ] [INFO ]  Min Error: 0.6278803655438105
+2022-05-22 14:05:31,753 [MainThread  ] [INFO ]  New Generation: Gen: #1 Total error: 11.028248428487194
+
+2022-05-22 14:05:31,753 [MainThread  ] [INFO ]  Min Error: 0.48758640640126094
+2022-05-22 14:05:32,318 [MainThread  ] [INFO ]  dist acc: 0.0006854557363317039
+2022-05-22 14:05:32,319 [MainThread  ] [INFO ]  dist or 0.021360582039425993
+2022-05-22 14:05:32,446 [MainThread  ] [INFO ]  dist acc: 0.0008054314717614283
+2022-05-22 14:05:32,447 [MainThread  ] [INFO ]  dist or 0.028198640085485182
+2022-05-22 14:05:32,890 [MainThread  ] [INFO ]  New Generation: Gen: #1 Total error: 15.944418770432401
+
+2022-05-22 14:05:32,890 [MainThread  ] [INFO ]  Min Error: 0.6832238483249535
+2022-05-22 14:05:32,896 [MainThread  ] [INFO ]  New Generation: Gen: #1 Total error: 12.657226498488653
+
+2022-05-22 14:05:32,896 [MainThread  ] [INFO ]  Min Error: 0.6251666519591091
+2022-05-22 14:05:32,903 [MainThread  ] [INFO ]  New Generation: Gen: #1 Total error: 12.715762162961362
+
+2022-05-22 14:05:32,903 [MainThread  ] [INFO ]  Min Error: 0.7245863480992185
+2022-05-22 14:05:32,909 [MainThread  ] [INFO ]  New Generation: Gen: #1 Total error: 11.401669272223433
+
+2022-05-22 14:05:32,910 [MainThread  ] [INFO ]  Min Error: 0.7271157286447006
+2022-05-22 14:05:32,919 [MainThread  ] [INFO ]  New Generation: Gen: #1 Total error: 12.076399260032534
+
+2022-05-22 14:05:32,920 [MainThread  ] [INFO ]  Min Error: 0.9735436934649975
+2022-05-22 14:05:32,927 [MainThread  ] [INFO ]  New Generation: Gen: #1 Total error: 15.836035268485725
+
+2022-05-22 14:05:32,928 [MainThread  ] [INFO ]  Min Error: 1.1319946519411377
+2022-05-22 14:05:33,602 [MainThread  ] [INFO ]  dist acc: 0.0011636416075750484
+2022-05-22 14:05:33,603 [MainThread  ] [INFO ]  dist or 0.011675681192026994
+2022-05-22 14:05:34,147 [MainThread  ] [INFO ]  New Generation: Gen: #1 Total error: 12.681997774320454
+
+2022-05-22 14:05:34,148 [MainThread  ] [INFO ]  Min Error: 1.008888032324356
+2022-05-22 14:05:34,153 [MainThread  ] [INFO ]  New Generation: Gen: #1 Total error: 13.912201064435578
+
+2022-05-22 14:05:34,153 [MainThread  ] [INFO ]  Min Error: 0.8805896903404431
+2022-05-22 14:05:34,157 [MainThread  ] [INFO ]  New Generation: Gen: #1 Total error: 15.499190218573244
+
+2022-05-22 14:05:34,158 [MainThread  ] [INFO ]  Min Error: 0.44052201658081463
+2022-05-22 14:05:34,167 [MainThread  ] [INFO ]  New Generation: Gen: #1 Total error: 13.098736413549704
+
+2022-05-22 14:05:34,168 [MainThread  ] [INFO ]  Min Error: 0.693271275017742
+2022-05-22 14:05:34,173 [MainThread  ] [INFO ]  New Generation: Gen: #1 Total error: 12.072882053142212
+
+2022-05-22 14:05:34,174 [MainThread  ] [INFO ]  Min Error: 0.5708326616456968
+2022-05-22 14:05:34,180 [MainThread  ] [INFO ]  New Generation: Gen: #1 Total error: 14.471499384522911
+
+2022-05-22 14:05:34,180 [MainThread  ] [INFO ]  Min Error: 0.8395490713420546
+2022-05-22 14:05:35,119 [MainThread  ] [INFO ]  dist acc: 0.00033389662763573264
+2022-05-22 14:05:35,119 [MainThread  ] [INFO ]  dist or 0.040354134020295584
+2022-05-22 14:05:35,679 [MainThread  ] [INFO ]  New Generation: Gen: #1 Total error: 15.663738953016436
+
+2022-05-22 14:05:35,680 [MainThread  ] [INFO ]  Min Error: 0.8118441952126861
+2022-05-22 14:05:35,684 [MainThread  ] [INFO ]  New Generation: Gen: #1 Total error: 11.849039319608092
+
+2022-05-22 14:05:35,684 [MainThread  ] [INFO ]  Min Error: 0.8076750287487084
+2022-05-22 14:05:35,694 [MainThread  ] [INFO ]  New Generation: Gen: #1 Total error: 14.404058856714741
+
+2022-05-22 14:05:35,694 [MainThread  ] [INFO ]  Min Error: 0.6572006829771033
+2022-05-22 14:05:35,703 [MainThread  ] [INFO ]  New Generation: Gen: #1 Total error: 11.80395322439685
+
+2022-05-22 14:05:35,703 [MainThread  ] [INFO ]  Min Error: 0.4442986372374683
+2022-05-22 14:05:35,709 [MainThread  ] [INFO ]  New Generation: Gen: #1 Total error: 13.344749113758827
+
+2022-05-22 14:05:35,709 [MainThread  ] [INFO ]  Min Error: 0.4061629287188686
+2022-05-22 14:05:35,718 [MainThread  ] [INFO ]  New Generation: Gen: #1 Total error: 14.420676852433974
+
+2022-05-22 14:05:35,718 [MainThread  ] [INFO ]  Min Error: 0.7188603606147387
+2022-05-22 14:05:36,000 [MainThread  ] [INFO ]  dist acc: 0.4228016450183938
+2022-05-22 14:05:36,001 [MainThread  ] [INFO ]  dist or 0.690508764079801
+2022-05-22 14:05:36,001 [MainThread  ] [INFO ]  New Generation: Gen: #2 Total error: 11.346854991209389
+
+2022-05-22 14:05:36,001 [MainThread  ] [INFO ]  Min Error: 0.7055827179356366
+2022-05-22 14:05:36,009 [MainThread  ] [INFO ]  dist acc: 0.0015110155698820841
+2022-05-22 14:05:36,010 [MainThread  ] [INFO ]  dist or 0.03463107205218195
+2022-05-22 14:05:36,017 [MainThread  ] [INFO ]  dist acc: 0.001268787976611359
+2022-05-22 14:05:36,017 [MainThread  ] [INFO ]  dist or 0.15594900743067192
+2022-05-22 14:05:36,017 [MainThread  ] [INFO ]  New Generation: Gen: #2 Total error: 9.917908957707299
+
+2022-05-22 14:05:36,017 [MainThread  ] [INFO ]  Min Error: 0.06328733267408336
+2022-05-22 14:05:36,079 [MainThread  ] [INFO ]  dist acc: 0.12227112769445068
+2022-05-22 14:05:36,079 [MainThread  ] [INFO ]  dist or 3.801130537151457
+2022-05-22 14:05:36,079 [MainThread  ] [INFO ]  New Generation: Gen: #2 Total error: 8.850612136803983
+
+2022-05-22 14:05:36,079 [MainThread  ] [INFO ]  Min Error: 0.4110917090130315
+2022-05-22 14:05:36,169 [MainThread  ] [INFO ]  dist acc: 0.12248778848376743
+2022-05-22 14:05:36,169 [MainThread  ] [INFO ]  dist or 3.801281879078175
+2022-05-22 14:05:36,170 [MainThread  ] [INFO ]  New Generation: Gen: #2 Total error: 9.637868848384873
+
+2022-05-22 14:05:36,170 [MainThread  ] [INFO ]  Min Error: 0.31619691167251607
+2022-05-22 14:05:36,639 [MainThread  ] [INFO ]  New Generation: Gen: #1 Total error: 14.742680551670604
+
+2022-05-22 14:05:36,640 [MainThread  ] [INFO ]  Min Error: 0.5925340843085539
+2022-05-22 14:05:36,660 [MainThread  ] [INFO ]  New Generation: Gen: #1 Total error: 14.497391695598012
+
+2022-05-22 14:05:36,661 [MainThread  ] [INFO ]  Min Error: 0.8424277482996574
+2022-05-22 14:05:36,675 [MainThread  ] [INFO ]  New Generation: Gen: #1 Total error: 11.41888907469142
+
+2022-05-22 14:05:36,676 [MainThread  ] [INFO ]  Min Error: 0.7982037753947585
+2022-05-22 14:05:36,690 [MainThread  ] [INFO ]  New Generation: Gen: #1 Total error: 12.168312627112428
+
+2022-05-22 14:05:36,690 [MainThread  ] [INFO ]  Min Error: 0.9558951182913995
+2022-05-22 14:05:36,698 [MainThread  ] [INFO ]  New Generation: Gen: #1 Total error: 14.172080395811337
+
+2022-05-22 14:05:36,699 [MainThread  ] [INFO ]  Min Error: 0.780567839449685
+2022-05-22 14:05:36,706 [MainThread  ] [INFO ]  New Generation: Gen: #1 Total error: 13.544445793143513
+
+2022-05-22 14:05:36,706 [MainThread  ] [INFO ]  Min Error: 0.6724860499936975
+2022-05-22 14:05:59,430 [MainThread  ] [INFO ]  Logging started on  <module 'gaikpy.robot' from '/home/ds/.local/lib/python3.8/site-packages/gaikpy/robot.py'>
+2022-05-22 14:05:59,638 [MainThread  ] [INFO ]  --Init chain -- chain
+2022-05-22 14:06:45,001 [MainThread  ] [INFO ]  Logging started on  <module 'gaikpy.robot' from '/home/ds/.local/lib/python3.8/site-packages/gaikpy/robot.py'>
+2022-05-22 14:06:45,206 [MainThread  ] [INFO ]  --Init chain -- chain
+2022-05-22 14:08:45,603 [MainThread  ] [INFO ]  Logging started on  <module 'gaikpy.robot' from '/home/ds/.local/lib/python3.8/site-packages/gaikpy/robot.py'>
+2022-05-22 14:08:45,604 [MainThread  ] [INFO ]  --Init chain -- chain
+2022-05-22 14:10:37,718 [MainThread  ] [INFO ]  Logging started on  <module 'gaikpy.robot' from '/home/ds/.local/lib/python3.8/site-packages/gaikpy/robot.py'>
+2022-05-22 14:10:37,791 [MainThread  ] [INFO ]  --Init chain -- chain
