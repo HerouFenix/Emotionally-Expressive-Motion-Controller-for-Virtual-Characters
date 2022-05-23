@@ -72,23 +72,6 @@ class HumanoidVis(object):
 
     return kin_model
 
-  def accurateCalculateInverseKinematics(self, numJoints, modelID, endEffectorId, targetPos, threshold, maxIter):
-    closeEnough = False
-    iter = 0
-    dist2 = 1e30
-    while (not closeEnough and iter < maxIter):
-      jointPoses = self._pybullet_client.calculateInverseKinematics(modelID, endEffectorId, targetPos)
-      for i in range(numJoints):
-        self._pybullet_client.resetJointState(modelID, i, jointPoses[i])
-      ls = self._pybullet_client.getLinkState(modelID, endEffectorId)
-      newPos = ls[4]
-      diff = [targetPos[0] - newPos[0], targetPos[1] - newPos[1], targetPos[2] - newPos[2]]
-      dist2 = (diff[0] * diff[0] + diff[1] * diff[1] + diff[2] * diff[2])
-      closeEnough = (dist2 < threshold)
-      iter = iter + 1
-    print ("Num iter: "+str(iter) + " Threshold: "+str(dist2))
-    return jointPoses
-
   def set_pose(self, char_name, pose, vel):
     """ Set character state in physics engine
       Inputs:
@@ -102,6 +85,46 @@ class HumanoidVis(object):
 
     #{'base': -1, 'root': 0, 'chest': 1, 'neck': 2, 'right_hip': 3, 'right_knee': 4, 'right_ankle': 5, 'right_shoulder': 6, 'right_elbow': 7, 'right_wrist': 8, 'left_hip': 9, 'left_knee': 10, 'left_ankle': 11, 'left_shoulder': 12, 'left_elbow': 13, 'left_wrist': 14}
 
+    assert(char_name in self.characters.keys())
+    phys_model = self.characters[char_name]
+    s = self._skeleton
+    pos = pose[:3]
+    orn_wxyz = pose[3:7]
+    orn = [orn_wxyz[1], orn_wxyz[2], orn_wxyz[3], orn_wxyz[0]]
+    v   = vel[:3]
+    omg = vel[3:6]
+    self._pybullet_client.resetBasePositionAndOrientation(phys_model, pos, orn)
+    self._pybullet_client.resetBaseVelocity(phys_model, v, omg)
+
+#
+    for i in range(s.num_joints):
+      jtype = s.joint_types[i]
+      p_off = s.pos_start[i]
+      if jtype is JointType.BASE:
+        pass
+      elif jtype is JointType.FIXED:
+        pass
+      elif jtype is JointType.REVOLUTE:
+        orn = [pose[p_off]]
+        omg = [vel[p_off]]
+        self._pybullet_client.resetJointStateMultiDof(phys_model, i, orn, omg)
+        print(self._pybullet_client.getJointInfo(phys_model, i)[1])
+        print(self._pybullet_client.getJointStateMultiDof(phys_model, i)[0])
+        print()
+        
+      elif jtype is JointType.SPHERE:
+        orn_wxyz = pose[p_off : p_off+4]
+        orn = [orn_wxyz[1], orn_wxyz[2], orn_wxyz[3], orn_wxyz[0]]
+        omg = vel[p_off : p_off+3]
+        self._pybullet_client.resetJointStateMultiDof(phys_model, i, orn, omg)
+
+        print(self._pybullet_client.getJointInfo(phys_model, i)[1])
+        print(self._pybullet_client.getJointStateMultiDof(phys_model, i)[0])
+        print()
+
+    print(pose)
+
+    """
     assert(char_name in self.characters.keys())
     phys_model = self.characters[char_name]
     s = self._skeleton
@@ -138,9 +161,10 @@ class HumanoidVis(object):
         self._pybullet_client.resetJointStateMultiDof(phys_model, i, orn)
       elif jtype is JointType.SPHERE: #Chest ; Neck ; R/L Hip ; R/L Ankle ; R/L Shoulder
         joint_name = self._pybullet_client.getJointInfo(phys_model,i)[1].decode("utf-8")
-        orn = [jointPoses[mapping[joint_name][0]], jointPoses[mapping[joint_name][2]], jointPoses[mapping[joint_name][1]]]
+        orn = [jointPoses[mapping[joint_name][0]], jointPoses[mapping[joint_name][2]], jointPoses[mapping[joint_name][1]]] #TODO: Change this
         orn = self._pybullet_client.getQuaternionFromEuler(orn)
         self._pybullet_client.resetJointStateMultiDof(phys_model, i, orn)
+    """
 
     #chest chest chest neck neck neck right_hip right_hip right_hip right_knee right_ankle right_ankle right_ankle right_shoulder right_shoulder right_shoulder right_elbow left_hip left_hip left_hip left_knee left_ankle left_ankle left_ankle left_shoulder left_shoulder left_shoulder left_elbow
 

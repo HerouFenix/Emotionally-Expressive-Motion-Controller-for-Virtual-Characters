@@ -3,6 +3,7 @@ import time
 import math
 from datetime import datetime
 import pybullet_data
+import numpy as np
 
 clid = p.connect(p.SHARED_MEMORY)
 if (clid < 0):
@@ -11,8 +12,8 @@ if (clid < 0):
 
 p.setAdditionalSearchPath(pybullet_data.getDataPath())
 
-kukaId = p.loadURDF("humanoid_2.urdf", [0, 0, 0])
-p.resetBasePositionAndOrientation(kukaId, [0, 0, 0], [0, 0, 0, 1])
+z2y = p.getQuaternionFromEuler([-math.pi*0.5,0,0]) 
+kukaId = p.loadURDF("humanoid_2.urdf", [0,0.889540259, 0], z2y)
 kukaEndEffectorIndex = 17
 
 # Good ones: 8 - chest ; 10 - rshoulder
@@ -24,6 +25,7 @@ if (numJoints != 32):
 
 
 p.setGravity(0, 0, 0)
+p.configureDebugVisualizer(p.COV_ENABLE_Y_AXIS_UP,1)
 t = 0.
 prevPose = [0, 0, 0]
 prevPose1 = [0, 0, 0]
@@ -56,6 +58,121 @@ print(counter)
 print(len(jointposes))
 """
 
+def quaternion_multiply(Q0):
+    """
+    Multiplies two quaternions.
+ 
+    Input
+    :param Q0: A 4 element array containing the first quaternion (q01,q11,q21,q31) 
+    :param Q1: A 4 element array containing the second quaternion (q02,q12,q22,q32) 
+ 
+    Output
+    :return: A 4 element array containing the final quaternion (q03,q13,q23,q33) 
+ 
+    """
+    # Extract the values from Q0
+    w1 = Q0[0]
+    x1 = Q0[1]
+    y1 = Q0[2]
+    z1 = Q0[3]
+     
+    # Extract the values from Q1
+    w0 = z2y[3]
+    x0 = z2y[0]
+    y0 = z2y[1]
+    z0 = z2y[2]
+     
+    # Computer the product of the two quaternions, term by term
+    Q0Q1_x = w0 * x1 + x0 * w1 + y0 * z1 - z0 * y1
+    Q0Q1_y = w0 * y1 - x0 * z1 + y0 * w1 + z0 * x1
+    Q0Q1_z = w0 * z1 + x0 * y1 - y0 * x1 + z0 * w1
+    Q0Q1_w = w0 * w1 - x0 * x1 - y0 * y1 - z0 * z1
+     
+    # Create a 4 element array containing the final quaternion
+    final_quaternion = [Q0Q1_x, Q0Q1_y, Q0Q1_z, Q0Q1_w]
+     
+    # Return a 4 element arra
+    return final_quaternion
+
+
+#Pose is in W X Y Z ; PyBullet needs X Y Z W
+pose = [ 4.98910587e-01,  8.61965996e-01,  6.76430121e-03,  1.00000000e+00,
+0.00000000e+00,  0.00000000e+00,  0.00000000e+00,  9.99938012e-01,
+0.00000000e+00, -1.11054544e-02, -8.00608165e-04,  1.00000000e+00,
+0.00000000e+00,  0.00000000e+00,  0.00000000e+00,  9.97290026e-01,
+0.00000000e+00, -5.81173275e-02, -4.51107603e-02, -2.16116408e-01,
+9.84030931e-01, -3.25363635e-02,  8.90732054e-02,  1.50633584e-01,
+9.39676420e-01, -1.98687524e-01,  2.35818497e-01,  1.48057864e-01,
+5.71147477e-01,  9.58070112e-01,  0.00000000e+00,  1.19043367e-01,
+2.60634491e-01, -1.33930724e-01,  9.98887637e-01,  2.64181872e-02,
+ 3.80308091e-02, -8.90085879e-03,  9.74355800e-01,  1.03421713e-01,
+1.38056048e-01, -1.44482701e-01,  1.50277310e-01,]
+
+
+p.resetBasePositionAndOrientation(kukaId, [pose[0], pose[1], pose[2]], quaternion_multiply([pose[3], pose[4], pose[5], pose[6]]))
+
+chest_rotation = p.getEulerFromQuaternion([pose[8],pose[9],pose[10],pose[7]])
+neck_rotation = p.getEulerFromQuaternion([pose[12],pose[13],pose[14],pose[11]])
+right_hip_rotation = p.getEulerFromQuaternion([pose[16],pose[17],pose[18],pose[15]])
+right_knee_rotation = pose[19]
+right_ankle_rotation = p.getEulerFromQuaternion([pose[21],pose[22],pose[23],pose[20]])
+right_shoulder_rotation = p.getEulerFromQuaternion([pose[25],pose[26],pose[27],pose[24]])
+right_elbow_rotation = pose[28]
+left_hip_rotation = p.getEulerFromQuaternion([pose[30],pose[31],pose[32],pose[29]])
+left_knee_rotation = pose[33]
+left_ankle_rotation = p.getEulerFromQuaternion([pose[35],pose[36],pose[37],pose[34]])
+left_shoulder_rotation = p.getEulerFromQuaternion([pose[39],pose[40],pose[41],pose[38]])
+left_elbow_rotation = pose[42]
+
+pose = [
+        chest_rotation[0],
+        chest_rotation[1],
+        chest_rotation[2],
+        neck_rotation[0],
+        neck_rotation[1],
+        neck_rotation[2],
+        right_shoulder_rotation[0],
+        right_shoulder_rotation[1],
+        right_shoulder_rotation[2],
+        right_elbow_rotation,
+        left_shoulder_rotation[0],
+        left_shoulder_rotation[1],
+        left_shoulder_rotation[2],
+        left_elbow_rotation,
+        right_hip_rotation[0],
+        right_hip_rotation[1],
+        right_hip_rotation[2],
+        right_knee_rotation,
+        right_ankle_rotation[0],
+        right_ankle_rotation[1],
+        right_ankle_rotation[2],
+        left_hip_rotation[0],
+        left_hip_rotation[1],
+        left_hip_rotation[2],
+        left_knee_rotation,
+        left_ankle_rotation[0],
+        left_ankle_rotation[1],
+        left_ankle_rotation[2],
+    ]
+      
+counter = 0
+for j in range(numJoints):
+      if(p.getJointInfo(kukaId,j)[2] == 0):
+          print(p.getJointInfo(kukaId, j)[1])
+          print(counter)
+          p.resetJointState(kukaId, j, pose[counter])
+          counter += 1
+
+
+ll = []
+ul = []
+jd = []
+for i in range(numJoints):
+  #if(p.getJointInfo(kukaId, i)[2] == 0):
+  ll.append(p.getJointInfo(kukaId, i)[8])
+  ul.append(p.getJointInfo(kukaId, i)[9])
+
+
 ls = p.getLinkState(kukaId, kukaEndEffectorIndex)
 c = [p.addUserDebugParameter("rWrist x", -2, 2, ls[4][0]), p.addUserDebugParameter("rWrist y", -2, 2, ls[4][1]), p.addUserDebugParameter("rWrist z", -2, 2, ls[4][2])]
 
@@ -66,14 +183,15 @@ while 1:
 
   for i in range(1):
     ls = p.getLinkState(kukaId, kukaEndEffectorIndex)
-    print("Initial: " + str(ls[4]))
+    #print("Initial: " + str(ls[4]))
 
     pos = [p.readUserDebugParameter(c[0]), p.readUserDebugParameter(c[1]), p.readUserDebugParameter(c[2])]
 
     #end effector points down, not up (in case useOrientation==1)
     orn = ls[5]
 
-    jointPoses = p.calculateInverseKinematics(kukaId, kukaEndEffectorIndex, pos)
+    jointPoses = p.calculateInverseKinematics(kukaId, kukaEndEffectorIndex, pos, lowerLimits=ll, upperLimits=ul, jointDamping=[1] * 32)
+    #jointPoses = accurateCalculateInverseKinematics(numJoints, kukaId, kukaEndEffectorIndex, pos, 0.01, 100)
 
     #reset the joint state (ignoring all dynamics, not recommended to use during simulation)
     counter = 0
@@ -83,10 +201,10 @@ while 1:
             counter += 1
 
   ls = p.getLinkState(kukaId, kukaEndEffectorIndex)
-  print("Final: " + str(ls[4]))
+  #print("Final: " + str(ls[4]))
 
-  print("Joint Poses: " + str(jointPoses))
-  print()
+  #print("Joint Poses: " + str(jointPoses))
+  #print()
 
 p.disconnect()
 
