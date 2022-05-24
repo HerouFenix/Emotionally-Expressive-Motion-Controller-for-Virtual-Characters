@@ -1,4 +1,3 @@
-from ntpath import join
 import pybullet as p
 import time
 import math
@@ -8,11 +7,14 @@ from datetime import datetime
 Z2Y = p.getQuaternionFromEuler([-math.pi*0.5,0,0])
 
 class IKSolver():
-    def __init__(self):
+    def __init__(self, show_gui=False):
         # Setup PyBullet
         self.clid = p.connect(p.SHARED_MEMORY)
         if (self.clid < 0):
-            p.connect(p.GUI)
+            if(show_gui):
+                p.connect(p.GUI)
+            else:
+                p.connect(p.DIRECT)
             #p.connect(p.SHARED_MEMORY_GUI)
 
         p.setGravity(0, 0, 0)
@@ -27,7 +29,7 @@ class IKSolver():
 
         self.ll = []
         self.ul = []
-        self.jd = [1.0] * self.numJoints
+        self.jd = [0.1] * self.numJoints
 
         for i in range(self.numJoints):
             #if(p.getJointInfo(kukaId, i)[2] == 0):
@@ -36,6 +38,42 @@ class IKSolver():
 
     def __del__(self):
         p.disconnect(self.clid)
+
+    def quaternion_multiply(Q0):
+        """
+        Multiplies two quaternions.
+    
+        Input
+        :param Q0: A 4 element array containing the first quaternion (q01,q11,q21,q31) 
+        :param Q1: A 4 element array containing the second quaternion (q02,q12,q22,q32) 
+    
+        Output
+        :return: A 4 element array containing the final quaternion (q03,q13,q23,q33) 
+    
+        """
+        # Extract the values from Q0
+        w1 = Q0[3]
+        x1 = Q0[0]
+        y1 = Q0[1]
+        z1 = Q0[2]
+        
+        # Extract the values from Q1
+        w0 = Z2Y[3]
+        x0 = Z2Y[0]
+        y0 = Z2Y[1]
+        z0 = Z2Y[2]
+        
+        # Computer the product of the two quaternions, term by term
+        Q0Q1_x = w0 * x1 + x0 * w1 + y0 * z1 - z0 * y1
+        Q0Q1_y = w0 * y1 - x0 * z1 + y0 * w1 + z0 * x1
+        Q0Q1_z = w0 * z1 + x0 * y1 - y0 * x1 + z0 * w1
+        Q0Q1_w = w0 * w1 - x0 * x1 - y0 * y1 - z0 * z1
+        
+        # Create a 4 element array containing the final quaternion
+        final_quaternion = [Q0Q1_x, Q0Q1_y, Q0Q1_z, Q0Q1_w]
+        
+        # Return a 4 element arra
+        return final_quaternion
 
         
     def accurateCalculateInverseKinematics(self, endEffectorId, targetPos, threshold, maxIter):
@@ -59,10 +97,95 @@ class IKSolver():
         print ("Num iter: "+str(iter) + " Threshold: "+str(dist2))
         return jointPoses
 
-    def updatePose(self):
-        pass
+    def updatePose(self, pose):
+        p.resetBasePositionAndOrientation(self.charID, [pose[0], pose[1], pose[2]], self.quaternion_multiply([pose[4], pose[5], pose[6], pose[3]]))
 
-    def calculateKinematicSolution(self, desiredPositions, endEffectorIndices):
+        chest_rotation = p.getEulerFromQuaternion([pose[8],pose[9],pose[10],pose[7]])
+        neck_rotation = p.getEulerFromQuaternion([pose[12],pose[13],pose[14],pose[11]])
+        right_hip_rotation = p.getEulerFromQuaternion([pose[16],pose[17],pose[18],pose[15]])
+        right_knee_rotation = pose[19]
+        right_ankle_rotation = p.getEulerFromQuaternion([pose[21],pose[22],pose[23],pose[20]])
+        right_shoulder_rotation = p.getEulerFromQuaternion([pose[25],pose[26],pose[27],pose[24]])
+        right_elbow_rotation = pose[28]
+        left_hip_rotation = p.getEulerFromQuaternion([pose[30],pose[31],pose[32],pose[29]])
+        left_knee_rotation = pose[33]
+        left_ankle_rotation = p.getEulerFromQuaternion([pose[35],pose[36],pose[37],pose[34]])
+        left_shoulder_rotation = p.getEulerFromQuaternion([pose[39],pose[40],pose[41],pose[38]])
+        left_elbow_rotation = pose[42]
+
+        pose = [
+                chest_rotation[0],
+                chest_rotation[1],
+                chest_rotation[2],
+                neck_rotation[0],
+                neck_rotation[1],
+                neck_rotation[2],
+                right_shoulder_rotation[0],
+                right_shoulder_rotation[1],
+                right_shoulder_rotation[2],
+                right_elbow_rotation,
+                left_shoulder_rotation[0],
+                left_shoulder_rotation[1],
+                left_shoulder_rotation[2],
+                left_elbow_rotation,
+                right_hip_rotation[0],
+                right_hip_rotation[1],
+                right_hip_rotation[2],
+                right_knee_rotation,
+                right_ankle_rotation[0],
+                right_ankle_rotation[1],
+                right_ankle_rotation[2],
+                left_hip_rotation[0],
+                left_hip_rotation[1],
+                left_hip_rotation[2],
+                left_knee_rotation,
+                left_ankle_rotation[0],
+                left_ankle_rotation[1],
+                left_ankle_rotation[2],
+            ]
+            
+        counter = 0
+        for j in range(self.numJoints):
+            if(p.getJointInfo(self.charID,j)[2] == 0):
+                #print(p.getJointInfo(self.charID, j)[1])
+                #print(counter)
+                p.resetJointState(self.charID, j, pose[counter])
+                counter += 1
+
+    def calculateKinematicSolution(self, endEffectorIndex, desiredPosition, desiredOrientation = None, jd=[]):
+        if(desiredOrientation != None):
+            jointPoses = p.calculateInverseKinematics(self.charID, endEffectorIndex, desiredPosition, desiredOrientation)
+        else:
+            jointPoses = p.calculateInverseKinematics(self.charID, endEffectorIndex, desiredPosition
+            )
+
+        counter = 0
+        for j in range(self.numJoints):
+            if(p.getJointInfo(self.charID,j)[2] == 0):
+                p.resetJointState(self.charID, j, jointPoses[counter])
+                counter += 1
+        
+        return jointPoses
+
+    def calculateKinematicSolution2(self, endEffectorIndices, desiredPositions):
         jointPoses = p.calculateInverseKinematics2(self.charID, endEffectorIndices, desiredPositions, lowerLimits=self.ll, upperLimits=self.ul, jointDamping=self.jd)
+        
+        counter = 0
+        for j in range(self.numJoints):
+            if(p.getJointInfo(self.charID,j)[2] == 0):
+                p.resetJointState(self.charID, j, jointPoses[counter])
+                counter += 1
 
         return jointPoses
+
+    def calculateAccurateKinematicSolution(self, endEffectorIndex, desiredPosition):
+        jointPoses = self.accurateCalculateInverseKinematics(endEffectorIndex, desiredPosition)
+
+        counter = 0
+        for j in range(self.numJoints):
+            if(p.getJointInfo(self.charID,j)[2] == 0):
+                p.resetJointState(self.charID, j, jointPoses[counter])
+                counter += 1
+
+        return jointPoses
+

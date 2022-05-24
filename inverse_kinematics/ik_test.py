@@ -14,7 +14,8 @@ p.setAdditionalSearchPath(pybullet_data.getDataPath())
 
 z2y = p.getQuaternionFromEuler([-math.pi*0.5,0,0]) 
 kukaId = p.loadURDF("humanoid_2.urdf", [0,0.889540259, 0], z2y)
-kukaEndEffectorIndex = 17
+kukaEndEffectorIndexR = 12
+kukaEndEffectorIndexL = 17
 
 # Good ones: 8 - chest ; 10 - rshoulder
 numJoints = p.getNumJoints(kukaId)
@@ -71,10 +72,10 @@ def quaternion_multiply(Q0):
  
     """
     # Extract the values from Q0
-    w1 = Q0[0]
-    x1 = Q0[1]
-    y1 = Q0[2]
-    z1 = Q0[3]
+    w1 = Q0[3]
+    x1 = Q0[0]
+    y1 = Q0[1]
+    z1 = Q0[2]
      
     # Extract the values from Q1
     w0 = z2y[3]
@@ -109,7 +110,7 @@ pose = [ 4.98910587e-01,  8.61965996e-01,  6.76430121e-03,  1.00000000e+00,
 1.38056048e-01, -1.44482701e-01,  1.50277310e-01,]
 
 
-p.resetBasePositionAndOrientation(kukaId, [pose[0], pose[1], pose[2]], quaternion_multiply([pose[3], pose[4], pose[5], pose[6]]))
+p.resetBasePositionAndOrientation(kukaId, [pose[0], pose[1], pose[2]], quaternion_multiply([pose[4], pose[5], pose[6], pose[3]]))
 
 chest_rotation = p.getEulerFromQuaternion([pose[8],pose[9],pose[10],pose[7]])
 neck_rotation = p.getEulerFromQuaternion([pose[12],pose[13],pose[14],pose[11]])
@@ -173,8 +174,14 @@ for i in range(numJoints):
   ul.append(p.getJointInfo(kukaId, i)[9])
 
 
-ls = p.getLinkState(kukaId, kukaEndEffectorIndex)
+ls = p.getLinkState(kukaId, kukaEndEffectorIndexR)
 c = [p.addUserDebugParameter("rWrist x", -2, 2, ls[4][0]), p.addUserDebugParameter("rWrist y", -2, 2, ls[4][1]), p.addUserDebugParameter("rWrist z", -2, 2, ls[4][2])]
+orn_r = ls[5]
+
+
+ls = p.getLinkState(kukaId, kukaEndEffectorIndexL)
+c2 = [p.addUserDebugParameter("LWrist x", -2, 2, ls[4][0]), p.addUserDebugParameter("LWrist y", -2, 2, ls[4][1]), p.addUserDebugParameter("LWrist z", -2, 2, ls[4][2])]
+orn_l = ls[5]
 
 i=0
 while 1:
@@ -182,29 +189,56 @@ while 1:
   t = t + 0.01
 
   for i in range(1):
-    ls = p.getLinkState(kukaId, kukaEndEffectorIndex)
+    #ls = p.getLinkState(kukaId, kukaEndEffectorIndex)
     #print("Initial: " + str(ls[4]))
 
-    pos = [p.readUserDebugParameter(c[0]), p.readUserDebugParameter(c[1]), p.readUserDebugParameter(c[2])]
+    pos_r = [p.readUserDebugParameter(c[0]), p.readUserDebugParameter(c[1]), p.readUserDebugParameter(c[2])]
+    pos_l = [p.readUserDebugParameter(c2[0]), p.readUserDebugParameter(c2[1]), p.readUserDebugParameter(c2[2])]
 
     #end effector points down, not up (in case useOrientation==1)
-    orn = ls[5]
+    
 
-    jointPoses = p.calculateInverseKinematics(kukaId, kukaEndEffectorIndex, pos, lowerLimits=ll, upperLimits=ul, jointDamping=[1] * 32)
+    # NOTE: Theres an issue when using calcInvKin2 that has to do with us not being able to specify the orientations
+    jointPoses = p.calculateInverseKinematics2(kukaId, [kukaEndEffectorIndexR, kukaEndEffectorIndexL], [pos_r, pos_l] ,lowerLimits=ll, upperLimits=ul, jointDamping=[0.01] * 32)
     #jointPoses = accurateCalculateInverseKinematics(numJoints, kukaId, kukaEndEffectorIndex, pos, 0.01, 100)
+    
+    #jointPoses = p.calculateInverseKinematics(kukaId, kukaEndEffectorIndexR, pos_r, orn_r, lowerLimits=ll, upperLimits=ul, jointDamping=[0.1] * 32)
 
     #reset the joint state (ignoring all dynamics, not recommended to use during simulation)
     counter = 0
     for j in range(numJoints):
         if(p.getJointInfo(kukaId,j)[2] == 0):
+            print(p.getJointInfo(kukaId,j)[1].decode("utf-8"))
             p.resetJointState(kukaId, j, jointPoses[counter])
             counter += 1
+    """
+    jointPoses = p.calculateInverseKinematics(kukaId, kukaEndEffectorIndexL, pos_l, orn_l, lowerLimits=ll, upperLimits=ul, jointDamping=[0.1] * 32)
 
-  ls = p.getLinkState(kukaId, kukaEndEffectorIndex)
+    #reset the joint state (ignoring all dynamics, not recommended to use during simulation)
+    counter = 0
+    for j in range(numJoints):
+        if(p.getJointInfo(kukaId,j)[2] == 0):
+            print(p.getJointInfo(kukaId,j)[1].decode("utf-8"))
+            p.resetJointState(kukaId, j, jointPoses[counter])
+            counter += 1
+    """
+
+    pose = []
+    for j in range(numJoints):
+        if(p.getJointInfo(kukaId,j)[2] == 0):
+            print(p.getJointInfo(kukaId,j)[1].decode("utf-8"))
+            pose.append(p.getJointState(kukaId, j)[0])
+    
+
+
+  #ls = p.getLinkState(kukaId, kukaEndEffectorIndex)
   #print("Final: " + str(ls[4]))
+  print("Poses: " + str(pose))
+  print("Joint Poses: " + str(jointPoses))
+  print("Root:" + str(p.getBasePositionAndOrientation(kukaId)[1]))
+  print()
 
-  #print("Joint Poses: " + str(jointPoses))
-  #print()
+  time.sleep(1)
 
 p.disconnect()
 
@@ -214,7 +248,20 @@ p.disconnect()
 
 """
 JOINTPOSE:
-[b'root_chest_joint1', b'root_chest_joint2', b'root_chest_joint3', b'chest_neck_joint1', b'chest_neck_joint2', b'chest_neck_joint3', b'chest_right_shoulder_joint1', b'chest_right_shoulder_joint2', b'chest_right_shoulder_joint3', b'right_elbow', b'chest_left_shoulder_joint1', b'chest_left_shoulder_joint2', b'chest_left_shoulder_joint3', b'left_elbow', b'root_right_hip_joint1', b'root_right_hip_joint2', b'root_right_hip_joint3', b'right_knee', b'right_knee_right_ankle_joint1', b'right_knee_right_ankle_joint2', b'right_knee_right_ankle_joint3', b'root_left_hip_joint1', b'root_left_hip_joint2', b'root_left_hip_joint3', b'left_knee', b'left_knee_left_ankle_joint1', b'left_knee_left_ankle_joint2', b'left_knee_left_ankle_joint3']
+[
+  00-02 b'root_chest_joint1', b'root_chest_joint2', b'root_chest_joint3', 
+  03-05 b'chest_neck_joint1', b'chest_neck_joint2', b'chest_neck_joint3', 
+  06-08 b'chest_right_shoulder_joint1', b'chest_right_shoulder_joint2', b'chest_right_shoulder_joint3', 
+  09    b'right_elbow', 
+  10-12 b'chest_left_shoulder_joint1', b'chest_left_shoulder_joint2', b'chest_left_shoulder_joint3',
+  13    b'left_elbow', 
+  14-16 b'root_right_hip_joint1', b'root_right_hip_joint2', b'root_right_hip_joint3', 
+  17    b'right_knee', 
+  18-20 b'right_knee_right_ankle_joint1', b'right_knee_right_ankle_joint2', b'right_knee_right_ankle_joint3', 
+  21-23 b'root_left_hip_joint1', b'root_left_hip_joint2', b'root_left_hip_joint3', 
+  24    b'left_knee', 
+  25-27 b'left_knee_left_ankle_joint1', b'left_knee_left_ankle_joint2', b'left_knee_left_ankle_joint3'
+]
 
 (-0.04673124029572879, -0.17368473610432916, 0.04654908533054814, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 2.480219482848072, -0.20724234344843553, -0.08050166649627483, -5.01473520474913e-15, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0)
 """

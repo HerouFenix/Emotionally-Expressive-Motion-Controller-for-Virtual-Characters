@@ -11,8 +11,7 @@ if (clid < 0):
 
 p.setAdditionalSearchPath(pybullet_data.getDataPath())
 
-kukaId = p.loadURDF("humanoid.urdf", [0, 0, 0], flags=p.URDF_MAINTAIN_LINK_ORDER)
-p.resetBasePositionAndOrientation(kukaId, [0, 0, 0], [0, 0, 0, 1])
+kukaId = p.loadURDF("humanoid.urdf", [0,0.889540259, 0], flags=p.URDF_MAINTAIN_LINK_ORDER)
 kukaEndEffectorIndex = 14
 
 # Good ones: 8 - chest ; 10 - rshoulder
@@ -24,7 +23,7 @@ if (numJoints != 15):
 
 
 p.setGravity(0, 0, 0)
-
+p.configureDebugVisualizer(p.COV_ENABLE_Y_AXIS_UP,1)
 t = 0.
 prevPose = [0, 0, 0]
 prevPose1 = [0, 0, 0]
@@ -58,7 +57,6 @@ print(len(jointposes))
 """
 
 ls = p.getLinkState(kukaId, kukaEndEffectorIndex)
-c = [p.addUserDebugParameter("rWrist x", -2, 2, ls[4][0]), p.addUserDebugParameter("rWrist y", -2, 2, ls[4][1]), p.addUserDebugParameter("rWrist z", -2, 2, ls[4][2])]
 
 i=0
 while 1:
@@ -66,27 +64,41 @@ while 1:
   t = t + 0.01
 
   for i in range(1):
-    ls = p.getLinkState(kukaId, kukaEndEffectorIndex)
-    print("Initial: " + str(ls[4]))
+    jointPoses = [-0.003271644330369293, -0.5266238886159375, 0.19250226350017366, 0.0, 0.0, 0.0, -0.5611316664634671, 0.023342605279165433, 1.159026094696599, 1.5155085326378472, 0.16585315274568407, 0.40904315564873656, -0.5620610019329436, 0.05739550254366494, 0.005279046213221956, -0.11618085378221293, -0.09071206681949875, -0.216116408, -0.037861925106024874, 0.18617740168938335, 0.3002627385428372, 0.06377706810167465, 0.23012967715817373, 0.538600147884017, -0.133930724, 0.05227730922639954, 0.07652195777290266, -0.015819457111757966]
 
-    #pos = [p.readUserDebugParameter(c[0]), p.readUserDebugParameter(c[1]), p.readUserDebugParameter(c[2])]
+    mapping = {"chest": [0,1,2],
+               "neck": [3,4,5],
 
-    #end effector points down, not up (in case useOrientation==1)
-    orn = ls[5]
+               "right_hip": [14,15,16],
+               "right_knee": [17],
+               "right_ankle": [18, 19, 20],
+               "right_shoulder": [6,7,8],
+               "right_elbow": [9],
 
-    jointPoses = p.calculateInverseKinematics(kukaId, kukaEndEffectorIndex, [0,0,0])
+               "left_hip": [21, 22, 23],
+               "left_knee": [24],
+               "left_ankle": [25, 26, 27],
+               "left_shoulder": [10,11,12],
+               "left_elbow": [13],}
 
-    #reset the joint state (ignoring all dynamics, not recommended to use during simulation)
-    #counter = 0
-    #for j in range(numJoints):
-    #    if(p.getJointInfo(kukaId,j)[2] == 0):
-    #        p.resetJointState(kukaId, j, jointPoses[counter])
-    #        counter += 1
+               
 
-  ls = p.getLinkState(kukaId, kukaEndEffectorIndex)
-  print("Final: " + str(ls[4]))
+    #p.resetBasePositionAndOrientation(kukaId, [0,0,0], [-0.7071067811865475, 0.0, 0.0, 0.7071067811865476])
 
-  #print("Joint Poses: " + str(jointPoses))
+    for j in range(numJoints):
+      jtype = p.getJointInfo(kukaId,j)[2]
+      if jtype == 0: #R/L Knee ; R/L Elbow
+        joint_name = p.getJointInfo(kukaId,j)[1].decode("utf-8")
+        orn = [jointPoses[mapping[joint_name][0]]]
+        p.resetJointStateMultiDof(kukaId, j, orn)
+      elif jtype == 2: #Chest ; Neck ; R/L Hip ; R/L Ankle ; R/L Shoulder
+        joint_name = p.getJointInfo(kukaId,j)[1].decode("utf-8")
+        
+        orn = [jointPoses[mapping[joint_name][0]], jointPoses[mapping[joint_name][1]], jointPoses[mapping[joint_name][2]]] 
+        orn = p.getQuaternionFromEuler(orn)
+
+        p.resetJointStateMultiDof(kukaId, j, orn)
+
   print()
 
 p.disconnect()
