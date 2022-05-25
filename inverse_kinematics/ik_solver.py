@@ -1,4 +1,5 @@
 import pybullet as p
+import pybullet_utils.bullet_client as bc
 import time
 import math
 from datetime import datetime
@@ -7,25 +8,19 @@ from datetime import datetime
 Z2Y = p.getQuaternionFromEuler([-math.pi*0.5,0,0])
 
 class IKSolver():
-    def __init__(self, show_gui=False):
+    def __init__(self):
         # Setup PyBullet
-        self.clid = p.connect(p.SHARED_MEMORY)
-        if (self.clid < 0):
-            if(show_gui):
-                p.connect(p.GUI)
-            else:
-                p.connect(p.DIRECT)
-            #p.connect(p.SHARED_MEMORY_GUI)
+        self.physicsClient = bc.BulletClient(connection_mode=p.DIRECT)
 
-        p.setGravity(0, 0, 0)
-        p.configureDebugVisualizer(p.COV_ENABLE_Y_AXIS_UP,1)
-        p.setRealTimeSimulation(0)
+        self.physicsClient.setGravity(0, 0, 0)
+        self.physicsClient.configureDebugVisualizer(p.COV_ENABLE_Y_AXIS_UP,1)
+        self.physicsClient.setRealTimeSimulation(0)
 
         # Setup Character
-        self.charID = p.loadURDF("humanoid_2.urdf", [0, 0, 0])
-        p.resetBasePositionAndOrientation(self.charID, [0, 0, 0], Z2Y)
+        self.charID = self.physicsClient.loadURDF("../inverse_kinematics/humanoid_2.urdf", [0, 0, 0])
+        self.physicsClient.resetBasePositionAndOrientation(self.charID, [0, 0, 0], Z2Y)
 
-        self.numJoints = p.getNumJoints(self.charID)
+        self.numJoints = self.physicsClient.getNumJoints(self.charID)
 
         self.ll = []
         self.ul = []
@@ -33,13 +28,14 @@ class IKSolver():
 
         for i in range(self.numJoints):
             #if(p.getJointInfo(kukaId, i)[2] == 0):
-            self.ll.append(p.getJointInfo(self.charID, i)[8])
-            self.ul.append(p.getJointInfo(self.charID, i)[9])
+            self.ll.append(self.physicsClient.getJointInfo(self.charID, i)[8])
+            self.ul.append(self.physicsClient.getJointInfo(self.charID, i)[9])
+
 
     def __del__(self):
-        p.disconnect(self.clid)
+        self.physicsClient.disconnect()
 
-    def quaternion_multiply(Q0):
+    def quaternion_multiply(self, Q0):
         """
         Multiplies two quaternions.
     
@@ -81,11 +77,11 @@ class IKSolver():
         iter = 0
         dist2 = 1e30
         while (not closeEnough and iter < maxIter):
-            jointPoses = p.calculateInverseKinematics(self.charID, endEffectorId, targetPos, lowerLimits=self.ll, upperLimits=self.ul, jointDamping=self.jd)
+            jointPoses = self.physicsClient.calculateInverseKinematics(self.charID, endEffectorId, targetPos, lowerLimits=self.ll, upperLimits=self.ul, jointDamping=self.jd)
             counter = 0
             for j in range(self.numJoints):
-                if(p.getJointInfo(self.charID,j)[2] == 0):
-                    p.resetJointState(self.charID, j, jointPoses[counter])
+                if(self.physicsClient.getJointInfo(self.charID,j)[2] == 0):
+                    self.physicsClient.resetJointState(self.charID, j, jointPoses[counter])
                     counter += 1
 
             ls = p.getLinkState(self.charID, endEffectorId)
@@ -98,19 +94,19 @@ class IKSolver():
         return jointPoses
 
     def updatePose(self, pose):
-        p.resetBasePositionAndOrientation(self.charID, [pose[0], pose[1], pose[2]], self.quaternion_multiply([pose[4], pose[5], pose[6], pose[3]]))
+        self.physicsClient.resetBasePositionAndOrientation(self.charID, [pose[0], pose[1], pose[2]], self.quaternion_multiply([pose[4], pose[5], pose[6], pose[3]]))
 
-        chest_rotation = p.getEulerFromQuaternion([pose[8],pose[9],pose[10],pose[7]])
-        neck_rotation = p.getEulerFromQuaternion([pose[12],pose[13],pose[14],pose[11]])
-        right_hip_rotation = p.getEulerFromQuaternion([pose[16],pose[17],pose[18],pose[15]])
+        chest_rotation = self.physicsClient.getEulerFromQuaternion([pose[8],pose[9],pose[10],pose[7]])
+        neck_rotation = self.physicsClient.getEulerFromQuaternion([pose[12],pose[13],pose[14],pose[11]])
+        right_hip_rotation = self.physicsClient.getEulerFromQuaternion([pose[16],pose[17],pose[18],pose[15]])
         right_knee_rotation = pose[19]
-        right_ankle_rotation = p.getEulerFromQuaternion([pose[21],pose[22],pose[23],pose[20]])
-        right_shoulder_rotation = p.getEulerFromQuaternion([pose[25],pose[26],pose[27],pose[24]])
+        right_ankle_rotation = self.physicsClient.getEulerFromQuaternion([pose[21],pose[22],pose[23],pose[20]])
+        right_shoulder_rotation = self.physicsClient.getEulerFromQuaternion([pose[25],pose[26],pose[27],pose[24]])
         right_elbow_rotation = pose[28]
-        left_hip_rotation = p.getEulerFromQuaternion([pose[30],pose[31],pose[32],pose[29]])
+        left_hip_rotation = self.physicsClient.getEulerFromQuaternion([pose[30],pose[31],pose[32],pose[29]])
         left_knee_rotation = pose[33]
-        left_ankle_rotation = p.getEulerFromQuaternion([pose[35],pose[36],pose[37],pose[34]])
-        left_shoulder_rotation = p.getEulerFromQuaternion([pose[39],pose[40],pose[41],pose[38]])
+        left_ankle_rotation = self.physicsClient.getEulerFromQuaternion([pose[35],pose[36],pose[37],pose[34]])
+        left_shoulder_rotation = self.physicsClient.getEulerFromQuaternion([pose[39],pose[40],pose[41],pose[38]])
         left_elbow_rotation = pose[42]
 
         pose = [
@@ -146,34 +142,34 @@ class IKSolver():
             
         counter = 0
         for j in range(self.numJoints):
-            if(p.getJointInfo(self.charID,j)[2] == 0):
+            if(self.physicsClient.getJointInfo(self.charID,j)[2] == 0):
                 #print(p.getJointInfo(self.charID, j)[1])
                 #print(counter)
-                p.resetJointState(self.charID, j, pose[counter])
+                self.physicsClient.resetJointState(self.charID, j, pose[counter])
                 counter += 1
 
     def calculateKinematicSolution(self, endEffectorIndex, desiredPosition, desiredOrientation = None, jd=[]):
         if(desiredOrientation != None):
-            jointPoses = p.calculateInverseKinematics(self.charID, endEffectorIndex, desiredPosition, desiredOrientation)
+            jointPoses = self.physicsClient.calculateInverseKinematics(self.charID, endEffectorIndex, desiredPosition, desiredOrientation)
         else:
-            jointPoses = p.calculateInverseKinematics(self.charID, endEffectorIndex, desiredPosition
+            jointPoses = self.physicsClient.calculateInverseKinematics(self.charID, endEffectorIndex, desiredPosition
             )
 
         counter = 0
         for j in range(self.numJoints):
-            if(p.getJointInfo(self.charID,j)[2] == 0):
-                p.resetJointState(self.charID, j, jointPoses[counter])
+            if(self.physicsClient.getJointInfo(self.charID,j)[2] == 0):
+                self.physicsClient.resetJointState(self.charID, j, jointPoses[counter])
                 counter += 1
         
         return jointPoses
 
     def calculateKinematicSolution2(self, endEffectorIndices, desiredPositions):
-        jointPoses = p.calculateInverseKinematics2(self.charID, endEffectorIndices, desiredPositions, lowerLimits=self.ll, upperLimits=self.ul, jointDamping=self.jd)
+        jointPoses = self.physicsClient.calculateInverseKinematics2(self.charID, endEffectorIndices, desiredPositions, lowerLimits=self.ll, upperLimits=self.ul, jointDamping=self.jd)
         
         counter = 0
         for j in range(self.numJoints):
-            if(p.getJointInfo(self.charID,j)[2] == 0):
-                p.resetJointState(self.charID, j, jointPoses[counter])
+            if(self.physicsClient.getJointInfo(self.charID,j)[2] == 0):
+                self.physicsClient.resetJointState(self.charID, j, jointPoses[counter])
                 counter += 1
 
         return jointPoses
@@ -183,8 +179,8 @@ class IKSolver():
 
         counter = 0
         for j in range(self.numJoints):
-            if(p.getJointInfo(self.charID,j)[2] == 0):
-                p.resetJointState(self.charID, j, jointPoses[counter])
+            if(self.physicsClient.getJointInfo(self.charID,j)[2] == 0):
+                self.physicsClient.resetJointState(self.charID, j, jointPoses[counter])
                 counter += 1
 
         return jointPoses

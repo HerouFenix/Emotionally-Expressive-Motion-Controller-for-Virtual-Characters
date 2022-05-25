@@ -1,6 +1,7 @@
 import math
 from ntpath import join
 import numpy as np
+from inverse_kinematics.ik_solver import IKSolver
 from utils import bullet_client
 from utils.humanoid_kin import JointType
 import pybullet as p1
@@ -15,8 +16,23 @@ class HumanoidVis(object):
     # init pybullet client
     self._init_physics()
     self._model = model # humanoid3d or atlas
-    self.first = True
-    self.c = []
+    self._ik_solver = IKSolver()
+
+    self.ik_joint_mapping = {"chest": [0,1,2],
+               "neck": [3,4,5],
+
+               "right_hip": [14,15,16],
+               "right_knee": [17],
+               "right_ankle": [18, 19, 20],
+               "right_shoulder": [6,7,8],
+               "right_elbow": [9],
+
+               "left_hip": [21, 22, 23],
+               "left_knee": [24],
+               "left_ankle": [25, 26, 27],
+               "left_shoulder": [10,11,12],
+               "left_elbow": [13],}
+
 
   def _init_physics(self):
     self._pybullet_client =  bullet_client.BulletClient(connection_mode=p1.GUI)
@@ -73,53 +89,6 @@ class HumanoidVis(object):
 
     return kin_model
 
-  def quaternion_multiply(self, Q0, baseOld, baseNew):
-    """
-    Multiplies two quaternions.
- 
-    Input
-    :param Q0: A 4 element array containing the first quaternion (q01,q11,q21,q31) 
-    :param Q1: A 4 element array containing the second quaternion (q02,q12,q22,q32) 
- 
-    Output
-    :return: A 4 element array containing the final quaternion (q03,q13,q23,q33) 
- 
-    """
-    # Extract the values from Q0
-    w0 = Q0[3]
-    x0 = Q0[0]
-    y0 = Q0[1]
-    z0 = Q0[2]
-     
-    # Extract the values from Q1
-    w1 = baseOld[3]
-    x1 = -baseOld[0]
-    y1 = -baseOld[1]
-    z1 = -baseOld[2]
-
-    # Extract the values from Q1
-    w2 = baseNew[3]
-    x2 = baseNew[0]
-    y2 = baseNew[1]
-    z2 = baseNew[2]
-     
-    # Computer the product of the two quaternions, term by term
-    Q0Q1_x = w0 * x1 + x0 * w1 + y0 * z1 - z0 * y1
-    Q0Q1_y = w0 * y1 - x0 * z1 + y0 * w1 + z0 * x1
-    Q0Q1_z = w0 * z1 + x0 * y1 - y0 * x1 + z0 * w1
-    Q0Q1_w = w0 * w1 - x0 * x1 - y0 * y1 - z0 * z1
-
-    Q0Q2_x = Q0Q1_w * x2 + Q0Q1_x * w2 + Q0Q1_y * z2 - Q0Q1_z * y2
-    Q0Q2_y = Q0Q1_w * y2 - Q0Q1_x * z2 + Q0Q1_y * w2 + Q0Q1_z * x2
-    Q0Q2_z = Q0Q1_w * z2 + Q0Q1_x * y2 - Q0Q1_y * x2 + Q0Q1_z * w2
-    Q0Q2_w = Q0Q1_w * w2 - Q0Q1_x * x2 - Q0Q1_y * y2 - Q0Q1_z * z2
-     
-    # Create a 4 element array containing the final quaternion
-    final_quaternion = [Q0Q2_x, Q0Q2_y, Q0Q2_z, Q0Q2_w]
-     
-    # Return a 4 element arra
-    return final_quaternion
-
   def quaternion_multiply(self,Q0):
     """
     Multiplies two quaternions.
@@ -157,25 +126,6 @@ class HumanoidVis(object):
     # Return a 4 element arra
     return final_quaternion
 
-  def get_quaternion_from_euler(self, roll, pitch, yaw):
-    """
-    Convert an Euler angle to a quaternion.
-    
-    Input
-      :param roll: The roll (rotation around x-axis) angle in radians.
-      :param pitch: The pitch (rotation around y-axis) angle in radians.
-      :param yaw: The yaw (rotation around z-axis) angle in radians.
-  
-    Output
-      :return qx, qy, qz, qw: The orientation in quaternion [x,y,z,w] format
-    """
-    qx = np.sin(roll/2) * np.cos(pitch/2) * np.cos(yaw/2) - np.cos(roll/2) * np.sin(pitch/2) * np.sin(yaw/2)
-    qy = np.cos(roll/2) * np.sin(pitch/2) * np.cos(yaw/2) + np.sin(roll/2) * np.cos(pitch/2) * np.sin(yaw/2)
-    qz = np.cos(roll/2) * np.cos(pitch/2) * np.sin(yaw/2) - np.sin(roll/2) * np.sin(pitch/2) * np.cos(yaw/2)
-    qw = np.cos(roll/2) * np.cos(pitch/2) * np.cos(yaw/2) + np.sin(roll/2) * np.sin(pitch/2) * np.sin(yaw/2)
-  
-    return [qx, qy, qz, qw]
-
 
   def set_pose(self, char_name, pose, vel):
     """ Set character state in physics engine
@@ -210,10 +160,12 @@ class HumanoidVis(object):
     orn = [orn_wxyz[1], orn_wxyz[2], orn_wxyz[3], orn_wxyz[0]]
     v   = vel[:3]
     omg = vel[3:6]
+
+    
     self._pybullet_client.resetBasePositionAndOrientation(phys_model, pos, orn)
     self._pybullet_client.resetBaseVelocity(phys_model, v, omg)
 
-
+    
     for i in range(s.num_joints):
       jtype = s.joint_types[i]
       p_off = s.pos_start[i]
@@ -239,33 +191,17 @@ class HumanoidVis(object):
         #print(self._pybullet_client.getJointStateMultiDof(phys_model, i)[0])
         #print()
 
-    #TODO: Pass current pose to IKSolver ; 
-    #TODO: Pass desired position to IKSolver
-    #TODO: Get jointPoses from IKSolver
-    #jointPoses = IKSolver.computeInverseKinematics(current_pose, desired_positions)
-    """
-    jointPoses = [0.4650167160596638, -0.276508758220416, 0.19514429851526932, 0.0, 0.0, 0.0, -0.5209967176723092, 0.4877744736788875, 0.18807214304180003, 1.005843252835603, 1.6563578605484204, -1.311992045463749, -0.8451394219408266, 0.005276910786724907, 0.005279046213221956, -0.11618085378221293, -0.09071206681949875, -0.216116408, -0.037861925106024874, 0.18617740168938335, 0.3002627385428372, 0.06377706810167465, 0.23012967715817373, 0.538600147884017, -0.133930724, 0.05227730922639954, 0.07652195777290266, -0.015819457111757966]
+    ## Inverse Kinematics ##
+    self._ik_solver.updatePose(pose)
 
-    mapping = {"chest": [0,1,2],
-               "neck": [3,4,5],
+    if(self.c == None):
+      ls = self._pybullet_client.getLinkState(phys_model, 14)
+      self.c = self._pybullet_client.addUserDebugParameter("lWrist y", -2, 2, ls[4][1])
 
-               "right_hip": [14,15,16],
-               "right_knee": [17],
-               "right_ankle": [18, 19, 20],
-               "right_shoulder": [6,7,8],
-               "right_elbow": [9],
+    ls = self._pybullet_client.getLinkState(phys_model, 14)
+    pos_l = [ls[4][0], self._pybullet_client.readUserDebugParameter(self.c), ls[4][2]]
+    jointPoses = self._ik_solver.calculateKinematicSolution(17, pos_l)
 
-               "left_hip": [21, 22, 23],
-               "left_knee": [24],
-               "left_ankle": [25, 26, 27],
-               "left_shoulder": [10,11,12],
-               "left_elbow": [13],}
-
-    #curPos, curOrn = self._pybullet_client.getBasePositionAndOrientation(phys_model)
-    #self._pybullet_client.resetBasePositionAndOrientation(phys_model, curPos, self.quaternion_multiply(curOrn))
-    #print(self._pybullet_client.getBasePositionAndOrientation(phys_model)[1])
-
-    
     for i in range(s.num_joints):
       jtype = s.joint_types[i]
 
@@ -275,19 +211,15 @@ class HumanoidVis(object):
         pass
       elif jtype is JointType.REVOLUTE: #R/L Knee ; R/L Elbow
         joint_name = self._pybullet_client.getJointInfo(phys_model,i)[1].decode("utf-8")
-        orn = [jointPoses[mapping[joint_name][0]]]
+        orn = [jointPoses[self.ik_joint_mapping[joint_name][0]]]
         self._pybullet_client.resetJointStateMultiDof(phys_model, i, orn)
       elif jtype is JointType.SPHERE: #Chest ; Neck ; R/L Hip ; R/L Ankle ; R/L Shoulder
         joint_name = self._pybullet_client.getJointInfo(phys_model,i)[1].decode("utf-8")
-        print(joint_name)
-        print(mapping[joint_name])
-        
-        orn = [jointPoses[mapping[joint_name][0]], jointPoses[mapping[joint_name][1]], jointPoses[mapping[joint_name][2]]] 
+       
+        orn = [jointPoses[self.ik_joint_mapping[joint_name][0]], jointPoses[self.ik_joint_mapping[joint_name][1]], jointPoses[self.ik_joint_mapping[joint_name][2]]] 
         orn = self._pybullet_client.getQuaternionFromEuler(orn)
 
         self._pybullet_client.resetJointStateMultiDof(phys_model, i, orn)
-    """
-
 
 
   def camera_follow(self, char_name, dis=None, yaw=None, pitch=None, pos=None):

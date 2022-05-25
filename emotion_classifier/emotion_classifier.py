@@ -166,19 +166,19 @@ class EmotionClassifier():
 
         if(max_p_i != -1):
             self.p_predictions.pop(max_p_i)
-            self.predicted_p = (sum(self.p_predictions)/len(self.p_predictions)) * 0.8 + largest_p * 0.2
+            self.predicted_p = (sum(self.p_predictions)/len(self.p_predictions)) * 0.55 + largest_p * 0.45
         else:
             self.predicted_p = sum(self.p_predictions)/len(self.p_predictions)
 
         if(max_a_i != -1):
             self.a_predictions.pop(max_a_i)
-            self.predicted_a = (sum(self.a_predictions)/len(self.a_predictions)) * 0.8 + largest_a * 0.2
+            self.predicted_a = (sum(self.a_predictions)/len(self.a_predictions)) * 0.55 + largest_a * 0.45
         else:
             self.predicted_a = sum(self.a_predictions)/len(self.a_predictions)
 
         if(max_d_i != -1):
             self.d_predictions.pop(max_d_i)
-            self.predicted_d = (sum(self.d_predictions)/len(self.d_predictions)) * 0.8 + largest_d * 0.2
+            self.predicted_d = (sum(self.d_predictions)/len(self.d_predictions)) * 0.55 + largest_d * 0.45
         else:
             self.predicted_d = sum(self.d_predictions)/len(self.d_predictions)
 
