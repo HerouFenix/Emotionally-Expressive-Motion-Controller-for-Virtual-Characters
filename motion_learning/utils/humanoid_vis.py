@@ -33,6 +33,8 @@ class HumanoidVis(object):
                "left_shoulder": [10,11,12],
                "left_elbow": [13],}
 
+    self.c = None
+
 
   def _init_physics(self):
     self._pybullet_client =  bullet_client.BulletClient(connection_mode=p1.GUI)
@@ -176,7 +178,7 @@ class HumanoidVis(object):
       elif jtype is JointType.REVOLUTE:
         orn = [pose[p_off]]
         omg = [vel[p_off]]
-        self._pybullet_client.resetJointStateMultiDof(phys_model, i, orn, omg)
+        #self._pybullet_client.resetJointStateMultiDof(phys_model, i, orn, omg)
         #print(self._pybullet_client.getJointInfo(phys_model, i)[1])
         #print(self._pybullet_client.getJointStateMultiDof(phys_model, i)[0])
         #print()
@@ -185,7 +187,7 @@ class HumanoidVis(object):
         orn_wxyz = pose[p_off : p_off+4]
         orn = [orn_wxyz[1], orn_wxyz[2], orn_wxyz[3], orn_wxyz[0]]
         omg = vel[p_off : p_off+3]
-        self._pybullet_client.resetJointStateMultiDof(phys_model, i, orn, omg)
+        #self._pybullet_client.resetJointStateMultiDof(phys_model, i, orn, omg)
 
         #print(self._pybullet_client.getJointInfo(phys_model, i)[1])
         #print(self._pybullet_client.getJointStateMultiDof(phys_model, i)[0])
