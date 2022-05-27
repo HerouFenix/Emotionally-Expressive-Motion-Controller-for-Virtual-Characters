@@ -33,7 +33,8 @@ class HumanoidMocap(object):
     self._skeleton = skeleton   # HumanoidSkeleton
 
     self._durations = None
-    self._frames    = None
+    self._frames    = None # Original Frames
+    self._ik_frames = None # Inverse Kinematics Frames / Altered Frames
 
     self._cycletime = None   # total time of mocap
     self._spf = None         # seconds per frame
@@ -176,8 +177,13 @@ class HumanoidMocap(object):
     assert(idx_next < self._frames.shape[0])
 
     # calculate pos
-    curr_frame = self._frames[idx]
-    next_frame = self._frames[idx_next]
+    if(self._ik_frames == None):
+      curr_frame = self._frames[idx]
+      next_frame = self._frames[idx_next]
+    else:
+      curr_frame = self._ik_frames[idx]
+      next_frame = self._ik_frames[idx_next]
+
     pose = self._skeleton.slerp(curr_frame, next_frame, t)
 
     if padding:

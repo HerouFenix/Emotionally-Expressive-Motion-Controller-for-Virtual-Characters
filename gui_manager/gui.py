@@ -95,7 +95,8 @@ class GUIManager():
         self.new_dominance.grid(row=3, column=1, sticky=tk.W)
 
         self.start_motion_synthesis = tk.Button(self.n_frame, text = 'CONFIRM', 
-        font =('Verdana 11 bold')).grid(row=6, pady=15, columnspan=2)
+        font =('Verdana 11 bold'))
+        self.start_motion_synthesis.grid(row=6, pady=15, columnspan=2)
 
 
         # Emotion Classification frame

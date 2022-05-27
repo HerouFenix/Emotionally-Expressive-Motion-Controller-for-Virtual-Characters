@@ -1,7 +1,5 @@
 import math
-from ntpath import join
 import numpy as np
-from inverse_kinematics.ik_solver import IKSolver
 from utils import bullet_client
 from utils.humanoid_kin import JointType
 import pybullet as p1
@@ -16,25 +14,6 @@ class HumanoidVis(object):
     # init pybullet client
     self._init_physics()
     self._model = model # humanoid3d or atlas
-    self._ik_solver = IKSolver()
-
-    self.ik_joint_mapping = {"chest": [0,1,2],
-               "neck": [3,4,5],
-
-               "right_hip": [14,15,16],
-               "right_knee": [17],
-               "right_ankle": [18, 19, 20],
-               "right_shoulder": [6,7,8],
-               "right_elbow": [9],
-
-               "left_hip": [21, 22, 23],
-               "left_knee": [24],
-               "left_ankle": [25, 26, 27],
-               "left_shoulder": [10,11,12],
-               "left_elbow": [13],}
-
-    self.c = None
-
 
   def _init_physics(self):
     self._pybullet_client =  bullet_client.BulletClient(connection_mode=p1.GUI)
@@ -129,6 +108,10 @@ class HumanoidVis(object):
     return final_quaternion
 
 
+  def get_character_id(self, char_name):
+    assert(char_name in self.characters.keys())
+    return self.characters[char_name]
+
   def set_pose(self, char_name, pose, vel):
     """ Set character state in physics engine
       Inputs:
@@ -141,18 +124,6 @@ class HumanoidVis(object):
     """
 
     #{'base': -1, 'root': 0, 'chest': 1, 'neck': 2, 'right_hip': 3, 'right_knee': 4, 'right_ankle': 5, 'right_shoulder': 6, 'right_elbow': 7, 'right_wrist': 8, 'left_hip': 9, 'left_knee': 10, 'left_ankle': 11, 'left_shoulder': 12, 'left_elbow': 13, 'left_wrist': 14}
-
-    #pose = [ 4.98910587e-01,  8.61965996e-01,  6.76430121e-03,  1.00000000e+00,
-    #0.00000000e+00,  0.00000000e+00,  0.00000000e+00,  9.99938012e-01,
-    #0.00000000e+00, -1.11054544e-02, -8.00608165e-04,  1.00000000e+00,
-    #0.00000000e+00,  0.00000000e+00,  0.00000000e+00,  9.97290026e-01,
-    #0.00000000e+00, -5.81173275e-02, -4.51107603e-02, -2.16116408e-01,
-    #9.84030931e-01, -3.25363635e-02,  8.90732054e-02,  1.50633584e-01,
-    #9.39676420e-01, -1.98687524e-01,  2.35818497e-01,  1.48057864e-01,
-    #5.71147477e-01,  9.58070112e-01,  0.00000000e+00,  1.19043367e-01,
-    #2.60634491e-01, -1.33930724e-01,  9.98887637e-01,  2.64181872e-02,
-    #3.80308091e-02, -8.90085879e-03,  9.74355800e-01,  1.03421713e-01,
-    #1.38056048e-01, -1.44482701e-01,  1.50277310e-01,]
 
     assert(char_name in self.characters.keys())
     phys_model = self.characters[char_name]
@@ -178,27 +149,17 @@ class HumanoidVis(object):
       elif jtype is JointType.REVOLUTE:
         orn = [pose[p_off]]
         omg = [vel[p_off]]
-        #self._pybullet_client.resetJointStateMultiDof(phys_model, i, orn, omg)
-        #print(self._pybullet_client.getJointInfo(phys_model, i)[1])
-        #print(self._pybullet_client.getJointStateMultiDof(phys_model, i)[0])
-        #print()
+        self._pybullet_client.resetJointStateMultiDof(phys_model, i, orn, omg)
         
       elif jtype is JointType.SPHERE:
         orn_wxyz = pose[p_off : p_off+4]
         orn = [orn_wxyz[1], orn_wxyz[2], orn_wxyz[3], orn_wxyz[0]]
         omg = vel[p_off : p_off+3]
-        #self._pybullet_client.resetJointStateMultiDof(phys_model, i, orn, omg)
+        self._pybullet_client.resetJointStateMultiDof(phys_model, i, orn, omg)
 
-        #print(self._pybullet_client.getJointInfo(phys_model, i)[1])
-        #print(self._pybullet_client.getJointStateMultiDof(phys_model, i)[0])
-        #print()
-
-    ## Inverse Kinematics ##
+    ## INVERSE KINEMATICS ##
+    """
     self._ik_solver.updatePose(pose)
-
-    if(self.c == None):
-      ls = self._pybullet_client.getLinkState(phys_model, 14)
-      self.c = self._pybullet_client.addUserDebugParameter("lWrist y", -2, 2, ls[4][1])
 
     ls = self._pybullet_client.getLinkState(phys_model, 14)
     pos_l = [ls[4][0], self._pybullet_client.readUserDebugParameter(self.c), ls[4][2]]
@@ -222,6 +183,7 @@ class HumanoidVis(object):
         orn = self._pybullet_client.getQuaternionFromEuler(orn)
 
         self._pybullet_client.resetJointStateMultiDof(phys_model, i, orn)
+    """
 
 
   def camera_follow(self, char_name, dis=None, yaw=None, pitch=None, pos=None):

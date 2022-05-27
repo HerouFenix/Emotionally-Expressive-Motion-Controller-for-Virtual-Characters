@@ -22,6 +22,7 @@ sys.path.append(parent)
 from lma_extractor import LMAExtractor
 from emotion_classifier import EmotionClassifier
 from gui_manager import GUIManager
+from inverse_kinematics import IKSolver
 
 ###
 ACT_STEPTIME  = 1./30.
@@ -42,6 +43,23 @@ class VisMocapEnv():
       self.has_looped = False
       self._previous_mocap_phase = 0.0
       self._current_mocap_phase = 0.0
+
+      # INVERSE KINEMATICS #
+      self._ik_solver = IKSolver()
+      self.ik_joint_mapping = {"chest": [0,1,2],
+               "neck": [3,4,5],
+
+               "right_hip": [14,15,16],
+               "right_knee": [17],
+               "right_ankle": [18, 19, 20],
+               "right_shoulder": [6,7,8],
+               "right_elbow": [9],
+
+               "left_hip": [21, 22, 23],
+               "left_knee": [24],
+               "left_ankle": [25, 26, 27],
+               "left_shoulder": [10,11,12],
+               "left_elbow": [13],}
 
     def init(self):
       """
@@ -79,6 +97,60 @@ class VisMocapEnv():
       self._play_speed = self._pybullet_client.addUserDebugParameter("play_speed", 0, 2, 1.0)
       self._phase_ctrl = self._pybullet_client.addUserDebugParameter("frame", 0, 1, 0)
 
+      # TODO: REMOVE (DEBUG) #
+      ls = self._pybullet_client.getLinkState(self._visual.get_character_id(self._char), 14)
+      self._left_wrist_height = self._pybullet_client.addUserDebugParameter("lWrist y", -2, 2, ls[4][1])
+
+    def compute_inverse_kinematics(self, links, desired_pos):
+      frames = self._mocap._frames
+      ik_frames = []
+      for frame in frames:
+        self._ik_solver.updatePose(frame)
+
+        ls = self._ik_solver.getLinkState(links)
+        pos_l = [ls[4][0], desired_pos, ls[4][2]]
+        jointPoses = self._ik_solver.calculateKinematicSolution(17, pos_l)
+
+        ik_frame = []
+        # Add Base info from frame
+        base_info = frame[0:7]
+        ik_frame += list(base_info)
+        
+        # Add the rest of our frame info from our computed IK solution
+        chest_rotation = self._pybullet_client.getQuaternionFromEuler([jointPoses[self.ik_joint_mapping["chest"][0]], jointPoses[self.ik_joint_mapping["chest"][1]], jointPoses[self.ik_joint_mapping["chest"][2]]])
+        neck_rotation = self._pybullet_client.getQuaternionFromEuler([jointPoses[self.ik_joint_mapping["neck"][0]], jointPoses[self.ik_joint_mapping["neck"][1]], jointPoses[self.ik_joint_mapping["neck"][2]]])
+        right_hip_rotation = self._pybullet_client.getQuaternionFromEuler([jointPoses[self.ik_joint_mapping["right_hip"][0]], jointPoses[self.ik_joint_mapping["right_hip"][1]], jointPoses[self.ik_joint_mapping["right_hip"][2]]])
+        right_knee_rotation = [jointPoses[self.ik_joint_mapping["right_knee"][0]]]
+        right_ankle_rotation = self._pybullet_client.getQuaternionFromEuler([jointPoses[self.ik_joint_mapping["right_ankle"][0]], jointPoses[self.ik_joint_mapping["right_ankle"][1]], jointPoses[self.ik_joint_mapping["right_ankle"][2]]])
+        right_shoulder_rotation = self._pybullet_client.getQuaternionFromEuler([jointPoses[self.ik_joint_mapping["right_shoulder"][0]], jointPoses[self.ik_joint_mapping["right_shoulder"][1]], jointPoses[self.ik_joint_mapping["right_shoulder"][2]]])
+        right_elbow_rotation = [jointPoses[self.ik_joint_mapping["right_elbow"][0]]]
+        left_hip_rotation = self._pybullet_client.getQuaternionFromEuler([jointPoses[self.ik_joint_mapping["left_hip"][0]], jointPoses[self.ik_joint_mapping["left_hip"][1]], jointPoses[self.ik_joint_mapping["left_hip"][2]]])
+        left_knee_rotation = [jointPoses[self.ik_joint_mapping["left_knee"][0]]]
+        left_ankle_rotation = self._pybullet_client.getQuaternionFromEuler([jointPoses[self.ik_joint_mapping["left_ankle"][0]], jointPoses[self.ik_joint_mapping["left_ankle"][1]], jointPoses[self.ik_joint_mapping["left_ankle"][2]]])
+        left_shoulder_rotation = self._pybullet_client.getQuaternionFromEuler([jointPoses[self.ik_joint_mapping["left_shoulder"][0]], jointPoses[self.ik_joint_mapping["left_shoulder"][1]], jointPoses[self.ik_joint_mapping["left_shoulder"][2]]])
+        left_elbow_rotation = [jointPoses[self.ik_joint_mapping["left_elbow"][0]]]
+
+        ik_frame += [chest_rotation[3], chest_rotation[0], chest_rotation[1], chest_rotation[2]]
+        ik_frame += [neck_rotation[3], neck_rotation[0], neck_rotation[1], neck_rotation[2]]
+        ik_frame += [right_hip_rotation[3], right_hip_rotation[0], right_hip_rotation[1], right_hip_rotation[2]]
+        ik_frame += right_knee_rotation
+        ik_frame += [right_ankle_rotation[3], right_ankle_rotation[0], right_ankle_rotation[1], right_ankle_rotation[2]]
+        ik_frame += [right_shoulder_rotation[3], right_shoulder_rotation[0], right_shoulder_rotation[1], right_shoulder_rotation[2]]
+        ik_frame += right_elbow_rotation
+        ik_frame += [left_hip_rotation[3], left_hip_rotation[0], left_hip_rotation[1], left_hip_rotation[2]]
+        ik_frame += left_knee_rotation
+        ik_frame += [left_ankle_rotation[3], left_ankle_rotation[0], left_ankle_rotation[1], left_ankle_rotation[2]]
+        ik_frame += [left_shoulder_rotation[3], left_shoulder_rotation[0], left_shoulder_rotation[1], left_shoulder_rotation[2]]
+        ik_frame += left_elbow_rotation
+
+        ik_frames.append(np.asarray(ik_frame))
+
+      return ik_frames
+
+    def compute_and_apply_motion_synthesis(self):
+      desired_wrist_height = self._pybullet_client.readUserDebugParameter(self._left_wrist_height)
+      ik_frames = self.compute_inverse_kinematics(14, desired_wrist_height)
+      self._mocap._ik_frames = ik_frames
 
     def reset(self, phase=None):
       startTime = self.rand_state.rand() if phase is None else phase
@@ -97,6 +169,7 @@ class VisMocapEnv():
     def step(self):
       speed = self._pybullet_client.readUserDebugParameter(self._play_speed)
       phase = self._pybullet_client.readUserDebugParameter(self._phase_ctrl)
+      
       #phase /= self._mocap.num_frames
       
       if (self.start_phase != phase):
@@ -221,12 +294,17 @@ def show_mocap(mocap_file, model, record_lma='', predict_emotion=True, record_mo
     gui = GUIManager()
     gui.change_animation_status(2)
     gui.change_emotion_prediction_status(0)
-    gui.update()
+
+    gui.start_motion_synthesis.configure(command=env.compute_and_apply_motion_synthesis)
+
+    #gui.update()
     current_emotion = [0.0, 0.0, 0.0]
     emotion_predictor = EmotionClassifier()
   
   processes = []
   has_looped_once = False
+
+  gui.update()
 
   while True:
     # LMA Features
@@ -250,7 +328,7 @@ def show_mocap(mocap_file, model, record_lma='', predict_emotion=True, record_mo
         # Update GUI
         gui.change_emotion_coordinates(current_emotion[0], current_emotion[1], current_emotion[2])
         gui.change_emotion_prediction_status(1)
-        gui.update()
+        #gui.update()
 
     else:
       if(predict_emotion):
@@ -283,7 +361,7 @@ def show_mocap(mocap_file, model, record_lma='', predict_emotion=True, record_mo
 
         if(predict_emotion):
           gui.change_animation_status(1)
-          gui.update()
+          #gui.update()
 
         has_looped_once = True
 
@@ -295,12 +373,13 @@ def show_mocap(mocap_file, model, record_lma='', predict_emotion=True, record_mo
       else:
         if(predict_emotion):
           gui.change_animation_status(2)
-          gui.update()
+          #gui.update()
 
         while(True):
           continue #NOTE: this is just here so that the window doesn't immediately close (so that the user has to manually close the window to terminate the program)
 
     env.step()
+    gui.update()
 
 if __name__=="__main__":
   import argparse

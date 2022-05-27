@@ -148,6 +148,9 @@ class IKSolver():
                 self.physicsClient.resetJointState(self.charID, j, pose[counter])
                 counter += 1
 
+    def getLinkState(self, link_id):
+        return self.physicsClient.getLinkState(self.charID, link_id)
+
     def calculateKinematicSolution(self, endEffectorIndex, desiredPosition, desiredOrientation = None, jd=[]):
         if(desiredOrientation != None):
             jointPoses = self.physicsClient.calculateInverseKinematics(self.charID, endEffectorIndex, desiredPosition, desiredOrientation)
