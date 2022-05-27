@@ -94,6 +94,10 @@ class BaseEnv(ABC):
       self._kin_char = self._visual.add_character("kin", [44/255, 160/255, 44/255, 1])
 
       self._visual.camera_follow(self._sim_char, 2, 180, 0)
+      
+      # TODO: REMOVE THIS (DEBUG)
+      self._left_wrist_height = self._visual._pybullet_client.addUserDebugParameter("lWrist y", -2, 2, 0.0)
+      self.desired_wrist_height = None
 
     # initialize simulation parts
     self._engine = engine_builder(engine, self._skeleton, self_collision, self._sim_step, self._model)
@@ -209,6 +213,9 @@ class BaseEnv(ABC):
     else:
       return False
 
+  def apply_motion_synthesis(self):
+    self.desired_wrist_height = self._visual._pybullet_client.readUserDebugParameter(self._left_wrist_height)
+
   def update_draw(self):
     # synchronize sim pose and kin pose
     sim_pose, sim_vel = self._engine.get_pose()
@@ -224,6 +231,11 @@ class BaseEnv(ABC):
     if time_remain > 0:
       time.sleep(time_remain)
     self._prev_clock = time.perf_counter()
+
+    # Inverse Kinematics #
+    if(self.desired_wrist_height != None):
+      sim_pose = self._engine.compute_inverse_kinematics(sim_pose, 14, [self.desired_wrist_height])
+
 
     # draw on window
     self._visual.set_pose(self._sim_char, sim_pose, sim_vel)

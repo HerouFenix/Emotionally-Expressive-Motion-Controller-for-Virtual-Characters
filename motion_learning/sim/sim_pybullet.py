@@ -7,6 +7,8 @@ import time
 import math
 import numpy as np
 
+from inverse_kinematics import IKSolver
+
 class PyBulletEngine(SimEngine):
   """ simulation engine for character controll
 
@@ -40,6 +42,25 @@ class PyBulletEngine(SimEngine):
 
     # joint torques
     self._monitored_joints = None
+
+
+    # INVERSE KINEMATICS #
+    self._ik_solver = IKSolver()
+    self.ik_joint_mapping = {"chest": [0,1,2],
+               "neck": [3,4,5],
+
+               "right_hip": [14,15,16],
+               "right_knee": [17],
+               "right_ankle": [18, 19, 20],
+               "right_shoulder": [6,7,8],
+               "right_elbow": [9],
+
+               "left_hip": [21, 22, 23],
+               "left_knee": [24],
+               "left_ankle": [25, 26, 27],
+               "left_shoulder": [10,11,12],
+               "left_elbow": [13],}
+               
 
   def _init_ground(self):
     # load ground plane
@@ -440,3 +461,45 @@ class PyBulletEngine(SimEngine):
 
   def close(self):
     pass
+
+
+  def compute_inverse_kinematics(self,frame, links, desired_pos):
+    self._ik_solver.updatePose(frame)
+    ls = self._ik_solver.getLinkState(links)
+    pos_l = [ls[4][0], desired_pos[0], ls[4][2]]
+
+    jointPoses = self._ik_solver.calculateKinematicSolution(17, pos_l)
+    ik_frame = []
+    # Add Base info from frame
+    base_info = frame[0:7]
+    ik_frame += list(base_info)
+      
+    # Add the rest of our frame info from our computed IK solution
+    chest_rotation = self._pybullet_client.getQuaternionFromEuler([jointPoses[self.ik_joint_mapping["chest"][0]], jointPoses[self.ik_joint_mapping["chest"][1]], jointPoses[self.ik_joint_mapping["chest"][2]]])
+    neck_rotation = self._pybullet_client.getQuaternionFromEuler([jointPoses[self.ik_joint_mapping["neck"][0]], jointPoses[self.ik_joint_mapping["neck"][1]], jointPoses[self.ik_joint_mapping["neck"][2]]])
+    right_hip_rotation = self._pybullet_client.getQuaternionFromEuler([jointPoses[self.ik_joint_mapping["right_hip"][0]], jointPoses[self.ik_joint_mapping["right_hip"][1]], jointPoses[self.ik_joint_mapping["right_hip"][2]]])
+    right_knee_rotation = [jointPoses[self.ik_joint_mapping["right_knee"][0]]]
+    right_ankle_rotation = self._pybullet_client.getQuaternionFromEuler([jointPoses[self.ik_joint_mapping["right_ankle"][0]], jointPoses[self.ik_joint_mapping["right_ankle"][1]], jointPoses[self.ik_joint_mapping["right_ankle"][2]]])
+    right_shoulder_rotation = self._pybullet_client.getQuaternionFromEuler([jointPoses[self.ik_joint_mapping["right_shoulder"][0]], jointPoses[self.ik_joint_mapping["right_shoulder"][1]], jointPoses[self.ik_joint_mapping["right_shoulder"][2]]])
+    right_elbow_rotation = [jointPoses[self.ik_joint_mapping["right_elbow"][0]]]
+    left_hip_rotation = self._pybullet_client.getQuaternionFromEuler([jointPoses[self.ik_joint_mapping["left_hip"][0]], jointPoses[self.ik_joint_mapping["left_hip"][1]], jointPoses[self.ik_joint_mapping["left_hip"][2]]])
+    left_knee_rotation = [jointPoses[self.ik_joint_mapping["left_knee"][0]]]
+    left_ankle_rotation = self._pybullet_client.getQuaternionFromEuler([jointPoses[self.ik_joint_mapping["left_ankle"][0]], jointPoses[self.ik_joint_mapping["left_ankle"][1]], jointPoses[self.ik_joint_mapping["left_ankle"][2]]])
+    left_shoulder_rotation = self._pybullet_client.getQuaternionFromEuler([jointPoses[self.ik_joint_mapping["left_shoulder"][0]], jointPoses[self.ik_joint_mapping["left_shoulder"][1]], jointPoses[self.ik_joint_mapping["left_shoulder"][2]]])
+    left_elbow_rotation = [jointPoses[self.ik_joint_mapping["left_elbow"][0]]]
+
+    ik_frame += [chest_rotation[3], chest_rotation[0], chest_rotation[1], chest_rotation[2]]
+    ik_frame += [neck_rotation[3], neck_rotation[0], neck_rotation[1], neck_rotation[2]]
+    ik_frame += [right_hip_rotation[3], right_hip_rotation[0], right_hip_rotation[1], right_hip_rotation[2]]
+    ik_frame += right_knee_rotation
+    ik_frame += [right_ankle_rotation[3], right_ankle_rotation[0], right_ankle_rotation[1], right_ankle_rotation[2]]
+    ik_frame += [right_shoulder_rotation[3], right_shoulder_rotation[0], right_shoulder_rotation[1], right_shoulder_rotation[2]]
+    ik_frame += right_elbow_rotation
+    ik_frame += [left_hip_rotation[3], left_hip_rotation[0], left_hip_rotation[1], left_hip_rotation[2]]
+    ik_frame += left_knee_rotation
+    ik_frame += [left_ankle_rotation[3], left_ankle_rotation[0], left_ankle_rotation[1], left_ankle_rotation[2]]
+    ik_frame += [left_shoulder_rotation[3], left_shoulder_rotation[0], left_shoulder_rotation[1], left_shoulder_rotation[2]]
+    ik_frame += left_elbow_rotation
+
+    ik_frame = np.asarray(ik_frame)
+    return ik_frame

@@ -106,6 +106,8 @@ def test_model(env, model, select_set=None, record=False, random=True, record_lm
     current_emotion = [0.0, 0.0, 0.0]
     emotion_predictor = EmotionClassifier()
 
+    gui.start_motion_synthesis.configure(command=env.apply_motion_synthesis)
+
   processes = []
 
   has_reset = False
@@ -123,7 +125,7 @@ def test_model(env, model, select_set=None, record=False, random=True, record_lm
 
     if(not has_reset and predict_emotion):
         gui.change_animation_status(0)
-        gui.update()
+        #gui.update()
 
     # Every 10 LMA features, run predictor
     if(predict_emotion):
@@ -138,7 +140,7 @@ def test_model(env, model, select_set=None, record=False, random=True, record_lm
       # Update GUI
       gui.change_emotion_coordinates(current_emotion[0], current_emotion[1], current_emotion[2])
       gui.change_emotion_prediction_status(1)
-      gui.update()
+      #gui.update()
 
     dnn_timer.start()
     with torch.no_grad():
@@ -195,7 +197,7 @@ def test_model(env, model, select_set=None, record=False, random=True, record_lm
 
         gui.change_emotion_coordinates(current_emotion[0], current_emotion[1], current_emotion[2])
         gui.change_emotion_prediction_status(2)
-        gui.update()
+        #gui.update()
 
       end_time = time.time()
       duration = end_time - start_time
@@ -269,6 +271,8 @@ def test_model(env, model, select_set=None, record=False, random=True, record_lm
         ob = env.reset(state=state)
 
       start_phase = env.curr_phase
+
+    gui.update()
 
 if __name__=="__main__":
   import argparse
