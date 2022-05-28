@@ -9,24 +9,24 @@
         "hip": "Hips",
         "chest": "Spine",
         "neck": "Neck",
-        "right hip": "RightUpLeg",
-        "right knee": "RightLeg",
-        "right ankle": "RightFoot",
-        "right shoulder": "RightArm",
-        "right elbow": "RightForeArm",
-        "left hip": "LeftUpLeg",
-        "left knee": "LeftLeg",
-        "left ankle": "LeftFoot",
-        "left shoulder": "LeftShoulder",
-        "left elbow": "LeftForeArm"
+        "right hip": "UpperLeg_R",
+        "right knee": "LowerLeg_R",
+        "right ankle": "Foot_R",
+        "right shoulder": "UpperArm_R",
+        "right elbow": "LowerArm_R",
+        "left hip": "UpperLeg_L",
+        "left knee": "LowerLeg_L",
+        "left ankle": "Foot_L",
+        "left shoulder": "UpperArm_L",
+        "left elbow": "LowerArm_L"
     },
     "rootRotJoints": {
-        "root rot up": "Spine1",
-        "root rot left": "LeftUpLeg"
+        "root rot up": "Chest",
+        "root rot left": "UpperLeg_L"
     },
     "positionChannelNames": ["Xposition", "Yposition", "Zposition"],
     "rotationChannelNames": ["Xrotation", "Yrotation", "Zrotation"],
-    "scale": 0.046181,
+    "scale": 0.021166667,
     "zeroRotationVectors": {
         "seconds": [],
         "hip": [0, 0, 0],

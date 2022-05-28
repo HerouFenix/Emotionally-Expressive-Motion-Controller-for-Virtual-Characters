@@ -4,9 +4,9 @@ from bvhtomimic import BvhConverter
 #settingsPath = input("Settings File Path:")
 #outputPath = input("Output File Path:")
 
-inputPath = "./F01A0V1.bvh"
-settingsPath = "settings/kin_settings.json"
-outputPath = "../lmao_wat.txt"
+inputPath = "./bandai_3.bvh"
+settingsPath = "settings/bandai_settings.json"
+outputPath = "../motion_learning/bandai_3.txt"
 
 converter = BvhConverter(settingsPath)
 converter.writeDeepMimicFile(inputPath, outputPath)
