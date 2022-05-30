@@ -148,6 +148,22 @@ class IKSolver():
                 self.physicsClient.resetJointState(self.charID, j, pose[counter])
                 counter += 1
 
+    def adjustBase(self, newHeight):
+        poses = []
+        orn = []
+
+        index = [7, 10, 11, 12, 15, 16, 17, 21, 24, 28, 31]
+        for j in index:
+            linkState = self.physicsClient.getLinkState(self.charID, j)
+            poses.append(linkState[4])
+            orn.append(linkState[5])
+
+        basePosAndOrn = self.physicsClient.getBasePositionAndOrientation(self.charID)
+        pos = [basePosAndOrn[0][0], newHeight, basePosAndOrn[0][2]]
+        self.physicsClient.resetBasePositionAndOrientation(self.charID, pos, basePosAndOrn[1])
+
+        return self.calculateKinematicSolution2(index, poses)
+
     def getLinkState(self, link_id):
         return self.physicsClient.getLinkState(self.charID, link_id)
 

@@ -10,7 +10,11 @@ class LMAExtractor():
         self._fps = 1/self._frame_duration
 
         self._time_between_recordings = pool_rate
-        self._pooling_rate = math.floor(self._fps * pool_rate) # Pooling rate defined as seconds (0.5 = we want to get LMA features every 0.5 seconds)
+
+        if(pool_rate == -1):
+            self._pooling_rate = 5
+        else:
+            self._pooling_rate = math.floor(self._fps * pool_rate) 
 
         self._frame_counter = 0
 
@@ -38,6 +42,9 @@ class LMAExtractor():
         self._write_mocap_file = write_mocap_file
         if(write_mocap and os.path.exists(write_mocap_file)):
             open(write_mocap_file, 'w').close() #Clear file
+
+        self.mocap_full = [] 
+        self.lma_full = []
 
     def record_frame(self):
         sim_pose, sim_vel, link_pos, link_orn, vel_dict = self._engine.get_pose_and_links()
@@ -80,6 +87,8 @@ class LMAExtractor():
 
         if(self._write_mocap):
             self._append_mocap(new_frame_data)
+        else:
+            self.mocap_full.append(new_frame_data)
 
         self._currentData.append(new_frame_data) #Add current data
         self._frame_counter += 1
@@ -96,6 +105,7 @@ class LMAExtractor():
             self._currentData = []
 
             self._lma_features.append(current_lma_features)
+            self.lma_full.append(current_lma_features)
             
             if(self._append_to_file):
                 self._append_lma_features()
@@ -120,6 +130,10 @@ class LMAExtractor():
         self._currentData = []
         self._first = True
 
+    def clear_full(self):
+        self.lma_full = []
+        self.mocap_full = []
+
     def _compute_LMA_features(self):
         # LMA Data format: 
         #   {
@@ -138,9 +152,10 @@ class LMAExtractor():
         #                       average chest_pelvis_distance (1D),
         #                       average neck_chest_distance (1D),
         #
-        #                       average neck_rotation (4D)
-        #
         #                       average total_body_volume (1D)
+        #
+        #                       average lower_body_volume (1D) 
+        #                       average upper_body_volume (1D) 
         #
         #                       triangle area between hands and neck (1D)
         #                       triangle area between feet and root (1D)
@@ -160,15 +175,7 @@ class LMAExtractor():
         #                       r_foot acceleration magnitude (1D)                 
         #                       neck acceleration magnitude (1D)
         # 
-        #                       l_hand movement jerk (3D) [REMOVED]
-        #                       r_hand movement jerk (3D) [REMOVED]
-        #                       l_foot movement jerk (3D) [REMOVED]
-        #                       r_foot movement jerk (3D) [REMOVED]        
-        #                       head movement jerk (3D) [REMOVED]
         #
-        # Extras:
-        #                       average upper_body_volume (1D) [REMOVED]
-        #                       average lower_body_volume (1D) [REMOVED]
         #                     ] 
         #   }
 
@@ -303,11 +310,11 @@ class LMAExtractor():
         r_foot_speed = self._compute_speed_from_positions(r_foot_positions)
         neck_speed = self._compute_speed_from_positions(neck_positions)
 
-        l_hand_jerk = self._compute_jerk_from_accelerations(l_hand_acceleration, self._last_accelerations[0])
-        r_hand_jerk = self._compute_jerk_from_accelerations(r_hand_acceleration, self._last_accelerations[1])
-        l_foot_jerk = self._compute_jerk_from_accelerations(l_foot_acceleration, self._last_accelerations[2])
-        r_foot_jerk = self._compute_jerk_from_accelerations(r_foot_acceleration, self._last_accelerations[3])
-        neck_jerk = self._compute_jerk_from_accelerations(neck_acceleration, self._last_accelerations[4])
+        #l_hand_jerk = self._compute_jerk_from_accelerations(l_hand_acceleration, self._last_accelerations[0])
+        #r_hand_jerk = self._compute_jerk_from_accelerations(r_hand_acceleration, self._last_accelerations[1])
+        #l_foot_jerk = self._compute_jerk_from_accelerations(l_foot_acceleration, self._last_accelerations[2])
+        #r_foot_jerk = self._compute_jerk_from_accelerations(r_foot_acceleration, self._last_accelerations[3])
+        #neck_jerk = self._compute_jerk_from_accelerations(neck_acceleration, self._last_accelerations[4])
 
         # Update Last Velocities
         self._last_velocities = [l_hand_velocity, r_hand_velocity, l_foot_velocity, r_foot_velocity, neck_velocity]
@@ -328,6 +335,8 @@ class LMAExtractor():
         lma_features.append(self._compute_average_rotation(neck_rotations))
 
         lma_features.append(self._compute_average_distance(total_body_volumes))
+        lma_features.append(self._compute_average_distance(upper_body_volumes))
+        lma_features.append(self._compute_average_distance(lower_body_volumes))
 
         lma_features.append(self._compute_average_distance(hands_neck_triangles))
         lma_features.append(self._compute_average_distance(feet_root_triangles))
@@ -356,9 +365,6 @@ class LMAExtractor():
         #lma_features.append(r_foot_jerk)
         #lma_features.append(neck_jerk)
 
-        # Extras
-        #lma_features.append(self._compute_average_distance(upper_body_volumes))
-        #lma_features.append(self._compute_average_distance(lower_body_volumes))
 
 
         if(self._round_values):
