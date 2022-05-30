@@ -5,7 +5,7 @@ __pycache__
 KinematicCore.py
 mocap_converter/bvh_data/kin_emotions
 mocap_converter/bvh_data/kin_emotions_full
-mocap_converter/bvh_data/bandai
+
 mocap_converter/deepmimic_data/kin
 mocap_converter/deepmimic_data/kin_full
 mocap_converter/settings/dance_scales
@@ -17,3 +17,4 @@ lma_extractor/mocap_data
 lma_extractor/mocap_data_2
 lma_extractor/mocap_data_3
 motion_synthesizer/model_training/models/
+motion_synthesizer/models/
