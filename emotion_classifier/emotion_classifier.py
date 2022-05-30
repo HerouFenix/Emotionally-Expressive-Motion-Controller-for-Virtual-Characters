@@ -8,8 +8,6 @@ import xgboost as xgb
 
 import joblib
 
-from gui_manager import GUIManager
-
 xgb.set_config(verbosity=0)
 
 class EmotionClassifier():

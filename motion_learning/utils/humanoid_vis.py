@@ -157,34 +157,6 @@ class HumanoidVis(object):
         omg = vel[p_off : p_off+3]
         self._pybullet_client.resetJointStateMultiDof(phys_model, i, orn, omg)
 
-    ## INVERSE KINEMATICS ##
-    """
-    self._ik_solver.updatePose(pose)
-
-    ls = self._pybullet_client.getLinkState(phys_model, 14)
-    pos_l = [ls[4][0], self._pybullet_client.readUserDebugParameter(self.c), ls[4][2]]
-    jointPoses = self._ik_solver.calculateKinematicSolution(17, pos_l)
-
-    for i in range(s.num_joints):
-      jtype = s.joint_types[i]
-
-      if jtype is JointType.BASE: #Root
-        pass
-      elif jtype is JointType.FIXED: #R/L Wrist
-        pass
-      elif jtype is JointType.REVOLUTE: #R/L Knee ; R/L Elbow
-        joint_name = self._pybullet_client.getJointInfo(phys_model,i)[1].decode("utf-8")
-        orn = [jointPoses[self.ik_joint_mapping[joint_name][0]]]
-        self._pybullet_client.resetJointStateMultiDof(phys_model, i, orn)
-      elif jtype is JointType.SPHERE: #Chest ; Neck ; R/L Hip ; R/L Ankle ; R/L Shoulder
-        joint_name = self._pybullet_client.getJointInfo(phys_model,i)[1].decode("utf-8")
-       
-        orn = [jointPoses[self.ik_joint_mapping[joint_name][0]], jointPoses[self.ik_joint_mapping[joint_name][1]], jointPoses[self.ik_joint_mapping[joint_name][2]]] 
-        orn = self._pybullet_client.getQuaternionFromEuler(orn)
-
-        self._pybullet_client.resetJointStateMultiDof(phys_model, i, orn)
-    """
-
 
   def camera_follow(self, char_name, dis=None, yaw=None, pitch=None, pos=None):
     assert(char_name in self.characters.keys())

@@ -80,18 +80,21 @@ class GUIManager():
         font =('Verdana 11 bold')).grid(row=1, column=0)
         self.new_pleasure = tk.Entry(self.n_frame, 
         font =('Verdana 11'))
+        self.new_pleasure.insert(0,"0.0")
         self.new_pleasure.grid(row=1, column=1, sticky=tk.W)
 
         tk.Label(self.n_frame, text = 'Arousal:', 
         font =('Verdana 11 bold')).grid(row=2, column=0)
         self.new_arousal = tk.Entry(self.n_frame, 
         font =('Verdana 11'))
+        self.new_arousal.insert(0,"0.0")
         self.new_arousal.grid(row=2, column=1, sticky=tk.W)
 
         tk.Label(self.n_frame, text = 'Dominance:', 
         font =('Verdana 11 bold')).grid(row=3, column=0)
         self.new_dominance = tk.Entry(self.n_frame, 
         font =('Verdana 11'))
+        self.new_dominance.insert(0,"0.0")
         self.new_dominance.grid(row=3, column=1, sticky=tk.W)
 
         self.start_motion_synthesis = tk.Button(self.n_frame, text = 'CONFIRM', 
@@ -157,6 +160,15 @@ class GUIManager():
             self.emotion_prediction.config(text="In Progress", fg=COLOURS['yellow'])
         elif(new_status == 2):
             self.emotion_prediction.config(text="Finished", fg=COLOURS['green'])
+
+    def change_motion_synthesizer_status(self, new_status):
+        if(new_status == 0):
+            self.motion_synthesis.config(text="Not Synthesizing", fg=COLOURS['red'])
+        elif(new_status == 1):
+            self.motion_synthesis.config(text="In Progress", fg=COLOURS['yellow'])
+
+    def get_pad(self):
+        return [float(self.new_pleasure.get()), float(self.new_arousal.get()), float(self.new_dominance.get())]
 
 #manager = GUIManager()
 #while True:

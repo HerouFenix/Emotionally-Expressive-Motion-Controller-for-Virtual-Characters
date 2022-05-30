@@ -14,8 +14,21 @@ p.setAdditionalSearchPath(pybullet_data.getDataPath())
 
 z2y = p.getQuaternionFromEuler([-math.pi*0.5,0,0]) 
 kukaId = p.loadURDF("humanoid_2.urdf", [0,0.889540259, 0], z2y)
-kukaEndEffectorIndexR = 12
-kukaEndEffectorIndexL = 17
+#kukaEndEffectorIndexR = 12
+#kukaEndEffectorIndexL = 17
+kukaEndEffectorIndex = 4
+# 7 - chest/neck
+# 10 - right shoulder
+# 11 - right elbow
+# 12 - right wrist
+# 15 - left shoulder
+# 16 - left elbow
+# 17 - left wrist
+
+
+"""
+{'base_link': -1, 'base': 0, 'root': 1, 'root_chest_link1': 2, 'root_chest_link2': 3, 'chest': 4, 'chest_neck_link1': 5, 'chest_neck_link2': 6, 'neck': 7, 'chest_right_shoulder_link1': 8, 'chest_right_shoulder_link2': 9, 'right_shoulder': 10, 'right_elbow': 11, 'right_wrist': 12, 'chest_left_shoulder_link1': 13, 'chest_left_shoulder_link2': 14, 'left_shoulder': 15, 'left_elbow': 16, 'left_wrist': 17, 'root_right_hip_link1': 18, 'root_right_hip_link2': 19, 'right_hip': 20, 'right_knee': 21, 'right_knee_right_ankle_link1': 22, 'right_knee_right_ankle_link2': 23, 'right_ankle': 24, 'root_left_hip_link1': 25, 'root_left_hip_link2': 26, 'left_hip': 27, 'left_knee': 28, 'left_knee_left_ankle_link1': 29, 'left_knee_left_ankle_link2': 30, 'left_ankle': 31}
+"""
 
 # Good ones: 8 - chest ; 10 - rshoulder
 numJoints = p.getNumJoints(kukaId)
@@ -174,14 +187,18 @@ for i in range(numJoints):
   ul.append(p.getJointInfo(kukaId, i)[9])
 
 
-ls = p.getLinkState(kukaId, kukaEndEffectorIndexR)
-c = [p.addUserDebugParameter("rWrist x", -2, 2, ls[4][0]), p.addUserDebugParameter("rWrist y", -2, 2, ls[4][1]), p.addUserDebugParameter("rWrist z", -2, 2, ls[4][2])]
-orn_r = ls[5]
+#ls = p.getLinkState(kukaId, kukaEndEffectorIndexR)
+#c = [p.addUserDebugParameter("rWrist x", -2, 2, ls[4][0]), p.addUserDebugParameter("rWrist y", -2, 2, ls[4][1]), p.addUserDebugParameter("rWrist z", -2, 2, ls[4][2])]
+#orn_r = ls[5]
+
+ls = p.getLinkState(kukaId, kukaEndEffectorIndex)
+c = [p.addUserDebugParameter("x", -2, 2, ls[4][0]), p.addUserDebugParameter("y", -2, 2, ls[4][1]), p.addUserDebugParameter("z", -2, 2, ls[4][2])]
+orn = ls[5]
 
 
-ls = p.getLinkState(kukaId, kukaEndEffectorIndexL)
-c2 = [p.addUserDebugParameter("LWrist x", -2, 2, ls[4][0]), p.addUserDebugParameter("LWrist y", -2, 2, ls[4][1]), p.addUserDebugParameter("LWrist z", -2, 2, ls[4][2])]
-orn_l = ls[5]
+#ls = p.getLinkState(kukaId, kukaEndEffectorIndexL)
+#c2 = [p.addUserDebugParameter("LWrist x", -2, 2, ls[4][0]), p.addUserDebugParameter("LWrist y", -2, 2, ls[4][1]), p.addUserDebugParameter("LWrist z", -2, 2, ls[4][2])]
+#orn_l = ls[5]
 
 i=0
 while 1:
@@ -192,14 +209,18 @@ while 1:
     #ls = p.getLinkState(kukaId, kukaEndEffectorIndex)
     #print("Initial: " + str(ls[4]))
 
-    pos_r = [p.readUserDebugParameter(c[0]), p.readUserDebugParameter(c[1]), p.readUserDebugParameter(c[2])]
-    pos_l = [p.readUserDebugParameter(c2[0]), p.readUserDebugParameter(c2[1]), p.readUserDebugParameter(c2[2])]
+    #pos_r = [p.readUserDebugParameter(c[0]), p.readUserDebugParameter(c[1]), p.readUserDebugParameter(c[2])]
+    #pos_l = [p.readUserDebugParameter(c2[0]), p.readUserDebugParameter(c2[1]), p.readUserDebugParameter(c2[2])]
+
+    pos = [p.readUserDebugParameter(c[0]), p.readUserDebugParameter(c[1]), p.readUserDebugParameter(c[2])]
 
     #end effector points down, not up (in case useOrientation==1)
     
 
     # NOTE: Theres an issue when using calcInvKin2 that has to do with us not being able to specify the orientations
-    jointPoses = p.calculateInverseKinematics2(kukaId, [kukaEndEffectorIndexR, kukaEndEffectorIndexL], [pos_r, pos_l] ,lowerLimits=ll, upperLimits=ul, jointDamping=[0.01] * 32)
+    #jointPoses = p.calculateInverseKinematics2(kukaId, [kukaEndEffectorIndexR, kukaEndEffectorIndexL], [pos_r, pos_l] ,lowerLimits=ll, upperLimits=ul, jointDamping=[0.01] * 32)
+    jointPoses = p.calculateInverseKinematics2(kukaId, [kukaEndEffectorIndex], [pos] ,lowerLimits=ll, upperLimits=ul, jointDamping=[0.01] * 32)
+
     #jointPoses = accurateCalculateInverseKinematics(numJoints, kukaId, kukaEndEffectorIndex, pos, 0.01, 100)
     
     #jointPoses = p.calculateInverseKinematics(kukaId, kukaEndEffectorIndexR, pos_r, orn_r, lowerLimits=ll, upperLimits=ul, jointDamping=[0.1] * 32)
@@ -238,7 +259,7 @@ while 1:
   print("Root:" + str(p.getBasePositionAndOrientation(kukaId)[1]))
   print()
 
-  time.sleep(1)
+  #time.sleep(1)
 
 p.disconnect()
 

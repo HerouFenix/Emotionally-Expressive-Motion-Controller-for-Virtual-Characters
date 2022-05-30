@@ -1,10 +1,17 @@
 import math
 import numpy as np
 import os.path
+import os
 
 import pandas as pd
-from ast import literal_eval
 
+
+import pandas as pd
+
+import xgboost as xgb
+
+
+xgb.set_config(verbosity=0)
 from scipy.optimize import minimize
 
 #from gui_manager import GUIManager
@@ -12,7 +19,7 @@ from scipy.optimize import minimize
 ANGRY_LMA = [0.651203, 0.200424, 0.249959, 0.419565, 0.434269, 0.457952, 0.315414, 0.345453, 0.286151, 0.278876, 0.011726, 0.133865, 0.063344,
              0.988637, 0.097957, 0.126078, 0.03653, 0.989117, 0.655308, 1.164914, 0.471703, 0.920887, 1.978233, 1.310616, 2.329827, 0.943406, 1.841774, ]
 
-
+# TODO: CHANGE T-POSE TO GET LOCAL FRAME INSTEAD OF CENTER OF MASS!!!!!
 T_POSE = {
     'frame': [-0.16609051983616052, 0.8208358718372436, 0.1907889500265707, 0.9992657024895122, 2.3401096336136264e-05, -0.03506671168169595, -0.015439592363896653, 1.0, 0.0, 0.0, -0.0, 0.998739717777699, -0.001630854403921047, -6.348387706985323e-06, 0.05016289870944029, 0.2702945424630904, 0.005101763279313845, 0.9623726356646698, -0.02745437032508739, 0.015685323692000902, 0.0040567961657829886, 0.1323987319214238, 0.990590709904821, -0.0344116788420891, 0.5379828762356462, -0.10424622637951891, -0.5593772633964808, 0.62193586997207, 0.029127925921603046, 0.1791379887572908, 0.00041021193944449903, -0.9828828670486963, -0.0430195580206552, 0.03538608537932216, 0.00944877943667258, -0.13356901861722095, -0.9896879250324737, -0.050870904038617604, 0.732558432647076, 0.5271783355415982, 0.36408710423521307, 0.22996027009652464, 0.05363700522404034],
     'root': [(-0.16393067900481517, 0.8908024984163395, 0.19086802197713065), (2.3401096336136264e-05, -0.03506671168169595, -0.015439592363896653, 0.9992657024895122), [(0.005905173415750418, -0.00016419633563590966, -0.003921920256091087), (0.03025022027045334, 0.0332027621317227, 0.03045228333064668)]],
@@ -40,8 +47,8 @@ C4_INDICES = [3, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26]
 
 
 class MotionSynthesizer():
-    def __init__(self, mocap_file, lma_file, reference_lma):
-
+    def __init__(self):
+        # Initializer with no files
         self.c1 = [1.0]
         self.c2 = [1.0]
         self.c3 = [1.0]
@@ -50,78 +57,148 @@ class MotionSynthesizer():
         self.current_reference_features = []
         self.current_features = []
 
-        # 1- Get MOCAP File
+        self._mocap = []
+        self.generated_mocap = []
+
+        self._lma = []
+
+        self._reference = []
+
+        self._extraction_framerate  = -1.0
+
+        # TODO: CHANGE THIS TO GET THE ACTUAL CURRENT FRAMERATE!!!!
+        self._current_framerate = -1.0
+
+        self._models = {}
+        for filename in os.listdir("../motion_synthesizer/models/"):
+            f = os.path.join("../motion_synthesizer/models/", filename)
+            if os.path.isfile(f):
+                print(filename)
+                model = xgb.XGBRegressor(verbosity=0)
+                model.load_model(f)
+                self._models[filename.split(".")[0]] = model
+
+
+    def reset(self):
+        self.c1 = [1.0]
+        self.c2 = [1.0]
+        self.c3 = [1.0]
+        self.c4 = [1.0]
+
+        self.current_reference_features = []
+        self.current_features = []
 
         self._mocap = []
         self.generated_mocap = []
-        with open(mocap_file, 'r') as r:
-            lines = r.readlines()
 
-            i = 0
-            first = True
-            for line in lines:
-                line = literal_eval(line)
-                del line["frame"]
-                self._mocap.append(line)
-                print(line["right_wrist"])
-
-                if(first):
-                    first = False
-                    i += 1
-                    continue
-
-                if(i % 15 == 0):
-                    self.generated_mocap.append({'index': i, 'mocap': line})
-
-                i += 1
-
-        """
-        #1- Get MOCAP File
-        with open(mocap_file, 'r') as r:
-            lines = r.readlines()
-
-            mocap_str = ""
-            for line in lines:
-                if(line[0] != "[" and line[0] != "]"):
-                    continue
-                
-                mocap_str += line
-            
-            self._mocap = literal_eval(mocap_str)      
-        """
-
-        # 2 - Get MOCAP LMA File
         self._lma = []
-        with open(lma_file, 'r') as r:
-            lines = r.readlines()
 
-            for line in lines:
-                line = literal_eval(line)
-                features = []
-                for feature in line["lma_features"]:
-                    if(type(feature) is tuple):
-                        for i in range(len(feature)):
-                            features.append(feature[i])
-                    else:
-                        features.append(feature)
+        #self._reference = []
 
-                line["lma_features"] = features
-                self._lma.append(line)
+        self._extraction_framerate  = -1.0
 
-            self._extraction_framerate = self._lma[0]["frame_counter"]
-
-        # 3 - Get REFERENCE LMA
-        self._reference = reference_lma
-
-        # 4 - Get Current Framerate
         # TODO: CHANGE THIS TO GET THE ACTUAL CURRENT FRAMERATE!!!!
-        self._current_framerate = 1.0
+        self._current_framerate = -1.0
+
+    def set_current_mocap(self, mocap):
+        self._mocap = []
+        self.generated_mocap = []
+        
+        i = 0
+        first = True
+        for frame in mocap:
+            frame = frame.copy()
+            frame.pop("frame")
+            self._mocap.append(frame)
+
+            if(first):
+                first = False
+                i += 1
+                continue
+            
+            if(i % self._extraction_framerate  == 0):
+                gen = {"root": frame["root"][0], "neck": frame["neck"][0], "left_wrist":frame["left_wrist"][0], "right_wrist":frame["right_wrist"][0]}
+                self.generated_mocap.append({'index': i, 'mocap': gen})
+
+            i += 1
+
+    def set_current_lma(self, lma):
+        self._lma = []
+
+        for frame in lma:
+            frame = frame.copy()
+            features = []
+
+            for feature in frame["lma_features"]:
+                if(type(feature) is tuple):
+                    for i in range(len(feature)):
+                        features.append(feature[i])
+                else:
+                    features.append(feature)
+
+            frame["lma_features"] = features
+            self._lma.append(frame)
+
+        self._extraction_framerate = self._lma[0]["frame_counter"]
+
+    def set_reference_lma(self, lma=None):
+        if(lma == None):
+            self._reference = ANGRY_LMA
+        else:
+            self._reference = lma
+    
+    def set_desired_pad(self, pad):
+        lma = []
+        pad_order = ["max_hand_distance",
+          "avg_l_hand_hip_distance",
+          "avg_r_hand_hip_distance",
+          "max_stride_length",
+          "avg_l_hand_chest_distance",
+          "avg_r_hand_chest_distance",
+          "avg_l_elbow_hip_distance",
+          "avg_r_elbow_hip_distance",
+          "avg_chest_pelvis_distance",
+          "avg_neck_chest_distance",
+          "avg_neck_rotation_w", "avg_neck_rotation_x", "avg_neck_rotation_y", "avg_neck_rotation_z",
+          "avg_total_body_volume",
+          "avg_triangle_area_hands_neck",
+          "avg_triangle_area_feet_hips",
+          
+          "l_hand_speed",
+          "r_hand_speed",
+          "l_foot_speed",
+          "r_foot_speed",
+          "neck_speed",
+          
+          "l_hand_acceleration_magnitude",
+          "r_hand_acceleration_magnitude",
+          "l_foot_acceleration_magnitude",
+          "r_foot_acceleration_magnitude",
+          "neck_acceleration_magnitude",
+        ]
+
+        pad = np.asarray([pad])
+
+        for feature in pad_order:
+            lma.append(self._models[feature].predict(pad)[0])
+        
+        self._reference = lma
+        print(self._reference)
+
 
     def compute_coefficients(self):
         self.compute_coefficient(1)
         self.compute_coefficient(2)
         self.compute_coefficient(3)
         self.compute_coefficient(4)
+
+    def get_motion_changes(self):
+        self.rule_1()
+        self.rule_2()
+        self.rule_3()
+        self.rule_4()
+
+        return self.generated_mocap
 
     def compute_coefficient(self, coefficient_number):
         feature_index = []
@@ -224,13 +301,13 @@ class MotionSynthesizer():
                     gen_index = next(index for index in range(
                         len(self.generated_mocap)) if self.generated_mocap[index]["index"] == i)
                         
-                    print("Original:" + str(self.generated_mocap[gen_index]['mocap']['root'][0]))
+                    print("Original:" + str(self.generated_mocap[gen_index]['mocap']['root']))
 
-                    temp = self.generated_mocap[gen_index]['mocap']['root'][0]
-                    self.generated_mocap[gen_index]['mocap']['root'][0] = (
+                    temp = self.generated_mocap[gen_index]['mocap']['root']
+                    self.generated_mocap[gen_index]['mocap']['root'] = (
                         temp[0], new_root_height, temp[2])
 
-                    print("Synthesized:" + str(self.generated_mocap[gen_index]['mocap']['root'][0]))
+                    print("Synthesized:" + str(self.generated_mocap[gen_index]['mocap']['root']))
                     print()
 
                 else:
@@ -242,13 +319,13 @@ class MotionSynthesizer():
                     gen_index = next(index for index in range(
                         len(self.generated_mocap)) if self.generated_mocap[index]["index"] == i)
 
-                    print("Original:" + str(self.generated_mocap[gen_index]['mocap']['root'][0]))
+                    print("Original:" + str(self.generated_mocap[gen_index]['mocap']['root']))
 
-                    temp = self.generated_mocap[gen_index]['mocap']['root'][0]
-                    self.generated_mocap[gen_index]['mocap']['root'][0] = (
+                    temp = self.generated_mocap[gen_index]['mocap']['root']
+                    self.generated_mocap[gen_index]['mocap']['root'] = (
                         temp[0], new_root_height, temp[2])
 
-                    print("Synthesized:" + str(self.generated_mocap[gen_index]['mocap']['root'][0]))
+                    print("Synthesized:" + str(self.generated_mocap[gen_index]['mocap']['root']))
                     print()
 
     def rule_2(self):
@@ -291,10 +368,10 @@ class MotionSynthesizer():
                 gen_index = next(index for index in range(
                     len(self.generated_mocap)) if self.generated_mocap[index]["index"] == i)
 
-                print(self.generated_mocap[gen_index]['mocap']['neck'][0])
-                self.generated_mocap[gen_index]['mocap']['neck'][0] = (
+                print(self.generated_mocap[gen_index]['mocap']['neck'])
+                self.generated_mocap[gen_index]['mocap']['neck'] = (
                     new_neck_position_x, new_neck_position_y, new_neck_position_z)
-                print(self.generated_mocap[gen_index]['mocap']['neck'][0])
+                print(self.generated_mocap[gen_index]['mocap']['neck'])
                 print()
 
     def rule_3(self):
@@ -376,13 +453,13 @@ class MotionSynthesizer():
                     len(self.generated_mocap)) if self.generated_mocap[index]["index"] == i)
 
                 print(self.generated_mocap[gen_index]
-                      ['mocap']['left_wrist'][0])
-                self.generated_mocap[gen_index]['mocap']['left_wrist'][0] = (
+                      ['mocap']['left_wrist'])
+                self.generated_mocap[gen_index]['mocap']['left_wrist'] = (
                     new_left_hand_position_x, new_left_hand_position_y, new_left_hand_position_z)
-                self.generated_mocap[gen_index]['mocap']['right_wrist'][0] = (
+                self.generated_mocap[gen_index]['mocap']['right_wrist'] = (
                     new_right_hand_position_x, new_right_hand_position_y, new_right_hand_position_z)
                 print(self.generated_mocap[gen_index]
-                      ['mocap']['left_wrist'][0])
+                      ['mocap']['left_wrist'])
                 print()
 
     def rule_4(self):
@@ -443,7 +520,7 @@ class MotionSynthesizer():
                     print()
     """
 
-
+"""
 ms = MotionSynthesizer("neutral_walk_mocap.txt",
                        "neutral_walk_lma.txt", ANGRY_LMA)
 ms.compute_coefficients()
@@ -451,6 +528,7 @@ ms.rule_1()
 ms.rule_2()
 ms.rule_3()
 ms.rule_4()
+"""
 
 # Coefficients
 # c1 - Pelvis
