@@ -7,6 +7,7 @@ from utils.humanoid_kin import HumanoidSkeleton
 from utils.humanoid_mocap import HumanoidMocap
 from utils.humanoid_vis import HumanoidVis
 from sim import engine_builder
+import threading
 
 # timesteps
 ACT_STEPTIME  = 1./30.
@@ -96,8 +97,64 @@ class BaseEnv(ABC):
       self._visual.camera_follow(self._sim_char, 2, 180, 0)
       
       # TODO: REMOVE THIS (DEBUG)
-      self._left_wrist_height = self._visual._pybullet_client.addUserDebugParameter("lWrist y", -2, 2, 0.0)
-      self.desired_wrist_height = None
+      #self._left_wrist_height = self._visual._pybullet_client.addUserDebugParameter("lWrist y", -2, 2, 0.0)
+      #self.desired_wrist_height = None
+    
+    ## INVERSE KINEMATICS & MOTION SYNTHESIS ##
+    self._mocap_frames = []
+    self._ik_frames = []
+
+    self._gui = None
+    self._ms = None
+    self._synthesizing = False
+
+    self.ik_joint_mapping = {"chest": [0,1,2],
+               "neck": [3,4,5],
+
+               "right_hip": [14,15,16],
+               "right_knee": [17],
+               "right_ankle": [18, 19, 20],
+               "right_shoulder": [6,7,8],
+               "right_elbow": [9],
+
+               "left_hip": [21, 22, 23],
+               "left_knee": [24],
+               "left_ankle": [25, 26, 27],
+               "left_shoulder": [10,11,12],
+               "left_elbow": [13],}
+    self.ik_link_mapping = {
+        2 : 7, # Neck/Chest
+        6 : 10, # Right Shoulder
+        7 : 11, # Right Elbow
+        8 : 12, # Right Wrist
+
+        12 : 15, # Left Shoulder
+        13 : 16, # Left Elbow
+        14 : 17, # Left Wrist
+
+        4 : 21, # Right Knee
+        5 : 24, # Right Ankle
+
+        10 : 28, # Left Knee
+        11 : 31 # Left Ankle
+      }
+    self.name_to_index_mapping = {
+        "neck": 2,
+        "right_shoulder": 6,
+        "right_elbow": 7,
+        "right_wrist": 8,
+        "left_shoulder": 12,
+        "left_elbow": 13,
+        "left_wrist": 14,
+        "right_knee": 4,
+        "right_ankle": 5,
+        "left_knee": 10,
+        "left_ankle": 11
+      }
+
+    self.counter = 0
+
+    ###########################################
 
     # initialize simulation parts
     self._engine = engine_builder(engine, self._skeleton, self_collision, self._sim_step, self._model)
@@ -214,7 +271,20 @@ class BaseEnv(ABC):
       return False
 
   def apply_motion_synthesis(self):
-    self.desired_wrist_height = self._visual._pybullet_client.readUserDebugParameter(self._left_wrist_height)
+    if(self._ms != None):
+        self._synthesizing = True
+        self._gui.change_motion_synthesizer_status(1)
+        new_process = threading.Thread(target=self.compute_motion_synthesis_multithreaded, args=(self._gui.get_pad(), ))
+        new_process.start()
+
+  def compute_motion_synthesis_multithreaded(self, pad):
+    self._ms.set_desired_pad(pad)
+
+    self._ms.compute_coefficients()
+
+    self._ik_frames = ["hi"]
+
+    self._synthesizing = False 
 
   def update_draw(self):
     # synchronize sim pose and kin pose
@@ -233,9 +303,16 @@ class BaseEnv(ABC):
     self._prev_clock = time.perf_counter()
 
     # Inverse Kinematics #
-    if(self.desired_wrist_height != None):
-      sim_pose = self._engine.compute_inverse_kinematics(sim_pose, 14, [self.desired_wrist_height])
+    if(self._ik_frames != [] and not self._synthesizing):
+      frame = self._engine.get_pose_and_links()[2]
 
+      gen_pose = self._ms.convert_single_frame(frame, self.counter)
+      indices = []
+      for i in gen_pose["mocap"]:
+        if(i in self.name_to_index_mapping):
+          indices.append(self.ik_link_mapping[self.name_to_index_mapping[i]])
+       
+      sim_pose = self._engine.compute_inverse_kinematics(sim_pose, indices, gen_pose)
 
     # draw on window
     self._visual.set_pose(self._sim_char, sim_pose, sim_vel)
@@ -244,6 +321,8 @@ class BaseEnv(ABC):
     # adjust cameral pose
     if self._follow_character:
       self._visual.camera_follow(self._sim_char)
+    
+    self.counter += 1
 
   def update_contact_forces(self):
     # draw contact forces

@@ -193,6 +193,47 @@ class HumanoidMocap(object):
 
     return cycle_count, pose, vel
 
+  def slerp2(self, frames, t, padding=True):
+    """ Interpolate between two frames, indexed by time t
+
+      Inputs:
+        t           float, current time
+        padding     decide whether return vel_pad or vel_cmp
+
+      Outputs:
+        cycle_count int, number of cycles it finishs
+        pose        np.array of float, character pose
+        vel         np.array of float, velcity during frame, w/ or w/o padding
+    """
+    # calculate cycle count
+    cycle_count = np.floor(t / self._cycletime)
+    t -= cycle_count * self._cycletime
+    if (t < 0):
+      cycle_count -= 1
+      t += self._cycletime
+
+    if not self._is_wrap and cycle_count > 0:
+      count = 0
+      pose = frames[-1].copy()
+
+      return count, pose
+
+    # index frames
+    t = t / self._spf
+    idx = int(t)
+    idx_next = idx + 1
+    t -= idx
+    assert(idx >= 0)
+    assert(idx_next < frames.shape[0])
+
+    # calculate pos
+    curr_frame = frames[idx]
+    next_frame = frames[idx_next]
+
+    pose = self._skeleton.slerp(curr_frame, next_frame, t)
+
+    return cycle_count, pose
+
   def get_com_pos(self, t, smooth=False):
     """ Get com pos at t
 

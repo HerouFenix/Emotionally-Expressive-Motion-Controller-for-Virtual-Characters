@@ -1,3 +1,5 @@
+from tkinter import DISABLED
+from tkinter.font import NORMAL
 import numpy as np
 import time
 
@@ -15,7 +17,7 @@ sys.path.append(parent)
 from lma_extractor import LMAExtractor
 from emotion_classifier import EmotionClassifier
 from gui_manager import GUIManager
-
+from motion_synthesizer import MotionSynthesizer
 
 
 def write_mocap(outfile, start_phase, frames):
@@ -102,17 +104,31 @@ def test_model(env, model, select_set=None, record=False, random=True, record_lm
     gui = GUIManager()
     gui.change_animation_status(2)
     gui.change_emotion_prediction_status(0)
-    gui.update()
+
+    gui.start_motion_synthesis.configure(command=env.apply_motion_synthesis)
+    gui.start_motion_synthesis.configure(state=DISABLED)
+    
     current_emotion = [0.0, 0.0, 0.0]
     emotion_predictor = EmotionClassifier()
 
-    gui.start_motion_synthesis.configure(command=env.apply_motion_synthesis)
+    ms = MotionSynthesizer()
+    env._ms = ms
+
+    env._gui = gui
 
   processes = []
 
   has_reset = False
   
-  while True:    
+  while True: 
+    if(env._synthesizing):
+      gui.change_motion_synthesizer_status(1)
+      gui.start_motion_synthesis.configure(state=DISABLED)
+    else:
+      gui.change_motion_synthesizer_status(0)
+      if(has_reset):
+        gui.start_motion_synthesis.configure(state=NORMAL)
+
     # record
     sim_pose, sim_vel = env._engine.get_pose()
     frames.append(sim_pose)
@@ -197,6 +213,16 @@ def test_model(env, model, select_set=None, record=False, random=True, record_lm
 
         gui.change_emotion_coordinates(current_emotion[0], current_emotion[1], current_emotion[2])
         gui.change_emotion_prediction_status(2)
+
+        if(ms._mocap == []):
+          ms.set_current_lma(lma_extractor.lma_full)
+          ms.set_current_mocap(lma_extractor.mocap_full)
+          env._mocap_frames = [lma_extractor.mocap_full[i]["frame"] for i in range(len(lma_extractor.mocap_full))]
+          ms._frame_worth = round(env.counter / len(env._mocap_frames))
+
+          gui.start_motion_synthesis.configure(state=NORMAL)
+
+        lma_extractor.clear_full()
         #gui.update()
 
       end_time = time.time()
@@ -232,6 +258,8 @@ def test_model(env, model, select_set=None, record=False, random=True, record_lm
       step_timer.reset()
 
       start_time = time.time()
+
+      env.counter = 0
 
       sim_pose, sim_vel = env._engine.get_pose()
       frames.append(sim_pose)
