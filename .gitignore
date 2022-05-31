@@ -19,3 +19,5 @@ lma_extractor/mocap_data_2
 lma_extractor/mocap_data_3
 motion_synthesizer/model_training/models/
 motion_synthesizer/models/
+motion_synthesizer/t_pose.txt
+motion_synthesizer/t_pose_lma.txt
