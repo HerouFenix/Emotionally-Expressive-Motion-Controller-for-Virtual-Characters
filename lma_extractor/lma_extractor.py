@@ -46,7 +46,13 @@ class LMAExtractor():
         self.mocap_full = [] 
         self.lma_full = []
 
+        self._first_frame = True
+
     def record_frame(self):
+        if(self._first_frame): # Skip the first frame
+            self._first_frame = False
+            return False, []
+
         sim_pose, sim_vel, link_pos, link_orn, vel_dict = self._engine.get_pose_and_links()
 
         pose = [i for i in sim_pose]
@@ -85,21 +91,24 @@ class LMAExtractor():
             #print(link)
             #print(new_frame_data[link])
 
-        if(self._write_mocap):
-            self._append_mocap(new_frame_data)
-        else:
-            self.mocap_full.append(new_frame_data)
-
         self._currentData.append(new_frame_data) #Add current data
-        self._frame_counter += 1
+
+        #print(str(self._frame_counter) + " - " + str(new_frame_data["frame"][0]))
 
         if(self._frame_counter % self._pooling_rate == 0 and self._frame_counter != 0):
+
+            if(self._write_mocap):
+                self._append_mocap(new_frame_data)
+            else:
+                self.mocap_full.append(new_frame_data)
 
             current_lma_features = self._compute_LMA_features()
 
             if(self._number_ignored < self._ignore_amount): # If we want to ignore the first X set of frames, then compute the current lma features (to get last velocities and accelerations and stuff), but dont append to lma feature array
                 self._number_ignored += self._pooling_rate
                 self._currentData = []
+
+                self._frame_counter += 1
                 return False, []
 
             self._currentData = []
@@ -110,9 +119,10 @@ class LMAExtractor():
             if(self._append_to_file):
                 self._append_lma_features()
 
-
+            self._frame_counter += 1
             return True, current_lma_features
 
+        self._frame_counter += 1
         return False, []
 
     def get_lma_features(self):
