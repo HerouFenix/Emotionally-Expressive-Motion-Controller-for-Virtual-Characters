@@ -23,10 +23,10 @@ import time
 
 input_directory = 'bandai_mocap/'
 
-output_directory = 'lma_features/bandai/'
+output_directory = 'lma_features/bandai_5frame/'
 
-e_meta_file_path = "EMOTIONS_META_BANDAI.txt"
-f_meta_file_path = "FILES_META_BANDAI.txt"
+e_meta_file_path = "EMOTIONS_META_BANDAI_5FRAME.txt"
+f_meta_file_path = "FILES_META_BANDAI_5FRAME.txt"
 
 files = []
 
@@ -34,6 +34,21 @@ files = []
 with open(f_meta_file_path, 'r') as r:
     for file in r.readlines():
         files.append(file.replace("\n",""))
+
+
+input_directory_2 = 'bandai_mocap/'
+
+output_directory_2 = 'lma_features/bandai_05sec/'
+
+e_meta_file_path_2 = "EMOTIONS_META_BANDAI_05SEC.txt"
+f_meta_file_path_2 = "FILES_META_BANDAI_05SEC.txt"
+
+files_2 = []
+
+# Read  META File
+with open(f_meta_file_path_2, 'r') as r:
+    for file in r.readlines():
+        files_2.append(file.replace("\n",""))
 
   
 from lma_extractor import LMAExtractor
@@ -229,12 +244,33 @@ def extract_features(mocap_file, output_file, model, emotion):
 
     env.step()
 
+def extract_features_2(mocap_file, output_file, model, emotion):
+  env = LMAMocapEnv(mocap_file, None, model)
+
+  env.reset()
+
+  lma_extractor = LMAExtractor(env,env._mocap._durations[0], append_to_file=False, outfile=output_file, label=emotion, ignore_amount=0, pool_rate=0.5)
+  #lma_extractor = LMAExtractor(env,env._mocap._durations[0], append_to_file=False, outfile=output_file, label=emotion, ignore_amount=0, pool_rate=-1)
+
+  while True:
+    # LMA Features
+    if(not env.has_looped):
+      lma_extractor.record_frame()
+    else:
+      # We reached the end of the mocap so we can stop recording
+      lma_extractor.write_lma_features()
+      break
+
+    env.step()
+
 
 if __name__=="__main__":
   import argparse
   parser = argparse.ArgumentParser()
   parser.add_argument("--model", type=str, default='humanoid3d', help="model")
   args = parser.parse_args()
+
+  ## 5 FRAMES ##
 
   # Overwrite META File
   f_meta_file = open(f_meta_file_path, "a")
@@ -256,6 +292,34 @@ if __name__=="__main__":
         e_meta_file.write(emotion + "\n")
 
         extract_features(f, o, args.model, emotion)
+
+        print("============================================\n")
+
+  f_meta_file.close()
+  e_meta_file.close()
+
+
+  # 0.5 SEC (15 FRAMES) ##
+
+  f_meta_file_2 = open(f_meta_file_path_2, "a")
+  e_meta_file_2 = open(e_meta_file_path_2, "a")
+
+  for filename in os.listdir(input_directory):
+    f = os.path.join(input_directory, filename)
+    if os.path.isfile(f):
+        print("New File: " + f + "\n")
+
+        emotion = filename.split("_")[0]
+
+        o = os.path.join(output_directory_2, filename)
+
+        if(os.path.exists(o) or o in files_2): # To avoid repeats/allow to stop and resume mass extractions
+            continue
+
+        f_meta_file_2.write(o + "\n")
+        e_meta_file_2.write(emotion + "\n")
+
+        extract_features_2(f, o, args.model, emotion)
 
         print("============================================\n")
 
