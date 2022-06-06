@@ -22,6 +22,5 @@ motion_synthesizer/models/
 motion_synthesizer/t_pose.txt
 motion_synthesizer/t_pose_lma.txt
 
-emotion_classifier/model_training/models/bandai_l2p_model_05sec.json
-emotion_classifier/model_training/models/bandai_l2a_model_05sec.json
-emotion_classifier/model_training/models/bandai_l2d_model_05sec.json
+emotion_classifier/model_training/models/
+motion_synthesizer/model_training/models/
