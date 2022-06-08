@@ -342,7 +342,7 @@ class LMAExtractor():
         lma_features.append(self._compute_average_distance(chest_pelvis_distances))
         lma_features.append(self._compute_average_distance(neck_chest_distances))
 
-        lma_features.append(self._compute_average_rotation(neck_rotations))
+        #lma_features.append(self._compute_average_rotation(neck_rotations))
 
         lma_features.append(self._compute_average_distance(total_body_volumes))
         lma_features.append(self._compute_average_distance(upper_body_volumes))
