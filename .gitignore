@@ -17,6 +17,8 @@ lma_extractor/bandai_mocap
 lma_extractor/mocap_data
 lma_extractor/mocap_data_2
 lma_extractor/mocap_data_3
+lma_extractor/kin_mocap_reduced
+
 motion_synthesizer/model_training/models/
 motion_synthesizer/models/
 motion_synthesizer/t_pose.txt
