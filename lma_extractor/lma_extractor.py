@@ -13,6 +13,8 @@ class LMAExtractor():
 
         if(pool_rate == -1):
             self._pooling_rate = 5
+        elif(pool_rate == -2):
+            self._pooling_rate = 20
         else:
             self._pooling_rate = math.floor(self._fps * pool_rate) 
 

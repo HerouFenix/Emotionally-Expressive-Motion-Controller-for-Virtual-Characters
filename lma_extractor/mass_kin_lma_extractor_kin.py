@@ -23,10 +23,10 @@ import time
 
 input_directory = 'kin_mocap_reduced/'
 
-output_directory = 'lma_features/kin_5frame/'
+output_directory = 'lma_features/kin_20frame/'
 
-e_meta_file_path = "EMOTIONS_META_KIN_5FRAME.txt"
-f_meta_file_path = "FILES_META_KIN_5FRAME.txt"
+e_meta_file_path = "EMOTIONS_META_KIN_20FRAME.txt"
+f_meta_file_path = "FILES_META_KIN_20FRAME.txt"
 
 files = []
 
@@ -35,7 +35,7 @@ with open(f_meta_file_path, 'r') as r:
     for file in r.readlines():
         files.append(file.replace("\n",""))
 
-
+"""
 input_directory_2 = 'kin_mocap_reduced/'
 
 output_directory_2 = 'lma_features/kin_05sec/'
@@ -49,6 +49,7 @@ files_2 = []
 with open(f_meta_file_path_2, 'r') as r:
     for file in r.readlines():
         files_2.append(file.replace("\n",""))
+"""
 
   
 from lma_extractor import LMAExtractor
@@ -231,7 +232,7 @@ def extract_features(mocap_file, output_file, model, emotion):
   env.reset()
 
   #lma_extractor = LMAExtractor(env,env._mocap._durations[0], append_to_file=False, outfile=output_file, label=emotion, ignore_amount=0, pool_rate=0.5)
-  lma_extractor = LMAExtractor(env,env._mocap._durations[0], append_to_file=False, outfile=output_file, label=emotion, ignore_amount=0, pool_rate=-1)
+  lma_extractor = LMAExtractor(env,env._mocap._durations[0], append_to_file=False, outfile=output_file, label=emotion, ignore_amount=0, pool_rate=-2)
 
   while True:
     # LMA Features
@@ -300,7 +301,8 @@ if __name__=="__main__":
 
 
   # 0.5 SEC (15 FRAMES) ##
-
+  """
+  
   f_meta_file_2 = open(f_meta_file_path_2, "a")
   e_meta_file_2 = open(e_meta_file_path_2, "a")
 
@@ -325,3 +327,4 @@ if __name__=="__main__":
 
   f_meta_file.close()
   e_meta_file.close()
+  """
