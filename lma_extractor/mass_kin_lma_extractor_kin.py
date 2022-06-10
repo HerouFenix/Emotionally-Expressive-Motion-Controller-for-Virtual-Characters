@@ -23,10 +23,10 @@ import time
 
 input_directory = 'kin_mocap_reduced/'
 
-output_directory = 'lma_features/kin_20frame/'
+output_directory = 'lma_features/kin_05sec/'
 
-e_meta_file_path = "EMOTIONS_META_KIN_20FRAME.txt"
-f_meta_file_path = "FILES_META_KIN_20FRAME.txt"
+e_meta_file_path = "EMOTIONS_META_KIN_05SEC.txt"
+f_meta_file_path = "FILES_META_KIN_05SEC.txt"
 
 files = []
 
