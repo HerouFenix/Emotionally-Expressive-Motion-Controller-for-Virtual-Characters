@@ -96,9 +96,9 @@ def test_model(env, model, select_set=None, record=False, random=True, record_lm
   start_time = time.time()
 
   if(record_lma != ""):
-    lma_extractor = LMAExtractor(env._engine,  env._mocap._durations[0], record_lma, append_to_file=True, pool_rate=0.5)
+    lma_extractor = LMAExtractor(env._engine,  env._mocap._durations[0], record_lma, append_to_file=True, pool_rate=-1)
   else:
-    lma_extractor = LMAExtractor(env._engine, env._mocap._durations[0], append_to_file=False, label="NONE", pool_rate=0.5)
+    lma_extractor = LMAExtractor(env._engine, env._mocap._durations[0], append_to_file=False, label="NONE", pool_rate=-1)
 
   if(predict_emotion):
     gui = GUIManager()

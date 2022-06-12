@@ -71,13 +71,15 @@ class MotionSynthesizer():
         self._current_framerate = -1.0
 
         self._models = {}
+        """
         for filename in os.listdir("../motion_synthesizer/models/"):
-            f = os.path.join("../motion_synthesizer/models/", filename)
+            f = os.path.join("../motion_synthesizer/models/bandai_kin/5frame/xgb/", filename)
             if os.path.isfile(f):
                 print(filename)
                 model = xgb.XGBRegressor(verbosity=0)
                 model.load_model(f)
                 self._models[filename.split(".")[0]] = model
+        """
 
         self._frame_worth = -1.0 # How much each keyframe is worth (i.e if we have 1000 total frames and 500 keyframes then each keyframe is worth 2)
 
@@ -152,32 +154,36 @@ class MotionSynthesizer():
     
     def set_desired_pad(self, pad):
         lma = []
-        pad_order = ["max_hand_distance",
-          "avg_l_hand_hip_distance",
-          "avg_r_hand_hip_distance",
-          "max_stride_length",
-          "avg_l_hand_chest_distance",
-          "avg_r_hand_chest_distance",
-          "avg_l_elbow_hip_distance",
-          "avg_r_elbow_hip_distance",
-          "avg_chest_pelvis_distance",
-          "avg_neck_chest_distance",
-          "avg_neck_rotation_w", "avg_neck_rotation_x", "avg_neck_rotation_y", "avg_neck_rotation_z",
-          "avg_total_body_volume",
-          "avg_triangle_area_hands_neck",
-          "avg_triangle_area_feet_hips",
+        pad_order = [
+            "max_hand_distance",
+            "avg_l_hand_hip_distance",
+            "avg_r_hand_hip_distance",
+            "max_stride_length",
+            "avg_l_hand_chest_distance",
+            "avg_r_hand_chest_distance",
+            "avg_l_elbow_hip_distance",
+            "avg_r_elbow_hip_distance",
+            "avg_chest_pelvis_distance",
+            "avg_neck_chest_distance",
           
-          "l_hand_speed",
-          "r_hand_speed",
-          "l_foot_speed",
-          "r_foot_speed",
-          "neck_speed",
+            "avg_total_body_volume",
+            "avg_lower_body_volume",
+            "avg_upper_body_volume",
           
-          "l_hand_acceleration_magnitude",
-          "r_hand_acceleration_magnitude",
-          "l_foot_acceleration_magnitude",
-          "r_foot_acceleration_magnitude",
-          "neck_acceleration_magnitude",
+            "avg_triangle_area_hands_neck",
+            "avg_triangle_area_feet_hips",
+          
+            "l_hand_speed",
+            "r_hand_speed",
+            "l_foot_speed",
+            "r_foot_speed",
+            "neck_speed",
+          
+            "l_hand_acceleration_magnitude",
+            "r_hand_acceleration_magnitude",
+            "l_foot_acceleration_magnitude",
+            "r_foot_acceleration_magnitude",
+            "neck_acceleration_magnitude",
         ]
 
         pad = np.asarray([pad])

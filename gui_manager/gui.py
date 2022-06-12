@@ -3,20 +3,35 @@ import tkinter as tk
 from turtle import left
 
 EMOTION_COORDINATES = {
-    "neutral": (0.0, 0.0, 0.0),
-    "angry": (-0.5, 0.6, 0.9),
-    "happy": (0.6, 0.5, 0.2),
-    "sad": (-0.6, -0.3, -0.3),
-    "disgusted": (-0.4, 0.25, -0.1) ,
-    "afraid": (-0.35, 0.7, -0.8),
-    "pleased": (0.7, 0.2, 0.2),
-    "bored": (-0.5, -0.7, -0.25),
-    "tired": (0.1, -0.7, -0.2),
-    "relaxed": (0.6, -0.55, 0.1),
-    "excited": (0.5, 0.7, 0.4),
-    "miserable": (-0.85, -0.1, -0.8),
-    "nervous": (-0.3, -0.66, -0.7),
-    "satisfied": (0.9, -0.25, 0.65),  
+    (0.05, -0.1, 0.0): "Neutral", # Normal bandai 1/2
+    
+    (0.1, -0.7, -0.2): "Tired", # Tired bandai 1
+    (0.1, -0.75, -0.25): "Tired", # Exhausted bandai 2
+    (-0.1, -0.6, -0.15): "Exhausted", # Old bandai 1 & Elderly bandai 2
+    
+    (-0.5, 0.8, 0.9): "Angry", # Angry bandai 1
+    
+    (0.8, 0.5, 0.15): "Happy", # Happy bandai 1
+    (0.6, 0.4, 0.1): "Happy", # Youthful bandai 2
+    
+    (-0.6, -0.4, -0.3): "Sad", # Sad bandai 1
+    
+    (0.4, 0.2, 0.35): "Proud", # Proud bandai 1
+    (0.3, 0.3, 0.9): "Confident", # Giant bandai 1 
+    (0.25, 0.15, 0.4): "Confident", # Masculine / Masculinity bandai 1
+    (0.3, 0.4, 0.6): "Confident", # Masculine bandai 2
+    
+    (-0.6, 0.7, -0.8): "Afraid", # Not confident bandai 1
+    
+    (0.1, 0.6, 0.4): "Active", # Active bandai 1/2
+    
+    ## Kin ##
+    (-0.5, 0.7, 0.9): "Angry", 
+    (0.6, 0.5, 0.2): "Happy", 
+    (-0.6, -0.3, -0.3): "Sad", 
+    (-0.4, 0.25, -0.1): "Disgusted" , 
+    (-0.5, 0.7, -0.8): "Afraid", 
+    (0.0, 0.0, 0.0): "Neutral"  
 }
 
 COLOURS = {
@@ -135,8 +150,9 @@ class GUIManager():
 
     def _find_closest_emotion(self, pad):
         p, a, d = pad
-        dist = lambda key: (p - EMOTION_COORDINATES[key][0]) ** 2 + (a - EMOTION_COORDINATES[key][1]) ** 2 + (d - EMOTION_COORDINATES[key][2]) ** 2
-        return min(EMOTION_COORDINATES, key=dist)
+        #dist = lambda key: (p - EMOTION_COORDINATES[key][0]) ** 2 + (a - EMOTION_COORDINATES[key][1]) ** 2 + (d - EMOTION_COORDINATES[key][2]) ** 2
+        dist = lambda key: (p - key[0]) ** 2 + (a - key[1]) ** 2 + (d - key[2]) ** 2
+        return EMOTION_COORDINATES[min(EMOTION_COORDINATES, key=dist)]
 
     def change_emotion_coordinates(self, pleasure, arousal, dominance):
         self.pleasure_text.config(text = str(pleasure))

@@ -1,3 +1,5 @@
+## THIS VERSION SYNTHESIZES ALL FRAMES AS A BATCH AND APPLIES THEM ALL ##
+
 from concurrent.futures import process
 from tkinter import DISABLED, END
 from tkinter.font import NORMAL
@@ -363,11 +365,11 @@ def show_mocap(mocap_file, model, record_lma='', predict_emotion=True, record_mo
   env.reset()
   if(record_lma != ""):
     if(record_mocap != ''):
-      lma_extractor = LMAExtractor(env, env._mocap._durations[0], record_lma, append_to_file=True, pool_rate=0.5, write_mocap=True, write_mocap_file=record_mocap)
+      lma_extractor = LMAExtractor(env, env._mocap._durations[0], record_lma, append_to_file=True, pool_rate=-1, write_mocap=True, write_mocap_file=record_mocap)
     else:
-      lma_extractor = LMAExtractor(env, env._mocap._durations[0], record_lma, append_to_file=True, pool_rate=0.5)
+      lma_extractor = LMAExtractor(env, env._mocap._durations[0], record_lma, append_to_file=True, pool_rate=-1)
   else:
-    lma_extractor = LMAExtractor(env, env._mocap._durations[0], append_to_file=False, label="NONE", pool_rate=0.5)
+    lma_extractor = LMAExtractor(env, env._mocap._durations[0], append_to_file=False, label="NONE", pool_rate=-1)
 
   if(predict_emotion):
     gui = GUIManager()
