@@ -19,7 +19,7 @@ lma_extractor/mocap_data_2
 lma_extractor/mocap_data_3
 lma_extractor/kin_mocap_reduced
 
-emotion_classifier/models
+emotion_classifier/models/
 
 motion_synthesizer/model_training/models/
 motion_synthesizer/models/
