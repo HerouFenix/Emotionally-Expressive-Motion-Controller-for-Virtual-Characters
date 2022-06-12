@@ -1,0 +1,4 @@
+*model.json filter=lfs diff=lfs merge=lfs -text
+.json filter=lfs diff=lfs merge=lfs -text
+*.json filter=lfs diff=lfs merge=lfs -text
+emotion_classifier/models/bandai_kin* filter=lfs diff=lfs merge=lfs -text
