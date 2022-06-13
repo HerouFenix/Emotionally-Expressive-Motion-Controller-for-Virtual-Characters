@@ -138,75 +138,76 @@ class VisMocapEnv():
 
     def compute_inverse_kinematics(self, links, desired_pos):
       frames = self._mocap._frames
+
       ik_frames = []
       i = 0
-      increment = round(len(self._ms._mocap) / len(self._mocap._frames))
       first = True
-      last_frame = None
 
       for frame in frames:
         if(first):
-          # Ignore the first frame
+          # The first frame should be the original
           first = False
           ik_frames.append(frame)
+          i+=1
 
-          i += increment
           continue
+        elif(i > len(desired_pos)):
+          ik_frames.append(frame)
+          i+=1
+          continue
+
         
-        if(i % self._ms._extraction_framerate == 0):
-          self._ik_solver.updatePose(frame)
+        self._ik_solver.updatePose(frame)
 
 
-          gen_index = next(index for index in range(
-                    len(desired_pos)) if desired_pos[index]["index"] == i)
+        gen_index = next(index for index in range(
+                  len(desired_pos)) if desired_pos[index]["index"] == i)
 
-          #self._ik_solver.adjustBase(desired_pos[gen_index]["mocap"]["root"][1])          
+        # Adjust Base Height
+        self._ik_solver.adjustBase(desired_pos[gen_index]["mocap"]["root"][1])          
 
-          pos = [desired_pos[gen_index]["mocap"]["neck"], desired_pos[gen_index]["mocap"]["left_wrist"], desired_pos[gen_index]["mocap"]["right_wrist"]]
-          jointPoses = self._ik_solver.calculateKinematicSolution2(links, pos)
+        # Get desired neck, left and right wrist positions
+        pos = [desired_pos[gen_index]["mocap"]["neck"], desired_pos[gen_index]["mocap"]["left_wrist"], desired_pos[gen_index]["mocap"]["right_wrist"], desired_pos[gen_index]["mocap"]["left_shoulder"], desired_pos[gen_index]["mocap"]["right_shoulder"]]
+        jointPoses = self._ik_solver.calculateKinematicSolution2(links, pos)
 
-          ik_frame = []
-          # Add Base info from frame
-          #base_info = [frame[0], desired_pos[gen_index]["mocap"]["root"][1], frame[2], frame[3], frame[4], frame[5], frame[6]]
-          base_info = [frame[0], frame[1], frame[2], frame[3], frame[4], frame[5], frame[6]]
-          ik_frame += list(base_info)
+        ik_frame = []
+
+        # Add Base info from frame
+        base_info = [frame[0], desired_pos[gen_index]["mocap"]["root"][1], frame[2], frame[3], frame[4], frame[5], frame[6]]
+        #base_info = [frame[0], frame[1], frame[2], frame[3], frame[4], frame[5], frame[6]]
+        
+        ik_frame += list(base_info)
           
-          # Add the rest of our frame info from our computed IK solution
-          chest_rotation = self._pybullet_client.getQuaternionFromEuler([jointPoses[self.ik_joint_mapping["chest"][0]], jointPoses[self.ik_joint_mapping["chest"][1]], jointPoses[self.ik_joint_mapping["chest"][2]]])
-          neck_rotation = self._pybullet_client.getQuaternionFromEuler([jointPoses[self.ik_joint_mapping["neck"][0]], jointPoses[self.ik_joint_mapping["neck"][1]], jointPoses[self.ik_joint_mapping["neck"][2]]])
-          right_hip_rotation = self._pybullet_client.getQuaternionFromEuler([jointPoses[self.ik_joint_mapping["right_hip"][0]], jointPoses[self.ik_joint_mapping["right_hip"][1]], jointPoses[self.ik_joint_mapping["right_hip"][2]]])
-          right_knee_rotation = [jointPoses[self.ik_joint_mapping["right_knee"][0]]]
-          right_ankle_rotation = self._pybullet_client.getQuaternionFromEuler([jointPoses[self.ik_joint_mapping["right_ankle"][0]], jointPoses[self.ik_joint_mapping["right_ankle"][1]], jointPoses[self.ik_joint_mapping["right_ankle"][2]]])
-          right_shoulder_rotation = self._pybullet_client.getQuaternionFromEuler([jointPoses[self.ik_joint_mapping["right_shoulder"][0]], jointPoses[self.ik_joint_mapping["right_shoulder"][1]], jointPoses[self.ik_joint_mapping["right_shoulder"][2]]])
-          right_elbow_rotation = [jointPoses[self.ik_joint_mapping["right_elbow"][0]]]
-          left_hip_rotation = self._pybullet_client.getQuaternionFromEuler([jointPoses[self.ik_joint_mapping["left_hip"][0]], jointPoses[self.ik_joint_mapping["left_hip"][1]], jointPoses[self.ik_joint_mapping["left_hip"][2]]])
-          left_knee_rotation = [jointPoses[self.ik_joint_mapping["left_knee"][0]]]
-          left_ankle_rotation = self._pybullet_client.getQuaternionFromEuler([jointPoses[self.ik_joint_mapping["left_ankle"][0]], jointPoses[self.ik_joint_mapping["left_ankle"][1]], jointPoses[self.ik_joint_mapping["left_ankle"][2]]])
-          left_shoulder_rotation = self._pybullet_client.getQuaternionFromEuler([jointPoses[self.ik_joint_mapping["left_shoulder"][0]], jointPoses[self.ik_joint_mapping["left_shoulder"][1]], jointPoses[self.ik_joint_mapping["left_shoulder"][2]]])
-          left_elbow_rotation = [jointPoses[self.ik_joint_mapping["left_elbow"][0]]]
+        # Add the rest of our frame info from our computed IK solution
+        chest_rotation = self._pybullet_client.getQuaternionFromEuler([jointPoses[self.ik_joint_mapping["chest"][0]], jointPoses[self.ik_joint_mapping["chest"][1]], jointPoses[self.ik_joint_mapping["chest"][2]]])
+        neck_rotation = self._pybullet_client.getQuaternionFromEuler([jointPoses[self.ik_joint_mapping["neck"][0]], jointPoses[self.ik_joint_mapping["neck"][1]], jointPoses[self.ik_joint_mapping["neck"][2]]])
+        right_hip_rotation = self._pybullet_client.getQuaternionFromEuler([jointPoses[self.ik_joint_mapping["right_hip"][0]], jointPoses[self.ik_joint_mapping["right_hip"][1]], jointPoses[self.ik_joint_mapping["right_hip"][2]]])
+        right_knee_rotation = [jointPoses[self.ik_joint_mapping["right_knee"][0]]]
+        right_ankle_rotation = self._pybullet_client.getQuaternionFromEuler([jointPoses[self.ik_joint_mapping["right_ankle"][0]], jointPoses[self.ik_joint_mapping["right_ankle"][1]], jointPoses[self.ik_joint_mapping["right_ankle"][2]]])
+        right_shoulder_rotation = self._pybullet_client.getQuaternionFromEuler([jointPoses[self.ik_joint_mapping["right_shoulder"][0]], jointPoses[self.ik_joint_mapping["right_shoulder"][1]], jointPoses[self.ik_joint_mapping["right_shoulder"][2]]])
+        right_elbow_rotation = [jointPoses[self.ik_joint_mapping["right_elbow"][0]]]
+        left_hip_rotation = self._pybullet_client.getQuaternionFromEuler([jointPoses[self.ik_joint_mapping["left_hip"][0]], jointPoses[self.ik_joint_mapping["left_hip"][1]], jointPoses[self.ik_joint_mapping["left_hip"][2]]])
+        left_knee_rotation = [jointPoses[self.ik_joint_mapping["left_knee"][0]]]
+        left_ankle_rotation = self._pybullet_client.getQuaternionFromEuler([jointPoses[self.ik_joint_mapping["left_ankle"][0]], jointPoses[self.ik_joint_mapping["left_ankle"][1]], jointPoses[self.ik_joint_mapping["left_ankle"][2]]])
+        left_shoulder_rotation = self._pybullet_client.getQuaternionFromEuler([jointPoses[self.ik_joint_mapping["left_shoulder"][0]], jointPoses[self.ik_joint_mapping["left_shoulder"][1]], jointPoses[self.ik_joint_mapping["left_shoulder"][2]]])
+        left_elbow_rotation = [jointPoses[self.ik_joint_mapping["left_elbow"][0]]]
 
-          ik_frame += [chest_rotation[3], chest_rotation[0], chest_rotation[1], chest_rotation[2]]
-          ik_frame += [neck_rotation[3], neck_rotation[0], neck_rotation[1], neck_rotation[2]]
-          ik_frame += [right_hip_rotation[3], right_hip_rotation[0], right_hip_rotation[1], right_hip_rotation[2]]
-          ik_frame += right_knee_rotation
-          ik_frame += [right_ankle_rotation[3], right_ankle_rotation[0], right_ankle_rotation[1], right_ankle_rotation[2]]
-          ik_frame += [right_shoulder_rotation[3], right_shoulder_rotation[0], right_shoulder_rotation[1], right_shoulder_rotation[2]]
-          ik_frame += right_elbow_rotation
-          ik_frame += [left_hip_rotation[3], left_hip_rotation[0], left_hip_rotation[1], left_hip_rotation[2]]
-          ik_frame += left_knee_rotation
-          ik_frame += [left_ankle_rotation[3], left_ankle_rotation[0], left_ankle_rotation[1], left_ankle_rotation[2]]
-          ik_frame += [left_shoulder_rotation[3], left_shoulder_rotation[0], left_shoulder_rotation[1], left_shoulder_rotation[2]]
-          ik_frame += left_elbow_rotation
+        ik_frame += [chest_rotation[3], chest_rotation[0], chest_rotation[1], chest_rotation[2]]
+        ik_frame += [neck_rotation[3], neck_rotation[0], neck_rotation[1], neck_rotation[2]]
+        ik_frame += [right_hip_rotation[3], right_hip_rotation[0], right_hip_rotation[1], right_hip_rotation[2]]
+        ik_frame += right_knee_rotation
+        ik_frame += [right_ankle_rotation[3], right_ankle_rotation[0], right_ankle_rotation[1], right_ankle_rotation[2]]
+        ik_frame += [right_shoulder_rotation[3], right_shoulder_rotation[0], right_shoulder_rotation[1], right_shoulder_rotation[2]]
+        ik_frame += right_elbow_rotation
+        ik_frame += [left_hip_rotation[3], left_hip_rotation[0], left_hip_rotation[1], left_hip_rotation[2]]
+        ik_frame += left_knee_rotation
+        ik_frame += [left_ankle_rotation[3], left_ankle_rotation[0], left_ankle_rotation[1], left_ankle_rotation[2]]
+        ik_frame += [left_shoulder_rotation[3], left_shoulder_rotation[0], left_shoulder_rotation[1], left_shoulder_rotation[2]]
+        ik_frame += left_elbow_rotation
 
-          ik_frames.append(np.asarray(ik_frame))
-          last_frame = ik_frame
-        else:
-          if(last_frame != None):
-            ik_frames.append(np.asarray(last_frame))
-          else:  
-            ik_frames.append(frame)
+        ik_frames.append(np.asarray(ik_frame))
         
-        i += increment
+        i += 1
 
       return ik_frames
 
@@ -218,16 +219,19 @@ class VisMocapEnv():
         new_process.start()
 
     def compute_and_apply_motion_synthesis_multithreaded(self, pad):
-      self._ms.set_desired_pad(pad)
+      # TODO: CHANGE HERE TO GET PAD COORDINATES
+      #self._ms.set_desired_pad(pad)
+      self._ms.set_reference_lma()
 
       self._ms.compute_coefficients()
+
       motion_changes = self._ms.get_motion_changes()
 
       indices = []
       for i in motion_changes[0]["mocap"]:
         if(i in self.name_to_index_mapping):
           indices.append(self.ik_link_mapping[self.name_to_index_mapping[i]])
-      
+            
       ik_frames = self.compute_inverse_kinematics(indices, motion_changes)
       self._mocap._ik_frames = ik_frames
 
@@ -454,6 +458,7 @@ def show_mocap(mocap_file, model, record_lma='', predict_emotion=True, record_mo
 
         if(ms._mocap == []):
           ms.set_current_lma(lma_extractor.lma_full)
+          
           ms.set_current_mocap(lma_extractor.mocap_full)
           gui.start_motion_synthesis.configure(state=NORMAL)
           first = False

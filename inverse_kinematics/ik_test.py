@@ -16,7 +16,7 @@ z2y = p.getQuaternionFromEuler([-math.pi*0.5,0,0])
 kukaId = p.loadURDF("humanoid_2.urdf", [0,0.889540259, 0], z2y)
 #kukaEndEffectorIndexR = 12
 #kukaEndEffectorIndexL = 17
-kukaEndEffectorIndex = 4
+kukaEndEffectorIndex = 10
 # 7 - chest/neck
 # 10 - right shoulder
 # 11 - right elbow
