@@ -99,7 +99,7 @@ class IKSolver():
         return roll_x, pitch_y, yaw_z # in radians
    
     def updatePose(self, pose):
-        p.resetBasePositionAndOrientation(self.charID, [pose[0]+0.2, pose[1], pose[2]], [pose[4], pose[5], pose[6], pose[3]])
+        p.resetBasePositionAndOrientation(self.charID, [pose[0]+0.75, pose[1], pose[2]], [pose[4], pose[5], pose[6], pose[3]])
 
         chest_rotation = p.getEulerFromQuaternion([pose[8],pose[9],pose[10],pose[7]])
         neck_rotation = p.getEulerFromQuaternion([pose[12],pose[13],pose[14],pose[11]])
@@ -159,55 +159,52 @@ class IKSolver():
         """
 
         pose = [
-                chest_rotation[1],
                 chest_rotation[2],
+                chest_rotation[1],
                 chest_rotation[0],
 
-                neck_rotation[1],
                 neck_rotation[2],
+                neck_rotation[1],
                 neck_rotation[0],
 
-                right_shoulder_rotation[1],
                 right_shoulder_rotation[2],
+                right_shoulder_rotation[1],
                 right_shoulder_rotation[0],
 
                 right_elbow_rotation,
 
-                left_shoulder_rotation[1],
                 left_shoulder_rotation[2],
+                left_shoulder_rotation[1],
                 left_shoulder_rotation[0],
 
                 left_elbow_rotation,
 
-                right_hip_rotation[1],
                 right_hip_rotation[2],
+                right_hip_rotation[1],
                 right_hip_rotation[0],
 
                 right_knee_rotation,
 
-                right_ankle_rotation[1],
                 right_ankle_rotation[2],
+                right_ankle_rotation[1],
                 right_ankle_rotation[0],
 
-                left_hip_rotation[1],
                 left_hip_rotation[2],
+                left_hip_rotation[1],
                 left_hip_rotation[0],
 
                 left_knee_rotation,
 
-                left_ankle_rotation[1],
                 left_ankle_rotation[2],
+                left_ankle_rotation[1],
                 left_ankle_rotation[0],
             ]
             
         counter = 0
         for j in range(self.numJoints):
-            print(p.getJointInfo(self.charID, j)[1])
-            print(p.getJointInfo(self.charID,j)[2])
-            print()
+
             if(p.getJointInfo(self.charID,j)[2] == 0):
                 #print(p.getJointInfo(self.charID, j)[1])
-                #print(counter)
 
                 pos = pose[counter]
 
