@@ -137,7 +137,6 @@ class HumanoidVis(object):
     
     self._pybullet_client.resetBasePositionAndOrientation(phys_model, pos, orn)
     self._pybullet_client.resetBaseVelocity(phys_model, v, omg)
-
     
     for i in range(s.num_joints):
       jtype = s.joint_types[i]
@@ -157,6 +156,12 @@ class HumanoidVis(object):
         omg = vel[p_off : p_off+3]
         self._pybullet_client.resetJointStateMultiDof(phys_model, i, orn, omg)
 
+
+  def ik(self, char_name, pos):
+    phys_model = self.characters[char_name]
+    pos = self._pybullet_client.getLinkState(phys_model, 14)[4]
+    jointPose = self._pybullet_client.calculateInverseKinematics(phys_model, 14, pos)
+    return jointPose
 
   def camera_follow(self, char_name, dis=None, yaw=None, pitch=None, pos=None):
     assert(char_name in self.characters.keys())

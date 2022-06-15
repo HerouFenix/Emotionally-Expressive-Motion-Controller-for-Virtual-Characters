@@ -4,36 +4,39 @@ import time
 import math
 from datetime import datetime
 
-
 Z2Y = p.getQuaternionFromEuler([-math.pi*0.5,0,0])
 
 class IKSolver():
     def __init__(self):
         # Setup PyBullet
-        self.physicsClient = bc.BulletClient(connection_mode=p.DIRECT)
-
-        self.physicsClient.setGravity(0, 0, 0)
-        self.physicsClient.configureDebugVisualizer(p.COV_ENABLE_Y_AXIS_UP,1)
-        self.physicsClient.setRealTimeSimulation(0)
+        #self.physicsClient = bc.BulletClient(connection_mode=p.GUI)
+        self.clid = p.connect(p.SHARED_MEMORY)
 
         # Setup Character
-        self.charID = self.physicsClient.loadURDF("../inverse_kinematics/humanoid_2.urdf", [0, 0, 0])
-        self.physicsClient.resetBasePositionAndOrientation(self.charID, [0, 0, 0], Z2Y)
+        self.charID = p.loadURDF("../inverse_kinematics/humanoid_3.urdf", [0.5, 0.889540259, 0])
+        #self.charID = p.loadURDF("../inverse_kinematics/humanoid_2.urdf", [0, 0, 0])
+        #p.resetBasePositionAndOrientation(self.charID, [0, 0, 0], Z2Y)
 
-        self.numJoints = self.physicsClient.getNumJoints(self.charID)
+        self.numJoints = p.getNumJoints(self.charID)
 
         self.ll = []
         self.ul = []
-        self.jd = [0.1] * self.numJoints
+        self.jd = [100] * self.numJoints
 
         for i in range(self.numJoints):
             #if(p.getJointInfo(kukaId, i)[2] == 0):
-            self.ll.append(self.physicsClient.getJointInfo(self.charID, i)[8])
-            self.ul.append(self.physicsClient.getJointInfo(self.charID, i)[9])
+            self.ll.append(p.getJointInfo(self.charID, i)[8])
+            self.ul.append(p.getJointInfo(self.charID, i)[9])
 
+        #_link_name_to_index = {p.getBodyInfo(self.charID)[0].decode('UTF-8'):-1,}
+        #
+        #for _id in range(p.getNumJoints(self.charID)):
+        #    _name = p.getJointInfo(self.charID, _id)[12].decode('UTF-8')
+        #    _link_name_to_index[_name] = _id
+        #print(_link_name_to_index)
 
     def __del__(self):
-        self.physicsClient.disconnect()
+        p.disconnect()
 
     def quaternion_multiply(self, Q0):
         """
@@ -71,17 +74,423 @@ class IKSolver():
         # Return a 4 element arra
         return final_quaternion
 
+
+   
+    def euler_from_quaternion(self, x, y, z, w):
+        """
+        Convert a quaternion into euler angles (roll, pitch, yaw)
+        roll is rotation around x in radians (counterclockwise)
+        pitch is rotation around y in radians (counterclockwise)
+        yaw is rotation around z in radians (counterclockwise)
+        """
+        t0 = +2.0 * (w * x + y * z)
+        t1 = +1.0 - 2.0 * (x * x + y * y)
+        roll_x = math.atan2(t0, t1)
+     
+        t2 = +2.0 * (w * y - z * x)
+        t2 = +1.0 if t2 > +1.0 else t2
+        t2 = -1.0 if t2 < -1.0 else t2
+        pitch_y = math.asin(t2)
+     
+        t3 = +2.0 * (w * z + x * y)
+        t4 = +1.0 - 2.0 * (y * y + z * z)
+        yaw_z = math.atan2(t3, t4)
+     
+        return roll_x, pitch_y, yaw_z # in radians
+   
+    def updatePose(self, pose):
+        p.resetBasePositionAndOrientation(self.charID, [pose[0]+0.2, pose[1], pose[2]], [pose[4], pose[5], pose[6], pose[3]])
+
+        chest_rotation = p.getEulerFromQuaternion([pose[8],pose[9],pose[10],pose[7]])
+        neck_rotation = p.getEulerFromQuaternion([pose[12],pose[13],pose[14],pose[11]])
+        right_hip_rotation = p.getEulerFromQuaternion([pose[16],pose[17],pose[18],pose[15]])
+        right_knee_rotation = pose[19]
+        right_ankle_rotation = p.getEulerFromQuaternion([pose[21],pose[22],pose[23],pose[20]])
+        right_shoulder_rotation = p.getEulerFromQuaternion([pose[25],pose[26],pose[27],pose[24]])
+        right_elbow_rotation = pose[28]
+        left_hip_rotation = p.getEulerFromQuaternion([pose[30],pose[31],pose[32],pose[29]])
+        left_knee_rotation = pose[33]
+        left_ankle_rotation = p.getEulerFromQuaternion([pose[35],pose[36],pose[37],pose[34]])
+        left_shoulder_rotation = p.getEulerFromQuaternion([pose[39],pose[40],pose[41],pose[38]])
+        left_elbow_rotation = pose[42]
+
+        """
+        pose = [
+                chest_rotation[1],
+                chest_rotation[2],
+                chest_rotation[0],
+
+                neck_rotation[1],
+                neck_rotation[2],
+                neck_rotation[0],
+
+                right_shoulder_rotation[1],
+                right_shoulder_rotation[2],
+                right_shoulder_rotation[0],
+
+                right_elbow_rotation,
+
+                left_shoulder_rotation[1],
+                left_shoulder_rotation[2],
+                left_shoulder_rotation[0],
+
+                left_elbow_rotation,
+
+                right_hip_rotation[1],
+                right_hip_rotation[2],
+                right_hip_rotation[0],
+
+                right_knee_rotation,
+
+                right_ankle_rotation[1],
+                right_ankle_rotation[2],
+                right_ankle_rotation[0],
+
+                left_hip_rotation[1],
+                left_hip_rotation[2],
+                left_hip_rotation[0],
+
+                left_knee_rotation,
+
+                left_ankle_rotation[1],
+                left_ankle_rotation[2],
+                left_ankle_rotation[0],
+            ]
+        """
+
+        pose = [
+                chest_rotation[1],
+                chest_rotation[2],
+                chest_rotation[0],
+
+                neck_rotation[1],
+                neck_rotation[2],
+                neck_rotation[0],
+
+                right_shoulder_rotation[1],
+                right_shoulder_rotation[2],
+                right_shoulder_rotation[0],
+
+                right_elbow_rotation,
+
+                left_shoulder_rotation[1],
+                left_shoulder_rotation[2],
+                left_shoulder_rotation[0],
+
+                left_elbow_rotation,
+
+                right_hip_rotation[1],
+                right_hip_rotation[2],
+                right_hip_rotation[0],
+
+                right_knee_rotation,
+
+                right_ankle_rotation[1],
+                right_ankle_rotation[2],
+                right_ankle_rotation[0],
+
+                left_hip_rotation[1],
+                left_hip_rotation[2],
+                left_hip_rotation[0],
+
+                left_knee_rotation,
+
+                left_ankle_rotation[1],
+                left_ankle_rotation[2],
+                left_ankle_rotation[0],
+            ]
+            
+        counter = 0
+        for j in range(self.numJoints):
+            print(p.getJointInfo(self.charID, j)[1])
+            print(p.getJointInfo(self.charID,j)[2])
+            print()
+            if(p.getJointInfo(self.charID,j)[2] == 0):
+                #print(p.getJointInfo(self.charID, j)[1])
+                #print(counter)
+
+                pos = pose[counter]
+
+                p.resetJointState(self.charID, j, pos)
+
+                counter += 1
+
+    """
+
+    def updatePose(self, pose):
+        p.resetBasePositionAndOrientation(self.charID, [pose[0], pose[1], pose[2]], [pose[4], pose[5], pose[6], pose[3]])
+
+        chest_rotation = p.getEulerFromQuaternion([pose[8],pose[9],pose[10],pose[7]])
+        neck_rotation = p.getEulerFromQuaternion([pose[12],pose[13],pose[14],pose[11]])
+
+        right_hip_rotation = p.getEulerFromQuaternion([pose[16],pose[17],pose[18],pose[15]])
         
-    def accurateCalculateInverseKinematics(self, endEffectorId, targetPos, threshold, maxIter):
+        right_knee_rotation = pose[19]
+        right_ankle_rotation = p.getEulerFromQuaternion([pose[21],pose[22],pose[23],pose[20]])
+        right_shoulder_rotation = p.getEulerFromQuaternion([pose[25],pose[26],pose[27],pose[24]])
+        right_elbow_rotation = pose[28]
+
+        left_hip_rotation = p.getEulerFromQuaternion([pose[30],pose[31],pose[32],pose[29]])
+
+        left_knee_rotation = pose[33]
+        left_ankle_rotation = p.getEulerFromQuaternion([pose[35],pose[36],pose[37],pose[34]])
+        left_shoulder_rotation = p.getEulerFromQuaternion([pose[39],pose[40],pose[41],pose[38]])
+        left_elbow_rotation = pose[42]
+
+        pose = [
+                chest_rotation[0],
+                chest_rotation[1]+90,
+                chest_rotation[2]+90,
+                neck_rotation[0],
+                neck_rotation[1]+90,
+                neck_rotation[2]+90,
+                right_shoulder_rotation[0],
+                right_shoulder_rotation[1]+90,
+                right_shoulder_rotation[2]+90,
+                right_elbow_rotation,
+                left_shoulder_rotation[0],
+                left_shoulder_rotation[1]+90,
+                left_shoulder_rotation[2]+90,
+                left_elbow_rotation,
+                right_hip_rotation[0],
+                right_hip_rotation[1]+90,
+                right_hip_rotation[2]+90,
+                right_knee_rotation,
+                right_ankle_rotation[0],
+                right_ankle_rotation[1]+90,
+                right_ankle_rotation[2]+90,
+                left_hip_rotation[0],
+                left_hip_rotation[1]+90,
+                left_hip_rotation[2]+90,
+                left_knee_rotation,
+                left_ankle_rotation[0],
+                left_ankle_rotation[1]+90,
+                left_ankle_rotation[2]+90,
+            ]
+
+        pose = {
+            "root_chest_joint1": chest_rotation[0],
+            "root_chest_joint2": chest_rotation[1],
+            "root_chest_joint3": chest_rotation[2],
+            "chest_neck_joint1": neck_rotation[0],
+            "chest_neck_joint2": neck_rotation[1],
+            "chest_neck_joint3": neck_rotation[2],
+            "chest_right_shoulder_joint1": right_shoulder_rotation[0],
+            "chest_right_shoulder_joint2": right_shoulder_rotation[1],
+            "chest_right_shoulder_joint3": right_shoulder_rotation[2],
+            "right_elbow": right_elbow_rotation,
+            "chest_left_shoulder_joint1": left_shoulder_rotation[0],
+            "chest_left_shoulder_joint2": left_shoulder_rotation[1],
+            "chest_left_shoulder_joint3": left_shoulder_rotation[2],
+            "left_elbow": left_elbow_rotation,
+            "root_right_hip_joint1": right_hip_rotation[0],
+            "root_right_hip_joint2": right_hip_rotation[1],
+            "root_right_hip_joint3": right_hip_rotation[2],
+            "right_knee": right_knee_rotation,
+            "right_knee_right_ankle_joint1": right_ankle_rotation[0],
+            "right_knee_right_ankle_joint2": right_ankle_rotation[1],
+            "right_knee_right_ankle_joint3": right_ankle_rotation[2],
+            "root_left_hip_joint1": left_hip_rotation[0],
+            "root_left_hip_joint2": left_hip_rotation[1],
+            "root_left_hip_joint3": left_hip_rotation[2],
+            "left_knee": left_knee_rotation,
+            "left_knee_left_ankle_joint1": left_ankle_rotation[0],
+            "left_knee_left_ankle_joint2": left_ankle_rotation[1],
+            "left_knee_left_ankle_joint3": left_ankle_rotation[2],
+        }
+        
+
+        #pose = [
+        #    chest_rotation[2],
+        #    chest_rotation[0],
+        #    chest_rotation[1],
+#
+        #    neck_rotation[0],
+        #    neck_rotation[1],
+        #    neck_rotation[2],
+#
+        #    right_hip_rotation[2],
+        #    right_hip_rotation[0],
+        #    right_hip_rotation[1],
+#
+        #    right_knee_rotation,
+        #    
+        #    right_ankle_rotation[2],
+        #    right_ankle_rotation[0],
+        #    right_ankle_rotation[1],
+        #    
+        #    right_shoulder_rotation[2],
+        #    right_shoulder_rotation[0],
+        #    right_shoulder_rotation[1],
+#
+        #    right_elbow_rotation,
+#
+        #    left_hip_rotation[2],
+        #    left_hip_rotation[0],
+        #    left_hip_rotation[1],
+#
+        #    left_knee_rotation,
+#
+        #    left_ankle_rotation[2],
+        #    left_ankle_rotation[0],
+        #    left_ankle_rotation[1],
+        #    
+        #    left_shoulder_rotation[2],
+        #    left_shoulder_rotation[0],
+        #    left_shoulder_rotation[1],
+#
+        #    left_elbow_rotation,
+        #]
+
+        options = [
+            (1, 2, 3),
+            (1, 2, -3),
+            (1, -2, 3),
+            (1, -2, -3),
+            (-1, 2, 3),
+            (-1, 2, -3),
+            (-1, -2, 3),
+            (-1, -2, -3),
+
+            (1, 3, 2),
+            (1, 3, -2),
+            (1, -3, 2),
+            (1, -3, -2),
+            (-1, 3, 2),
+            (-1, 3, -2),
+            (-1, -3, 2),
+            (-1, -3, -2),
+
+            (2, 1, 3),
+            (2, 1, -3),
+            (2, -1, 3),
+            (2, -1, -3),
+            (-2, 1, 3),
+            (-2, 1, -3),
+            (-2, -1, 3),
+            (-2, -1, -3),
+
+            (2, 3, 1),
+            (2, 3, -1),
+            (2, -3, 1),
+            (2, -3, -1),
+            (-2, 3, 1),
+            (-2, 3, -1),
+            (-2, -3, 1),
+            (-2, -3, -1),
+
+            (3, 1, 2),
+            (3, 1, -2),
+            (3, -1, 2),
+            (3, -1, -2),
+            (-3, 1, 2),
+            (-3, 1, -2),
+            (-3, -1, 2),
+            (-3, -1, -2),
+
+            (3, 2, 1),
+            (3, 2, -1),
+            (3, -2, 1),
+            (3, -2, -1),
+            (-3, 2, 1),
+            (-3, 2, -1),
+            (-3, -2, 1),
+            (-3, -2, -1),
+        ]
+
+        for option in options:
+            counter = 0
+            print(option)
+            print()
+            for j in range(self.numJoints):
+                if(p.getJointInfo(self.charID,j)[2] == 0):
+                    name = p.getJointInfo(self.charID, j)[1].decode("utf-8")
+                    number = str(name[-1])
+                    if(number.isnumeric()):
+                        pos = pose[name]
+                        
+                        cur_op = option[int(number)-1]
+                        if(cur_op > 0):
+                            name = name[:-1]
+                            name = name + str((cur_op))
+                            pos = pose[name]
+                        else:
+                            name = name[:-1]
+                            name = name + str((-cur_op))
+                            pos = -pose[name]
+
+                    else:
+                        pos = pose[name]
+
+                    p.resetJointState(self.charID, j, pos)
+                    counter += 1
+
+            time.sleep(2)
+        
+        print("DONE")
+     """
+
+    def adjustBase(self, newHeight):
+        poses = []
+        orn = []
+
+        index = [7, 10, 11, 12, 15, 16, 17, 21, 24, 28, 31]
+        for j in index:
+            linkState = p.getLinkState(self.charID, j)
+            poses.append(linkState[4])
+            orn.append(linkState[5])
+
+        basePosAndOrn = p.getBasePositionAndOrientation(self.charID)
+        pos = [basePosAndOrn[0][0], newHeight, basePosAndOrn[0][2]]
+        p.resetBasePositionAndOrientation(self.charID, pos, basePosAndOrn[1])
+
+        return self.calculateKinematicSolution2(index, poses)
+
+    def getLinkState(self, link_id):
+        return p.getLinkState(self.charID, link_id)
+
+    def calculateKinematicSolution(self, endEffectorIndex, desiredPosition, desiredOrientation = None, jd=[]):
+        if(len(jd) == 0):
+            jd = self.jd
+
+        if(desiredOrientation != None):
+            jointPoses = p.calculateInverseKinematics(self.charID, endEffectorIndex, desiredPosition, desiredOrientation, jointDamping=jd)
+        else:
+            jointPoses = p.calculateInverseKinematics(self.charID, endEffectorIndex, desiredPosition, jointDamping=jd
+            )
+
+        counter = 0
+        for j in range(self.numJoints):
+            if(p.getJointInfo(self.charID,j)[2] == 0):
+                p.resetJointState(self.charID, j, jointPoses[counter])
+                counter += 1
+        
+        return jointPoses
+
+    def calculateKinematicSolution2(self, endEffectorIndices, desiredPositions, jd = []):
+        if(len(jd) == 0):
+            jd = self.jd
+
+        jointPoses = p.calculateInverseKinematics2(self.charID, endEffectorIndices, desiredPositions, lowerLimits=self.ll, upperLimits=self.ul, jointDamping=jd)
+        
+        counter = 0
+        for j in range(self.numJoints):
+            if(p.getJointInfo(self.charID,j)[2] == 0):
+                p.resetJointState(self.charID, j, jointPoses[counter])
+                counter += 1
+
+        return jointPoses
+
+    def accurateCalculateInverseKinematics(self, endEffectorId, targetPos, targetOrn, threshold, maxIter):
         closeEnough = False
         iter = 0
         dist2 = 1e30
         while (not closeEnough and iter < maxIter):
-            jointPoses = self.physicsClient.calculateInverseKinematics(self.charID, endEffectorId, targetPos, lowerLimits=self.ll, upperLimits=self.ul, jointDamping=self.jd)
+            jointPoses = p.calculateInverseKinematics(self.charID, endEffectorId, targetPos, targetOrn)
             counter = 0
             for j in range(self.numJoints):
-                if(self.physicsClient.getJointInfo(self.charID,j)[2] == 0):
-                    self.physicsClient.resetJointState(self.charID, j, jointPoses[counter])
+                if(p.getJointInfo(self.charID,j)[2] == 0):
+                    p.resetJointState(self.charID, j, jointPoses[counter])
                     counter += 1
 
             ls = p.getLinkState(self.charID, endEffectorId)
@@ -93,113 +502,13 @@ class IKSolver():
         print ("Num iter: "+str(iter) + " Threshold: "+str(dist2))
         return jointPoses
 
-    def updatePose(self, pose):
-        self.physicsClient.resetBasePositionAndOrientation(self.charID, [pose[0], pose[1], pose[2]], self.quaternion_multiply([pose[4], pose[5], pose[6], pose[3]]))
-
-        chest_rotation = self.physicsClient.getEulerFromQuaternion([pose[8],pose[9],pose[10],pose[7]])
-        neck_rotation = self.physicsClient.getEulerFromQuaternion([pose[12],pose[13],pose[14],pose[11]])
-        right_hip_rotation = self.physicsClient.getEulerFromQuaternion([pose[16],pose[17],pose[18],pose[15]])
-        right_knee_rotation = pose[19]
-        right_ankle_rotation = self.physicsClient.getEulerFromQuaternion([pose[21],pose[22],pose[23],pose[20]])
-        right_shoulder_rotation = self.physicsClient.getEulerFromQuaternion([pose[25],pose[26],pose[27],pose[24]])
-        right_elbow_rotation = pose[28]
-        left_hip_rotation = self.physicsClient.getEulerFromQuaternion([pose[30],pose[31],pose[32],pose[29]])
-        left_knee_rotation = pose[33]
-        left_ankle_rotation = self.physicsClient.getEulerFromQuaternion([pose[35],pose[36],pose[37],pose[34]])
-        left_shoulder_rotation = self.physicsClient.getEulerFromQuaternion([pose[39],pose[40],pose[41],pose[38]])
-        left_elbow_rotation = pose[42]
-
-        pose = [
-                chest_rotation[0],
-                chest_rotation[1],
-                chest_rotation[2],
-                neck_rotation[0],
-                neck_rotation[1],
-                neck_rotation[2],
-                right_shoulder_rotation[0],
-                right_shoulder_rotation[1],
-                right_shoulder_rotation[2],
-                right_elbow_rotation,
-                left_shoulder_rotation[0],
-                left_shoulder_rotation[1],
-                left_shoulder_rotation[2],
-                left_elbow_rotation,
-                right_hip_rotation[0],
-                right_hip_rotation[1],
-                right_hip_rotation[2],
-                right_knee_rotation,
-                right_ankle_rotation[0],
-                right_ankle_rotation[1],
-                right_ankle_rotation[2],
-                left_hip_rotation[0],
-                left_hip_rotation[1],
-                left_hip_rotation[2],
-                left_knee_rotation,
-                left_ankle_rotation[0],
-                left_ankle_rotation[1],
-                left_ankle_rotation[2],
-            ]
-            
-        counter = 0
-        for j in range(self.numJoints):
-            if(self.physicsClient.getJointInfo(self.charID,j)[2] == 0):
-                #print(p.getJointInfo(self.charID, j)[1])
-                #print(counter)
-                self.physicsClient.resetJointState(self.charID, j, pose[counter])
-                counter += 1
-
-    def adjustBase(self, newHeight):
-        poses = []
-        orn = []
-
-        index = [7, 10, 11, 12, 15, 16, 17, 21, 24, 28, 31]
-        for j in index:
-            linkState = self.physicsClient.getLinkState(self.charID, j)
-            poses.append(linkState[4])
-            orn.append(linkState[5])
-
-        basePosAndOrn = self.physicsClient.getBasePositionAndOrientation(self.charID)
-        pos = [basePosAndOrn[0][0], newHeight, basePosAndOrn[0][2]]
-        self.physicsClient.resetBasePositionAndOrientation(self.charID, pos, basePosAndOrn[1])
-
-        return self.calculateKinematicSolution2(index, poses)
-
-    def getLinkState(self, link_id):
-        return self.physicsClient.getLinkState(self.charID, link_id)
-
-    def calculateKinematicSolution(self, endEffectorIndex, desiredPosition, desiredOrientation = None, jd=[]):
-        if(desiredOrientation != None):
-            jointPoses = self.physicsClient.calculateInverseKinematics(self.charID, endEffectorIndex, desiredPosition, desiredOrientation)
-        else:
-            jointPoses = self.physicsClient.calculateInverseKinematics(self.charID, endEffectorIndex, desiredPosition
-            )
+    def calculateAccurateKinematicSolution(self, endEffectorIndex, desiredPosition, desiredOrientation):
+        jointPoses = self.accurateCalculateInverseKinematics(endEffectorIndex, desiredPosition, desiredOrientation, 0.00001, 100)
 
         counter = 0
         for j in range(self.numJoints):
-            if(self.physicsClient.getJointInfo(self.charID,j)[2] == 0):
-                self.physicsClient.resetJointState(self.charID, j, jointPoses[counter])
-                counter += 1
-        
-        return jointPoses
-
-    def calculateKinematicSolution2(self, endEffectorIndices, desiredPositions):
-        jointPoses = self.physicsClient.calculateInverseKinematics2(self.charID, endEffectorIndices, desiredPositions, lowerLimits=self.ll, upperLimits=self.ul, jointDamping=self.jd)
-        
-        counter = 0
-        for j in range(self.numJoints):
-            if(self.physicsClient.getJointInfo(self.charID,j)[2] == 0):
-                self.physicsClient.resetJointState(self.charID, j, jointPoses[counter])
-                counter += 1
-
-        return jointPoses
-
-    def calculateAccurateKinematicSolution(self, endEffectorIndex, desiredPosition):
-        jointPoses = self.accurateCalculateInverseKinematics(endEffectorIndex, desiredPosition)
-
-        counter = 0
-        for j in range(self.numJoints):
-            if(self.physicsClient.getJointInfo(self.charID,j)[2] == 0):
-                self.physicsClient.resetJointState(self.charID, j, jointPoses[counter])
+            if(p.getJointInfo(self.charID,j)[2] == 0):
+                p.resetJointState(self.charID, j, jointPoses[counter])
                 counter += 1
 
         return jointPoses

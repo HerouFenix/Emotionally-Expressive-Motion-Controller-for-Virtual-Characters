@@ -70,7 +70,8 @@ class VisMocapEnv():
                "left_shoulder": [10,11,12],
                "left_elbow": [13],}
       self.ik_link_mapping = {
-        2 : 7, # Neck/Chest
+        1 : 4, # Chest
+        2 : 7, # Neck
         6 : 10, # Right Shoulder
         7 : 11, # Right Elbow
         8 : 12, # Right Wrist
@@ -86,6 +87,7 @@ class VisMocapEnv():
         11 : 31 # Left Ankle
       }
       self.name_to_index_mapping = {
+        "chest":1,
         "neck": 2,
         "right_shoulder": 6,
         "right_elbow": 7,
@@ -156,7 +158,6 @@ class VisMocapEnv():
           i+=1
           continue
 
-        
         self._ik_solver.updatePose(frame)
 
 
@@ -164,17 +165,31 @@ class VisMocapEnv():
                   len(desired_pos)) if desired_pos[index]["index"] == i)
 
         # Adjust Base Height
-        self._ik_solver.adjustBase(desired_pos[gen_index]["mocap"]["root"][1])          
+        #self._ik_solver.adjustBase(desired_pos[gen_index]["mocap"]["root"][1])          
 
         # Get desired neck, left and right wrist positions
-        pos = [desired_pos[gen_index]["mocap"]["neck"], desired_pos[gen_index]["mocap"]["left_wrist"], desired_pos[gen_index]["mocap"]["right_wrist"], desired_pos[gen_index]["mocap"]["left_shoulder"], desired_pos[gen_index]["mocap"]["right_shoulder"]]
-        jointPoses = self._ik_solver.calculateKinematicSolution2(links, pos)
+        pos = [desired_pos[gen_index]["mocap"]["neck"], desired_pos[gen_index]["mocap"]["left_wrist"], desired_pos[gen_index]["mocap"]["right_wrist"], desired_pos[gen_index]["mocap"]["left_elbow"], desired_pos[gen_index]["mocap"]["right_elbow"]]
+
+        #jointPoses = self._ik_solver.calculateKinematicSolution2(links, pos)
+
+        # Neck
+        jd = [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000]
+        jointPoses = self._ik_solver.calculateKinematicSolution(links[0], pos[0], desiredOrientation=None, jd=jd)
+
+        # Wrists
+        #jd = [10000, 10000, 10000, 10000, 10000, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000]
+        #jointPoses = self._ik_solver.calculateKinematicSolution2([links[1],links[2]], [pos[1], pos[2]], jd=jd)
+
+        # Elbows
+        #jd = [10000, 10000, 10000, 10000, 10000, 10000,10000, 10000, 10000, 10000, 10000, 0.1, 0.1, 10000, 10000, 10000, 0.1, 0.1, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000]
+        #jointPoses = self._ik_solver.calculateKinematicSolution2([links[3],links[4]], [pos[3], pos[4]], jd=jd)
+
 
         ik_frame = []
 
         # Add Base info from frame
-        base_info = [frame[0], desired_pos[gen_index]["mocap"]["root"][1], frame[2], frame[3], frame[4], frame[5], frame[6]]
-        #base_info = [frame[0], frame[1], frame[2], frame[3], frame[4], frame[5], frame[6]]
+        #base_info = [frame[0], desired_pos[gen_index]["mocap"]["root"][1], frame[2], frame[3], frame[4], frame[5], frame[6]]
+        base_info = [frame[0], frame[1], frame[2], frame[3], frame[4], frame[5], frame[6]]
         
         ik_frame += list(base_info)
           

@@ -16,7 +16,7 @@ z2y = p.getQuaternionFromEuler([-math.pi*0.5,0,0])
 kukaId = p.loadURDF("humanoid_2.urdf", [0,0.889540259, 0], z2y)
 #kukaEndEffectorIndexR = 12
 #kukaEndEffectorIndexL = 17
-kukaEndEffectorIndex = 10
+kukaEndEffectorIndex = 15
 # 7 - chest/neck
 # 10 - right shoulder
 # 11 - right elbow
@@ -25,9 +25,29 @@ kukaEndEffectorIndex = 10
 # 16 - left elbow
 # 17 - left wrist
 
+# Chest
+#jd = [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000]
+
+# RWrist
+#jd = [10000, 10000, 10000, 10000, 10000, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000]
+
+# LWrist
+#jd = [10000, 10000, 10000, 10000, 10000, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000]
+
+# LElbow
+#jd = [10000, 10000, 10000, 10000, 10000, 10000,10000, 10000, 10000, 10000, 10000, 0.1, 0.1, 10000, 10000, 10000, 0.1, 0.1, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000]
+
+# RElbow
+#jd = [10000, 10000, 10000, 10000, 10000, 10000,10000, 10000, 10000, 10000, 10000, 0.1, 0.1, 10000, 10000, 10000, 0.1, 0.1, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000]
+
+# LShoulder
+jd = [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 10000, 10000, 0.1, 0.1, 0.1, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000]
+
+# RShoulder
+jd = [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 10000, 10000, 0.1, 0.1, 0.1, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000]
 
 """
-{'base_link': -1, 'base': 0, 'root': 1, 'root_chest_link1': 2, 'root_chest_link2': 3, 'chest': 4, 'chest_neck_link1': 5, 'chest_neck_link2': 6, 'neck': 7, 'chest_right_shoulder_link1': 8, 'chest_right_shoulder_link2': 9, 'right_shoulder': 10, 'right_elbow': 11, 'right_wrist': 12, 'chest_left_shoulder_link1': 13, 'chest_left_shoulder_link2': 14, 'left_shoulder': 15, 'left_elbow': 16, 'left_wrist': 17, 'root_right_hip_link1': 18, 'root_right_hip_link2': 19, 'right_hip': 20, 'right_knee': 21, 'right_knee_right_ankle_link1': 22, 'right_knee_right_ankle_link2': 23, 'right_ankle': 24, 'root_left_hip_link1': 25, 'root_left_hip_link2': 26, 'left_hip': 27, 'left_knee': 28, 'left_knee_left_ankle_link1': 29, 'left_knee_left_ankle_link2': 30, 'left_ankle': 31}
+{'base': 0, 'root': 1, 'root_chest_link1': 2, 'root_chest_link2': 3, 'chest': 4, 'chest_neck_link1': 5, 'chest_neck_link2': 6, 'neck': 7, 'chest_right_shoulder_link1': 8, 'chest_right_shoulder_link2': 9, 'right_shoulder': 10, 'right_elbow': 11, 'right_wrist': 12, 'chest_left_shoulder_link1': 13, 'chest_left_shoulder_link2': 14, 'left_shoulder': 15, 'left_elbow': 16, 'left_wrist': 17, 'root_right_hip_link1': 18, 'root_right_hip_link2': 19, 'right_hip': 20, 'right_knee': 21, 'right_knee_right_ankle_link1': 22, 'right_knee_right_ankle_link2': 23, 'right_ankle': 24, 'root_left_hip_link1': 25, 'root_left_hip_link2': 26, 'left_hip': 27, 'left_knee': 28, 'left_knee_left_ankle_link1': 29, 'left_knee_left_ankle_link2': 30, 'left_ankle': 31}
 """
 
 # Good ones: 8 - chest ; 10 - rshoulder
@@ -180,7 +200,6 @@ for j in range(numJoints):
 
 ll = []
 ul = []
-jd = []
 for i in range(numJoints):
   #if(p.getJointInfo(kukaId, i)[2] == 0):
   ll.append(p.getJointInfo(kukaId, i)[8])
@@ -219,11 +238,11 @@ while 1:
 
     # NOTE: Theres an issue when using calcInvKin2 that has to do with us not being able to specify the orientations
     #jointPoses = p.calculateInverseKinematics2(kukaId, [kukaEndEffectorIndexR, kukaEndEffectorIndexL], [pos_r, pos_l] ,lowerLimits=ll, upperLimits=ul, jointDamping=[0.01] * 32)
-    jointPoses = p.calculateInverseKinematics2(kukaId, [kukaEndEffectorIndex], [pos] ,lowerLimits=ll, upperLimits=ul, jointDamping=[0.01] * 32)
+    #jointPoses = p.calculateInverseKinematics2(kukaId, [kukaEndEffectorIndex], [pos] ,lowerLimits=ll, upperLimits=ul, jointDamping=jd)
 
     #jointPoses = accurateCalculateInverseKinematics(numJoints, kukaId, kukaEndEffectorIndex, pos, 0.01, 100)
     
-    #jointPoses = p.calculateInverseKinematics(kukaId, kukaEndEffectorIndexR, pos_r, orn_r, lowerLimits=ll, upperLimits=ul, jointDamping=[0.1] * 32)
+    jointPoses = p.calculateInverseKinematics(kukaId, kukaEndEffectorIndex, pos, lowerLimits=ll, upperLimits=ul, jointDamping=jd)
 
     #reset the joint state (ignoring all dynamics, not recommended to use during simulation)
     counter = 0

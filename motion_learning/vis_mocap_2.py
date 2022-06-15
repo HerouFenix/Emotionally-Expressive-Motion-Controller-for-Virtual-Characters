@@ -71,7 +71,8 @@ class VisMocapEnv():
                "left_shoulder": [10,11,12],
                "left_elbow": [13],}
       self.ik_link_mapping = {
-        2 : 7, # Neck/Chest
+        1 : 4, # Chest
+        2 : 7, # Neck
         6 : 10, # Right Shoulder
         7 : 11, # Right Elbow
         8 : 12, # Right Wrist
@@ -87,6 +88,7 @@ class VisMocapEnv():
         11 : 31 # Left Ankle
       }
       self.name_to_index_mapping = {
+        "chest":1,
         "neck": 2,
         "right_shoulder": 6,
         "right_elbow": 7,
@@ -139,87 +141,27 @@ class VisMocapEnv():
       self._play_speed = self._pybullet_client.addUserDebugParameter("play_speed", 0, 2, 1.0)
       self._phase_ctrl = self._pybullet_client.addUserDebugParameter("frame", 0, 1, 0)
 
-    def compute_inverse_kinematics(self, links, desired_pos):
-      frames = self._mocap._frames
-      ik_frames = []
-      i = 0
-      increment = round(len(self._ms._mocap) / len(self._mocap._frames))
-      first = True
-      last_frame = None
-
-      for frame in frames:
-        if(first):
-          # Ignore the first frame
-          first = False
-          ik_frames.append(frame)
-
-          i += increment
-          continue
-        
-        if(i % self._ms._extraction_framerate == 0):
-          self._ik_solver.updatePose(frame)
-
-
-          gen_index = next(index for index in range(
-                    len(desired_pos)) if desired_pos[index]["index"] == i)
-
-          #self._ik_solver.adjustBase(desired_pos[gen_index]["mocap"]["root"][1])          
-
-          pos = [desired_pos[gen_index]["mocap"]["neck"], desired_pos[gen_index]["mocap"]["left_wrist"], desired_pos[gen_index]["mocap"]["right_wrist"]]
-          jointPoses = self._ik_solver.calculateKinematicSolution2(links, pos)
-
-          ik_frame = []
-          # Add Base info from frame
-          #base_info = [frame[0], desired_pos[gen_index]["mocap"]["root"][1], frame[2], frame[3], frame[4], frame[5], frame[6]]
-          base_info = [frame[0], frame[1], frame[2], frame[3], frame[4], frame[5], frame[6]]
-          ik_frame += list(base_info)
-          
-          # Add the rest of our frame info from our computed IK solution
-          chest_rotation = self._pybullet_client.getQuaternionFromEuler([jointPoses[self.ik_joint_mapping["chest"][0]], jointPoses[self.ik_joint_mapping["chest"][1]], jointPoses[self.ik_joint_mapping["chest"][2]]])
-          neck_rotation = self._pybullet_client.getQuaternionFromEuler([jointPoses[self.ik_joint_mapping["neck"][0]], jointPoses[self.ik_joint_mapping["neck"][1]], jointPoses[self.ik_joint_mapping["neck"][2]]])
-          right_hip_rotation = self._pybullet_client.getQuaternionFromEuler([jointPoses[self.ik_joint_mapping["right_hip"][0]], jointPoses[self.ik_joint_mapping["right_hip"][1]], jointPoses[self.ik_joint_mapping["right_hip"][2]]])
-          right_knee_rotation = [jointPoses[self.ik_joint_mapping["right_knee"][0]]]
-          right_ankle_rotation = self._pybullet_client.getQuaternionFromEuler([jointPoses[self.ik_joint_mapping["right_ankle"][0]], jointPoses[self.ik_joint_mapping["right_ankle"][1]], jointPoses[self.ik_joint_mapping["right_ankle"][2]]])
-          right_shoulder_rotation = self._pybullet_client.getQuaternionFromEuler([jointPoses[self.ik_joint_mapping["right_shoulder"][0]], jointPoses[self.ik_joint_mapping["right_shoulder"][1]], jointPoses[self.ik_joint_mapping["right_shoulder"][2]]])
-          right_elbow_rotation = [jointPoses[self.ik_joint_mapping["right_elbow"][0]]]
-          left_hip_rotation = self._pybullet_client.getQuaternionFromEuler([jointPoses[self.ik_joint_mapping["left_hip"][0]], jointPoses[self.ik_joint_mapping["left_hip"][1]], jointPoses[self.ik_joint_mapping["left_hip"][2]]])
-          left_knee_rotation = [jointPoses[self.ik_joint_mapping["left_knee"][0]]]
-          left_ankle_rotation = self._pybullet_client.getQuaternionFromEuler([jointPoses[self.ik_joint_mapping["left_ankle"][0]], jointPoses[self.ik_joint_mapping["left_ankle"][1]], jointPoses[self.ik_joint_mapping["left_ankle"][2]]])
-          left_shoulder_rotation = self._pybullet_client.getQuaternionFromEuler([jointPoses[self.ik_joint_mapping["left_shoulder"][0]], jointPoses[self.ik_joint_mapping["left_shoulder"][1]], jointPoses[self.ik_joint_mapping["left_shoulder"][2]]])
-          left_elbow_rotation = [jointPoses[self.ik_joint_mapping["left_elbow"][0]]]
-
-          ik_frame += [chest_rotation[3], chest_rotation[0], chest_rotation[1], chest_rotation[2]]
-          ik_frame += [neck_rotation[3], neck_rotation[0], neck_rotation[1], neck_rotation[2]]
-          ik_frame += [right_hip_rotation[3], right_hip_rotation[0], right_hip_rotation[1], right_hip_rotation[2]]
-          ik_frame += right_knee_rotation
-          ik_frame += [right_ankle_rotation[3], right_ankle_rotation[0], right_ankle_rotation[1], right_ankle_rotation[2]]
-          ik_frame += [right_shoulder_rotation[3], right_shoulder_rotation[0], right_shoulder_rotation[1], right_shoulder_rotation[2]]
-          ik_frame += right_elbow_rotation
-          ik_frame += [left_hip_rotation[3], left_hip_rotation[0], left_hip_rotation[1], left_hip_rotation[2]]
-          ik_frame += left_knee_rotation
-          ik_frame += [left_ankle_rotation[3], left_ankle_rotation[0], left_ankle_rotation[1], left_ankle_rotation[2]]
-          ik_frame += [left_shoulder_rotation[3], left_shoulder_rotation[0], left_shoulder_rotation[1], left_shoulder_rotation[2]]
-          ik_frame += left_elbow_rotation
-
-          ik_frames.append(np.asarray(ik_frame))
-          last_frame = ik_frame
-        else:
-          #if(last_frame != None):
-          #  ik_frames.append(np.asarray(last_frame))
-          #else:  
-          ik_frames.append(frame)
-        
-        i += increment
-
-      return ik_frames
 
     def compute_inverse_kinematics_single(self,frame, links, desired_pos):
       self._ik_solver.updatePose(frame)
 
       #self._ik_solver.adjustBase(desired_pos["mocap"]["root"][1])   
 
-      pos = [desired_pos["mocap"]["neck"], desired_pos["mocap"]["left_wrist"], desired_pos["mocap"]["right_wrist"]]
-      jointPoses = self._ik_solver.calculateKinematicSolution2(links, pos)
+      pos = [desired_pos["mocap"]["neck"], desired_pos["mocap"]["left_wrist"], desired_pos["mocap"]["right_wrist"], desired_pos["mocap"]["left_elbow"], desired_pos["mocap"]["right_elbow"]]
+      #jointPoses = self._ik_solver.calculateKinematicSolution2(links, pos)
+
+      # Neck
+      jd = [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000]
+      jointPoses = self._ik_solver.calculateKinematicSolution(links[0], pos[0], desiredOrientation=None, jd=jd)
+
+      # Wrists
+      jd = [10000, 10000, 10000, 10000, 10000, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000]
+      #jointPoses = self._ik_solver.calculateKinematicSolution2([links[1],links[2]], [pos[1], pos[2]], jd=jd)
+
+      # Elbows
+      jd = [10000, 10000, 10000, 10000, 10000, 10000,10000, 10000, 10000, 10000, 10000, 0.1, 0.1, 10000, 10000, 10000, 0.1, 0.1, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000]
+      #jointPoses = self._ik_solver.calculateKinematicSolution2([links[3],links[4]], [pos[3], pos[4]], jd=jd)
+
 
       ik_frame = []
       
@@ -255,7 +197,8 @@ class VisMocapEnv():
       ik_frame += [left_shoulder_rotation[3], left_shoulder_rotation[0], left_shoulder_rotation[1], left_shoulder_rotation[2]]
       ik_frame += left_elbow_rotation
 
-      ik_frame = np.asarray(ik_frame)
+      #ik_frame = np.asarray(ik_frame)
+      ik_frame = frame
       return ik_frame
 
     def compute_and_apply_motion_synthesis(self):
@@ -266,7 +209,8 @@ class VisMocapEnv():
         new_process.start()
 
     def compute_and_apply_motion_synthesis_multithreaded(self, pad):
-      self._ms.set_desired_pad(pad)
+      #self._ms.set_desired_pad(pad)
+      self._ms.set_reference_lma()
 
       self._ms.compute_coefficients()
       #motion_changes = self._ms.get_motion_changes()
@@ -331,6 +275,7 @@ class VisMocapEnv():
 
       pose[:3] += count * self._mocap._cyc_offset
       self._visual.set_pose(self._char, pose, vel)
+      self._ik_solver.updatePose(pose)
 
       if(self._synthesized):
         frame = self.get_pose_and_links()[2]
@@ -365,6 +310,9 @@ class VisMocapEnv():
 
     def get_pose_and_links(self):
       return self._get_full_model_pose(self._visual.characters["mocap"])
+
+    def get_pose_and_links_world(self):
+      return self._get_full_model_pose_world(self._visual.characters["mocap"])
     
     def _get_full_model_pose(self, phys_model):
       """ Get current pose and velocity expressed in general coordinate
@@ -418,6 +366,64 @@ class VisMocapEnv():
         
         links_pos[link_name] = l_info[4]
         links_orn[link_name] = l_info[5]
+
+      pose = np.array(pose)
+      vel = self._skeleton.padVel(vel)
+      
+      return pose, vel, links_pos, links_orn, vel_dict
+
+    def _get_full_model_pose_world(self, phys_model):
+      """ Get current pose and velocity expressed in general coordinate
+        Unlike _get_model_pose it also returns the Position and Velocity of each link/joint.
+        Inputs:
+          phys_model
+
+        Outputs:
+          pose
+          vel
+      """
+      pose = []
+      vel = []
+
+      links_pos = {}
+      links_orn = {}
+
+      vel_dict = {}
+
+      # root position/orientation and vel/angvel
+      pos, orn = self._pybullet_client.getBasePositionAndOrientation(self._visual.characters["mocap"])
+      linvel, angvel = self._pybullet_client.getBaseVelocity(self._visual.characters["mocap"])
+      pose += pos
+      if orn[3] < 0:
+        orn = [-orn[0], -orn[1], -orn[2], -orn[3]]
+      pose.append(orn[3])  # w
+      pose += orn[:3] # x, y, z
+      vel += linvel
+      vel += angvel
+
+      vel_dict["root"] = [linvel, angvel]
+
+      for i in range(self._skeleton.num_joints):
+        j_info = self._pybullet_client.getJointStateMultiDof(phys_model, i)
+        orn = j_info[0]
+        if len(orn) == 4:
+          pose.append(orn[3])  # w
+          pose += orn[:3] # x, y, z
+        else:
+          pose += orn
+        vel += j_info[1]
+
+        l_info = self._pybullet_client.getJointInfo(phys_model, i)
+        
+        if(not l_info[12].decode('UTF-8') == "root"):
+          vel_dict[l_info[12].decode('UTF-8')] = j_info[1]
+        
+        link_name = l_info[12].decode('UTF-8')
+        
+        l_info = self._pybullet_client.getLinkState(phys_model, i)
+        
+        links_pos[link_name] = l_info[0]
+        links_orn[link_name] = l_info[1]
 
       pose = np.array(pose)
       vel = self._skeleton.padVel(vel)
@@ -520,7 +526,6 @@ def show_mocap(mocap_file, model, record_lma='', predict_emotion=True, record_mo
           ms.set_current_lma(lma_extractor.lma_full)
           ms.set_current_mocap(lma_extractor.mocap_full)
 
-          ms._frame_worth = round(env.counter / len([lma_extractor.mocap_full[i]["frame"] for i in range(len(lma_extractor.mocap_full))]))
           gui.start_motion_synthesis.configure(state=NORMAL)
 
         lma_extractor.clear_full()

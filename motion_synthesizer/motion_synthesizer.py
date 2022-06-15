@@ -295,9 +295,11 @@ class MotionSynthesizer():
             frame = frame.copy()
             frame.pop("frame")
             self._mocap.append(frame) # This already ignores the first frame, which is why we start i at 1
+
+            gen = {"root": frame["root"][0], "neck": frame["neck"][0], "left_wrist":frame["left_wrist"][0], "right_wrist":frame["right_wrist"][0], "left_elbow":frame["left_elbow"][0], "right_elbow":frame["right_elbow"][0]}
+            orn = {"root": frame["root"][1], "neck": frame["neck"][1], "left_wrist":frame["left_wrist"][1], "right_wrist":frame["right_wrist"][1], "left_elbow":frame["left_elbow"][1], "right_elbow":frame["right_elbow"][1]}
             
-            gen = {"root": frame["root"][0], "neck": frame["neck"][0], "left_wrist":frame["left_wrist"][0], "right_wrist":frame["right_wrist"][0], "left_shoulder":frame["left_shoulder"][0], "right_shoulder":frame["right_shoulder"][0]}
-            self.generated_mocap.append({'index': i, 'mocap': gen})
+            self.generated_mocap.append({'index': i, 'mocap': gen, 'orn': orn})
 
             i += 1
 
@@ -322,7 +324,7 @@ class MotionSynthesizer():
 
     def set_reference_lma(self, lma=None):
         if(lma == None):
-            self._reference = PRESET_EMOTIONS[(0.05, -0.1, 0.0)]
+            self._reference = PRESET_EMOTIONS[(0.3, 0.3, 0.9)]
         else:
             self._reference = lma
     
@@ -396,24 +398,29 @@ class MotionSynthesizer():
 
     def convert_single_frame(self, frame, counter):
         # Get the coefficients of the closest key frame and compute the changes of this single frame alone
-        closest_index = int((counter/self._frame_worth)/self._extraction_framerate)
+        #closest_index = int((counter/self._frame_worth)/self._extraction_framerate)
+        closest_index = int(counter/5)
+
         if(closest_index >= len(self.c1)):
             closest_index = len(self.c1)-1
 
         frame_c1 = self.c1[closest_index]
         frame_c2 = self.c2[closest_index]
-        frame_c3 = self.c3[closest_index]
-        frame_c4 = self.c4[closest_index]
+        frame_c3 = 0.0
+        frame_c4 = 0.0
 
-        generated = {"mocap": {"root": [], "neck": [], "left_wrist": [], "right_wrist": []}}
+        generated = {"mocap": {"root": [], "neck": [], "left_wrist": [], "right_wrist":[], "left_elbow":[], "right_elbow":[]}}
         root = self.rule_1_single(frame, frame_c1)
         neck = self.rule_2_single(frame, frame_c2)
         left_wrist, right_wrist = self.rule_3_single(frame, frame_c3)
+        left_elbow, right_elbow = self.rule_4_single(frame, frame_c4)
 
         generated["mocap"]["root"] = root
         generated["mocap"]["neck"] = neck
         generated["mocap"]["left_wrist"] = left_wrist
         generated["mocap"]["right_wrist"] = right_wrist
+        generated["mocap"]["left_elbow"] = left_elbow
+        generated["mocap"]["right_elbow"] = right_elbow
 
         return generated
 
@@ -532,6 +539,57 @@ class MotionSynthesizer():
     def rule_1(self):
         print("\n== RULE 1 - PELVIS ==")
         t_pose_root_height = T_POSE["root"][0][1]
+
+    def rule_2(self):
+        print("\n== RULE 2 - HEAD ==")
+        t_pose_root = T_POSE["root"][0]
+        t_pose_head = T_POSE["neck"][0]
+
+    def rule_3(self):
+        print("\n== RULE 3 - HANDS ==")
+        
+    def rule_4(self):
+        print("\n== RULE 4 - ELBOWS ==")
+
+    def rule_1_single(self, frame, coefficient):
+        print("\n== RULE 1 SINGLE - PELVIS ==")
+
+        generated_pose = (
+                frame["root"][0], frame["root"][1], frame["root"][2])
+
+        return generated_pose
+
+    def rule_2_single(self, frame, coefficient):
+        print("\n== RULE 2 SINGLE - NECK ==")
+        generated_pose = (
+                frame["neck"][0], frame["neck"][1], frame["neck"][2])
+
+        return generated_pose
+
+    def rule_3_single(self, frame, coefficient):
+        print("\n== RULE 3 SINGLE - HANDS ==")
+        generated_pose_l = (
+                frame["left_wrist"][0], frame["left_wrist"][1], frame["left_wrist"][2])
+
+        generated_pose_r = (
+                frame["right_wrist"][0], frame["right_wrist"][1], frame["right_wrist"][2])
+
+        return (generated_pose_l, generated_pose_r)
+
+    def rule_4_single(self, frame, coefficient):
+        print("\n== RULE 4 SINGLE - ELBOWS ==")
+        generated_pose_l = (
+                frame["left_elbow"][0], frame["left_elbow"][1], frame["left_elbow"][2])
+
+        generated_pose_r = (
+                frame["right_elbow"][0], frame["right_elbow"][1], frame["right_elbow"][2])
+
+        return (generated_pose_l, generated_pose_r)
+
+    """
+    def rule_1(self):
+        print("\n== RULE 1 - PELVIS ==")
+        t_pose_root_height = T_POSE["root"][0][1]
         first = True
         coefficient_index = 0
         for i in range(len(self._mocap)):
@@ -587,7 +645,7 @@ class MotionSynthesizer():
 
                 print("Synthesized:" + str(self.generated_mocap[gen_index]['mocap']['root']))
                 print()
-
+    
     def rule_2(self):
         print("\n== RULE 2 - HEAD ==")
         t_pose_root = T_POSE["root"][0]
@@ -694,20 +752,20 @@ class MotionSynthesizer():
             new_right_hand_position_z = current_right_hand[2]
 
             # LEFT #
-            new_left_hand_position_x += (dl_right[0] * (coefficients[0] - 1.0) + dl_chest[0] * (
-                coefficients[3] - 1.0) + dl_root[0] * (coefficients[1] - 1.0))/3.0
-            new_left_hand_position_y += (dl_right[1] * (coefficients[0] - 1.0) + dl_chest[1] * (
-                coefficients[3] - 1.0) + dl_root[1] * (coefficients[1] - 1.0))/3.0
-            new_left_hand_position_z += (dl_right[2] * (coefficients[0] - 1.0) + dl_chest[2] * (
-                coefficients[3] - 1.0) + dl_root[2] * (coefficients[1] - 1.0))/3.0
+            new_left_hand_position_x += (dl_right[0] * (coefficients[0] - 1.0) + dl_ground[0] * (coefficients[0] - 1.0) + dl_chest[0] * (
+                coefficients[3] - 1.0) + dl_root[0] * (coefficients[1] - 1.0))/4.0
+            new_left_hand_position_y += (dl_right[1] * (coefficients[0] - 1.0) + dl_ground[1] * (coefficients[0] - 1.0) + dl_chest[1] * (
+                coefficients[3] - 1.0) + dl_root[1] * (coefficients[1] - 1.0))/4.0
+            new_left_hand_position_z += (dl_right[1] * (coefficients[0] - 1.0) + dl_ground[1] * (coefficients[0] - 1.0) + dl_chest[1] * (
+                coefficients[3] - 1.0) + dl_root[2] * (coefficients[1] - 1.0))/4.0
 
             # RIGHT #
-            new_right_hand_position_x += (dr_left[0] * (coefficients[0] - 1.0) + dr_chest[0] * (
-                coefficients[4] - 1.0) + dr_root[0] * (coefficients[2] - 1.0))/3.0
-            new_right_hand_position_y += (dr_left[1] * (coefficients[0] - 1.0) + dr_chest[1] * (
-                coefficients[4] - 1.0) + dr_root[1] * (coefficients[2] - 1.0))/3.0
-            new_right_hand_position_z += (dr_left[2] * (coefficients[0] - 1.0) + dr_chest[2] * (
-                coefficients[4] - 1.0) + dr_root[2] * (coefficients[2] - 1.0))/3.0
+            new_right_hand_position_x += (dr_left[0] * (coefficients[0] - 1.0) + dr_ground[0] * (coefficients[0] - 1.0) + dr_chest[0] * (
+                coefficients[4] - 1.0) + dr_root[0] * (coefficients[2] - 1.0))/4.0
+            new_right_hand_position_y += (dr_left[1] * (coefficients[0] - 1.0) + dr_ground[1] * (coefficients[0] - 1.0) + dr_chest[1] * (
+                coefficients[4] - 1.0) + dr_root[1] * (coefficients[2] - 1.0))/4.0
+            new_right_hand_position_z += (dr_left[2] * (coefficients[0] - 1.0) + dr_ground[2] * (coefficients[0] - 1.0) + dr_chest[2] * (
+                coefficients[4] - 1.0) + dr_root[2] * (coefficients[2] - 1.0))/4.0
 
             gen_index = i
 
@@ -742,44 +800,47 @@ class MotionSynthesizer():
                 else:
                     new_left_shoulder_height += (-t_pose_left_shoulder_height - -current_left_shoulder_height) * (1.0 - (1.0/coefficients[0]))
                 
-                #if new_left_shoulder_height > current_left_shoulder_height + 0.025:
-                #    new_left_shoulder_height = current_left_shoulder_height + 0.025
-                #elif new_left_shoulder_height < current_left_shoulder_height - 0.025:
-                #    new_left_shoulder_height = current_left_shoulder_height - 0.025
+                if new_left_shoulder_height > current_left_shoulder_height + 0.05:
+                    new_left_shoulder_height = current_left_shoulder_height + 0.05
+                elif new_left_shoulder_height < current_left_shoulder_height - 0.05:
+                    new_left_shoulder_height = current_left_shoulder_height - 0.05
                 
                 gen_index = i
                         
-                print("Original:" + str(self.generated_mocap[gen_index]['mocap']['left_shoulder']))
+                #print("Original:" + str(self.generated_mocap[gen_index]['mocap']['left_shoulder']))
 
-                temp = self.generated_mocap[gen_index]['mocap']['left_shoulder']
-                self.generated_mocap[gen_index]['mocap']['left_shoulder'] = (
-                    temp[0], new_left_shoulder_height, temp[2])
+                #temp = self.generated_mocap[gen_index]['mocap']['left_shoulder']
+                #self.generated_mocap[gen_index]['mocap']['left_shoulder'] = (
+                #    temp[0], new_left_shoulder_height, temp[2])
 
-                print("Synthesized:" + str(self.generated_mocap[gen_index]['mocap']['left_shoulder']))
-                print()
+                #print("Synthesized:" + str(self.generated_mocap[gen_index]['mocap']['left_shoulder']))
+                #print()
 
             else:
                 current_left_shoulder_height = self._mocap[i]["left_shoulder"][0][1]
                 new_left_shoulder_height = current_left_shoulder_height
+
                 new_left_shoulder_height += (-current_left_shoulder_height *
                                     (coefficients[0] - 1.0))
 
-                #if new_left_shoulder_height > current_left_shoulder_height + 0.025:
-                #    new_left_shoulder_height = current_left_shoulder_height + 0.025
-                #elif new_left_shoulder_height < current_left_shoulder_height - 0.025:
-                #    new_left_shoulder_height = current_left_shoulder_height - 0.025
+                if new_left_shoulder_height > current_left_shoulder_height + 0.05:
+                    new_left_shoulder_height = current_left_shoulder_height + 0.05
+                elif new_left_shoulder_height < current_left_shoulder_height - 0.05:
+                    new_left_shoulder_height = current_left_shoulder_height - 0.05
 
                 gen_index = i
 
-                print("Original:" + str(self.generated_mocap[gen_index]['mocap']['left_shoulder']))
+                #print("Original:" + str(self.generated_mocap[gen_index]['mocap']['left_shoulder']))
 
-                temp = self.generated_mocap[gen_index]['mocap']['left_shoulder']
-                self.generated_mocap[gen_index]['mocap']['left_shoulder'] = (
-                    temp[0], new_left_shoulder_height, temp[2])
+                #temp = self.generated_mocap[gen_index]['mocap']['left_shoulder']
+                #self.generated_mocap[gen_index]['mocap']['left_shoulder'] = (
+                #    temp[0], new_left_shoulder_height, temp[2])
 
-                print("Synthesized:" + str(self.generated_mocap[gen_index]['mocap']['left_shoulder']))
-                print()
+                #print("Synthesized:" + str(self.generated_mocap[gen_index]['mocap']['left_shoulder']))
+                #print()
 
+
+            
             # RIGHT
             if(coefficients[1] > 1.0):
                 current_right_shoulder_height = self._mocap[i]["right_shoulder"][0][1]
@@ -790,45 +851,44 @@ class MotionSynthesizer():
                 else:
                     new_right_shoulder_height += (-t_pose_right_shoulder_height - -current_right_shoulder_height) * (1.0 - (1.0/coefficients[1]))
                 
-                #if new_left_shoulder_height > current_left_shoulder_height + 0.025:
-                #    new_left_shoulder_height = current_left_shoulder_height + 0.025
-                #elif new_left_shoulder_height < current_left_shoulder_height - 0.025:
-                #    new_left_shoulder_height = current_left_shoulder_height - 0.025
+                if new_right_shoulder_height > current_right_shoulder_height + 0.05:
+                    new_right_shoulder_height = current_right_shoulder_height + 0.05
+                elif new_right_shoulder_height < current_right_shoulder_height - 0.05:
+                    new_right_shoulder_height = current_right_shoulder_height - 0.05
                 
                 gen_index = i
                         
-                print("Original:" + str(self.generated_mocap[gen_index]['mocap']['right_shoulder']))
+                #print("Original:" + str(self.generated_mocap[gen_index]['mocap']['right_shoulder']))
 
-                temp = self.generated_mocap[gen_index]['mocap']['right_shoulder']
-                self.generated_mocap[gen_index]['mocap']['right_shoulder'] = (
-                    temp[0], new_right_shoulder_height, temp[2])
+                #temp = self.generated_mocap[gen_index]['mocap']['right_shoulder']
+                #self.generated_mocap[gen_index]['mocap']['right_shoulder'] = (
+                #    temp[0], new_right_shoulder_height, temp[2])
 
-                print("Synthesized:" + str(self.generated_mocap[gen_index]['mocap']['right_shoulder']))
-                print()
+                #print("Synthesized:" + str(self.generated_mocap[gen_index]['mocap']['right_shoulder']))
+                #print()
 
             else:
                 current_right_shoulder_height = self._mocap[i]["right_shoulder"][0][1]
-
                 new_right_shoulder_height = current_right_shoulder_height
+                
                 new_right_shoulder_height += (-current_right_shoulder_height *
                                     (coefficients[1] - 1.0))
 
-                #if new_left_shoulder_height > current_left_shoulder_height + 0.025:
-                #    new_left_shoulder_height = current_left_shoulder_height + 0.025
-                #elif new_left_shoulder_height < current_left_shoulder_height - 0.025:
-                #    new_left_shoulder_height = current_left_shoulder_height - 0.025
+                if new_right_shoulder_height > current_right_shoulder_height + 0.05:
+                    new_right_shoulder_height = current_right_shoulder_height + 0.05
+                elif new_right_shoulder_height < current_right_shoulder_height - 0.05:
+                    new_right_shoulder_height = current_right_shoulder_height - 0.05
 
                 gen_index = i
 
-                print("Original:" + str(self.generated_mocap[gen_index]['mocap']['right_shoulder']))
+                #print("Original:" + str(self.generated_mocap[gen_index]['mocap']['right_shoulder']))
 
-                temp = self.generated_mocap[gen_index]['mocap']['right_shoulder']
-                self.generated_mocap[gen_index]['mocap']['right_shoulder'] = (
-                    temp[0], new_right_shoulder_height, temp[2])
+                #temp = self.generated_mocap[gen_index]['mocap']['right_shoulder']
+                #self.generated_mocap[gen_index]['mocap']['right_shoulder'] = (
+                #    temp[0], new_right_shoulder_height, temp[2])
 
-                print("Synthesized:" + str(self.generated_mocap[gen_index]['mocap']['right_shoulder']))
-                print()
-        
+                #print("Synthesized:" + str(self.generated_mocap[gen_index]['mocap']['right_shoulder']))
+                #print()
 
     def rule_1_single(self, frame, coefficient):
         print("\n== RULE 1 SINGLE - PELVIS ==")
@@ -963,9 +1023,7 @@ class MotionSynthesizer():
             new_right_hand_position_x, new_right_hand_position_y, new_right_hand_position_z)
         
         return l_generated_pose, r_generated_pose
-
-
-    """
+    
     #OLD: USES A SINGLE COEFFICIENT
     def rule_1(self):
         if(self.c1 > 1.0):
