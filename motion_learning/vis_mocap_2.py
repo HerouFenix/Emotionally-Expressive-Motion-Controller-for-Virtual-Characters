@@ -149,8 +149,8 @@ class VisMocapEnv():
 
       #self._ik_solver.adjustBase(desired_pos["mocap"]["root"][1])   
 
-      #pos = [desired_pos["mocap"]["neck"], desired_pos["mocap"]["left_wrist"], desired_pos["mocap"]["right_wrist"], desired_pos["mocap"]["left_elbow"], desired_pos["mocap"]["right_elbow"]]
-      jointPoses = self._ik_solver.calculateKinematicSolution2(links, desired_pos)
+      pos = [desired_pos["mocap"]["neck"], (desired_pos["mocap"]["left_wrist"][0], 1.2, desired_pos["mocap"]["left_wrist"][2]), desired_pos["mocap"]["right_wrist"], desired_pos["mocap"]["left_elbow"], desired_pos["mocap"]["right_elbow"]]
+      jointPoses = self._ik_solver.calculateKinematicSolution2(links, pos)
 
       ik_frame = []
       
@@ -186,8 +186,7 @@ class VisMocapEnv():
       ik_frame += [left_shoulder_rotation[3], left_shoulder_rotation[0], left_shoulder_rotation[1], left_shoulder_rotation[2]]
       ik_frame += left_elbow_rotation
 
-      #ik_frame = np.asarray(ik_frame)
-      ik_frame = frame
+      ik_frame = np.asarray(ik_frame)
       return ik_frame
 
     def compute_and_apply_motion_synthesis(self):
@@ -198,19 +197,11 @@ class VisMocapEnv():
         new_process.start()
 
     def compute_and_apply_motion_synthesis_multithreaded(self, pad):
+      # TODO: Uncomment this to get synthesized lma set
       #self._ms.set_desired_pad(pad)
       self._ms.set_reference_lma()
 
       self._ms.compute_coefficients()
-      #motion_changes = self._ms.get_motion_changes()
-
-      #indices = []
-      #for i in motion_changes[0]["mocap"]:
-      #  if(i in self.name_to_index_mapping):
-      #    indices.append(self.ik_link_mapping[self.name_to_index_mapping[i]])
-      
-      #ik_frames = self.compute_inverse_kinematics(indices, motion_changes)
-      #self._mocap._ik_frames = ik_frames
 
       self._synthesizing = False
       self._synthesized = True
@@ -262,30 +253,7 @@ class VisMocapEnv():
       count, pose, vel = self._mocap.slerp(self.t)
       pose[:3] += count * self._mocap._cyc_offset
 
-      pose = [-5.19675646e-02,  8.22743553e-01, -6.63578158e-03,  9.95780849e-01,
-                2.86490229e-02, -8.70246191e-02, -5.14292516e-03,  1.00000000e+00,
-                0.00000000e+00,  0.00000000e+00, -0.00000000e+00,  9.99737853e-01,
-              -2.22718819e-02, -1.90690124e-04,  5.30582990e-03,  1.09729437e-01,
-                1.52621690e-01,  9.82027864e-01,  1.69496004e-02,  1.06392785e-01,
-                8.53566546e-02,  5.64411189e-03, -1.94251003e-02,  9.96145104e-01,
-                9.77943928e-01, -9.41406757e-02, -1.24845660e-01,  1.38480200e-01,
-                5.07709289e-01,  1.02968785e-01, -2.52576803e-01,  9.62020414e-01,
-                1.09160382e-02,  1.19726564e-01,  8.53566546e-02,  5.64411189e-03,
-              -1.94251003e-02,  9.96145104e-01,  9.00902815e-01,  1.56370748e-01,
-                3.49546355e-01, -2.04302843e-01,  4.67479761e-01,]
-
-      #{'chest': (-0.050726328045129776, 1.0584944486618042, 0.007049504201859236), 'neck': (-0.049549516290426254, 1.2820090055465698, 0.020024478435516357),'right_shoulder': (-0.10492056608200073, 1.291664481163025, 0.19703546166419983), 'right_elbow': (-0.0497828871011734, 1.0283153057098389, 0.2528527081012726), 'right_wrist': (0.10641033202409744, 0.8451206684112549, 0.3482305705547333), 'left_hip': (-0.03723035752773285, 0.8275108933448792, -0.09009768813848495), 'left_knee': (0.1612449437379837, 0.45660507678985596, -0.06294204294681549), 'left_ankle': (0.3134101629257202, 0.07610821723937988, -0.055111199617385864), 'left_shoulder': (-0.04134126007556915, 1.3122317790985107, -0.16303639113903046), 'left_elbow': (-0.16516537964344025, 1.078366756439209, -0.23708510398864746), 'left_wrist': (-0.17819419503211975, 0.8548329472541809, -0.367148220539093)}
-      # Neck, Left Wrist, Right Wrist, Left Elbow, Right Elbow
-      pos = [(-0.049549516290426254, 1.2820090055465698, 0.020024478435516357),
-      (-0.17819419503211975, 0.8548329472541809, -0.367148220539093),
-      (0.10641033202409744, 0.8451206684112549, 0.3482305705547333),
-      (-0.16516537964344025, 1.078366756439209, -0.23708510398864746),
-      (-0.0497828871011734, 1.0283153057098389, 0.2528527081012726)]
-
-      links = [8, 20, 14, 19, 13]
-
-      self._visual.set_pose(self._char, self.compute_inverse_kinematics_single(pose, links, pos), vel)
-
+      self._visual.set_pose(self._char, pose, vel)
 
       if(self._synthesized):
         frame = self.get_pose_and_links()[2]

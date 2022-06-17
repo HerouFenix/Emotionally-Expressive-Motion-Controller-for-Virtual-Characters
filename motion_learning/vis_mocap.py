@@ -55,37 +55,39 @@ class VisMocapEnv():
 
       # INVERSE KINEMATICS #
       self._ik_solver = IKSolver()
-      self.ik_joint_mapping = {"chest": [0,1,2],
-               "neck": [3,4,5],
+      self.ik_joint_mapping = {"chest": [2,1,0],
+               "neck": [5,4,3],
 
-               "right_hip": [14,15,16],
+               "right_hip": [16,15,14],
                "right_knee": [17],
-               "right_ankle": [18, 19, 20],
-               "right_shoulder": [6,7,8],
+               "right_ankle": [20, 19, 18],
+               "right_shoulder": [8,7,6],
                "right_elbow": [9],
 
-               "left_hip": [21, 22, 23],
+               "left_hip": [23, 22, 21],
                "left_knee": [24],
-               "left_ankle": [25, 26, 27],
-               "left_shoulder": [10,11,12],
+               "left_ankle": [27, 26, 25],
+               "left_shoulder": [12,11,10],
                "left_elbow": [13],}
+
       self.ik_link_mapping = {
         1 : 4, # Chest
-        2 : 7, # Neck
-        6 : 10, # Right Shoulder
-        7 : 11, # Right Elbow
-        8 : 12, # Right Wrist
+        2 : 8, # Neck
+        6 : 12, # Right Shoulder
+        7 : 13, # Right Elbow
+        8 : 14, # Right Wrist
 
-        12 : 15, # Left Shoulder
-        13 : 16, # Left Elbow
-        14 : 17, # Left Wrist
+        12 : 18, # Left Shoulder
+        13 : 19, # Left Elbow
+        14 : 20, # Left Wrist
 
-        4 : 21, # Right Knee
-        5 : 24, # Right Ankle
+        4 : 25, # Right Knee
+        5 : 29, # Right Ankle
 
-        10 : 28, # Left Knee
-        11 : 31 # Left Ankle
+        10 : 34, # Left Knee
+        11 : 38 # Left Ankle
       }
+      
       self.name_to_index_mapping = {
         "chest":1,
         "neck": 2,
@@ -169,20 +171,7 @@ class VisMocapEnv():
 
         # Get desired neck, left and right wrist positions
         pos = [desired_pos[gen_index]["mocap"]["neck"], desired_pos[gen_index]["mocap"]["left_wrist"], desired_pos[gen_index]["mocap"]["right_wrist"], desired_pos[gen_index]["mocap"]["left_elbow"], desired_pos[gen_index]["mocap"]["right_elbow"]]
-
-        #jointPoses = self._ik_solver.calculateKinematicSolution2(links, pos)
-
-        # Neck
-        jd = [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000]
-        jointPoses = self._ik_solver.calculateKinematicSolution(links[0], pos[0], desiredOrientation=None, jd=jd)
-
-        # Wrists
-        #jd = [10000, 10000, 10000, 10000, 10000, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000]
-        #jointPoses = self._ik_solver.calculateKinematicSolution2([links[1],links[2]], [pos[1], pos[2]], jd=jd)
-
-        # Elbows
-        #jd = [10000, 10000, 10000, 10000, 10000, 10000,10000, 10000, 10000, 10000, 10000, 0.1, 0.1, 10000, 10000, 10000, 0.1, 0.1, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000]
-        #jointPoses = self._ik_solver.calculateKinematicSolution2([links[3],links[4]], [pos[3], pos[4]], jd=jd)
+        jointPoses = self._ik_solver.calculateKinematicSolution2(links, pos)
 
 
         ik_frame = []
@@ -234,7 +223,7 @@ class VisMocapEnv():
         new_process.start()
 
     def compute_and_apply_motion_synthesis_multithreaded(self, pad):
-      # TODO: CHANGE HERE TO GET PAD COORDINATES
+      # TODO: Uncomment this to get synthesized lma set
       #self._ms.set_desired_pad(pad)
       self._ms.set_reference_lma()
 

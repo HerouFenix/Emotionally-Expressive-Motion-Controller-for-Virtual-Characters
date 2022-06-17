@@ -171,8 +171,13 @@ class IKSolver():
     def adjustBase(self, newHeight):
         poses = []
         orn = []
-
-        index = [7, 10, 11, 12, 15, 16, 17, 21, 24, 28, 31]
+        """
+        25 - rknee
+        29 - rankle
+        34 - lknee
+        38 - lankle
+        """
+        index = [25, 29, 34, 38]
         for j in index:
             linkState = p.getLinkState(self.charID, j)
             poses.append(linkState[4])
@@ -209,7 +214,7 @@ class IKSolver():
         if(len(jd) == 0):
             jd = self.jd
 
-        jointPoses = p.calculateInverseKinematics2(self.charID, endEffectorIndices, desiredPositions)
+        jointPoses = p.calculateInverseKinematics2(self.charID, endEffectorIndices, desiredPositions, jointDamping = jd)
         
         counter = 0
         for j in range(self.numJoints):
