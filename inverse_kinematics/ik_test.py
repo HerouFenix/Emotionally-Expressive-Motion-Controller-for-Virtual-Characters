@@ -13,50 +13,50 @@ if (clid < 0):
 p.setAdditionalSearchPath(pybullet_data.getDataPath())
 
 z2y = p.getQuaternionFromEuler([-math.pi*0.5,0,0]) 
-kukaId = p.loadURDF("humanoid_2.urdf", [0,0.889540259, 0], z2y)
-#kukaEndEffectorIndexR = 12
-#kukaEndEffectorIndexL = 17
-kukaEndEffectorIndex = 15
-# 7 - chest/neck
-# 10 - right shoulder
-# 11 - right elbow
-# 12 - right wrist
-# 15 - left shoulder
-# 16 - left elbow
-# 17 - left wrist
+kukaId = p.loadURDF("humanoid_3.urdf", [0,0.889540259, 0])
 
-# Chest
-#jd = [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000]
-
-# RWrist
-#jd = [10000, 10000, 10000, 10000, 10000, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000]
-
-# LWrist
-#jd = [10000, 10000, 10000, 10000, 10000, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000]
-
-# LElbow
-#jd = [10000, 10000, 10000, 10000, 10000, 10000,10000, 10000, 10000, 10000, 10000, 0.1, 0.1, 10000, 10000, 10000, 0.1, 0.1, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000]
-
-# RElbow
-#jd = [10000, 10000, 10000, 10000, 10000, 10000,10000, 10000, 10000, 10000, 10000, 0.1, 0.1, 10000, 10000, 10000, 0.1, 0.1, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000]
-
-# LShoulder
-jd = [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 10000, 10000, 0.1, 0.1, 0.1, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000]
-
-# RShoulder
-jd = [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 10000, 10000, 0.1, 0.1, 0.1, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000]
-
+kukaEndEffectorIndex = 8
+# 8 -  neck
+# 12 - right shoulder
+# 13 - right elbow
+# 14 - right wrist
+# 18 - left shoulder
+# 19 - left elbow
+# 20 - left wrist
 """
-{'base': 0, 'root': 1, 'root_chest_link1': 2, 'root_chest_link2': 3, 'chest': 4, 'chest_neck_link1': 5, 'chest_neck_link2': 6, 'neck': 7, 'chest_right_shoulder_link1': 8, 'chest_right_shoulder_link2': 9, 'right_shoulder': 10, 'right_elbow': 11, 'right_wrist': 12, 'chest_left_shoulder_link1': 13, 'chest_left_shoulder_link2': 14, 'left_shoulder': 15, 'left_elbow': 16, 'left_wrist': 17, 'root_right_hip_link1': 18, 'root_right_hip_link2': 19, 'right_hip': 20, 'right_knee': 21, 'right_knee_right_ankle_link1': 22, 'right_knee_right_ankle_link2': 23, 'right_ankle': 24, 'root_left_hip_link1': 25, 'root_left_hip_link2': 26, 'left_hip': 27, 'left_knee': 28, 'left_knee_left_ankle_link1': 29, 'left_knee_left_ankle_link2': 30, 'left_ankle': 31}
+{'root': 0, 'root_chest_link_fixed': 1, 'root_chest_link1': 2, 'root_chest_link2': 3, 'chest': 4, 'chest_neck_link_fixed': 5, 'chest_neck_link1': 6, 'chest_neck_link2': 7, 'neck': 8, 'chest_right_shoulder_link_fixed': 9, 'chest_right_shoulder_link1': 10, 'chest_right_shoulder_link2': 11, 'right_shoulder': 12, 'right_elbow': 13, 'right_wrist': 14, 'chest_left_shoulder_link_fixed': 15, 'chest_left_shoulder_link1': 16, 'chest_left_shoulder_link2': 17, 'left_shoulder': 18, 'left_elbow': 19, 'left_wrist': 20, 'root_right_hip_link_fixed': 21, 'root_right_hip_link1': 22, 'root_right_hip_link2': 23, 'right_hip': 24, 'right_knee': 25, 'right_knee_right_ankle_link_fixed': 26, 'right_knee_right_ankle_link1': 27, 'right_knee_right_ankle_link2': 28, 'right_ankle': 29, 'root_left_hip_link_fixed': 30, 'root_left_hip_link1': 31, 'root_left_hip_link2': 32, 'left_hip': 33, 'left_knee': 34, 'left_knee_left_ankle_link_fixed': 35, 'left_knee_left_ankle_link1': 36, 'left_knee_left_ankle_link2': 37, 'left_ankle': 38}
 """
 
-# Good ones: 8 - chest ; 10 - rshoulder
+
 numJoints = p.getNumJoints(kukaId)
 print(numJoints)
-if (numJoints != 32):
+if (numJoints != 39):
   exit()
 
+jd = [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
 
+print(jd)
+
+# Chest
+#jd = [100, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 100, 100, 0.1, 0.1, 0.1, 0.1, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100] 
+
+# RWrist
+#jd = [100, 100, 100, 100, 100, 100, 100, 100, 100, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100] 
+
+# LWrist
+#jd = [100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100] 
+
+# LElbow
+#jd = [100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 0.1, 0.1, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100] 
+
+# RElbow
+#jd = [100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 0.1, 0.1, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100] 
+
+# LShoulder
+#jd = 
+
+# RShoulder
+#jd = 
 
 p.setGravity(0, 0, 0)
 p.configureDebugVisualizer(p.COV_ENABLE_Y_AXIS_UP,1)
@@ -76,21 +76,6 @@ p.setRealTimeSimulation(useRealTimeSimulation)
 #trailDuration is duration (in seconds) after debug lines will be removed automatically
 #use 0 for no-removal
 
-"""
-counter = 0
-jointposes=[]
-for i in range(numJoints):
-    print(i)
-    print(p.getJointInfo(kukaId, i)[1])
-    print(p.getJointInfo(kukaId,i)[2])
-    if(p.getJointInfo(kukaId,i)[2] == 0):
-        jointposes.append(p.getJointInfo(kukaId, i)[1])
-        counter += 1
-    print()
-
-print(counter)
-print(len(jointposes))
-"""
 
 def quaternion_multiply(Q0):
     """
@@ -130,20 +115,20 @@ def quaternion_multiply(Q0):
 
 
 #Pose is in W X Y Z ; PyBullet needs X Y Z W
-pose = [ 4.98910587e-01,  8.61965996e-01,  6.76430121e-03,  1.00000000e+00,
-0.00000000e+00,  0.00000000e+00,  0.00000000e+00,  9.99938012e-01,
-0.00000000e+00, -1.11054544e-02, -8.00608165e-04,  1.00000000e+00,
-0.00000000e+00,  0.00000000e+00,  0.00000000e+00,  9.97290026e-01,
-0.00000000e+00, -5.81173275e-02, -4.51107603e-02, -2.16116408e-01,
-9.84030931e-01, -3.25363635e-02,  8.90732054e-02,  1.50633584e-01,
-9.39676420e-01, -1.98687524e-01,  2.35818497e-01,  1.48057864e-01,
-5.71147477e-01,  9.58070112e-01,  0.00000000e+00,  1.19043367e-01,
-2.60634491e-01, -1.33930724e-01,  9.98887637e-01,  2.64181872e-02,
- 3.80308091e-02, -8.90085879e-03,  9.74355800e-01,  1.03421713e-01,
-1.38056048e-01, -1.44482701e-01,  1.50277310e-01,]
+pose = [-5.19675646e-02,  8.22743553e-01, -6.63578158e-03,  9.95780849e-01,
+                2.86490229e-02, -8.70246191e-02, -5.14292516e-03,  1.00000000e+00,
+                0.00000000e+00,  0.00000000e+00, -0.00000000e+00,  9.99737853e-01,
+              -2.22718819e-02, -1.90690124e-04,  5.30582990e-03,  1.09729437e-01,
+                1.52621690e-01,  9.82027864e-01,  1.69496004e-02,  1.06392785e-01,
+                8.53566546e-02,  5.64411189e-03, -1.94251003e-02,  9.96145104e-01,
+                9.77943928e-01, -9.41406757e-02, -1.24845660e-01,  1.38480200e-01,
+                5.07709289e-01,  1.02968785e-01, -2.52576803e-01,  9.62020414e-01,
+                1.09160382e-02,  1.19726564e-01,  8.53566546e-02,  5.64411189e-03,
+              -1.94251003e-02,  9.96145104e-01,  9.00902815e-01,  1.56370748e-01,
+                3.49546355e-01, -2.04302843e-01,  4.67479761e-01,]
 
 
-p.resetBasePositionAndOrientation(kukaId, [pose[0], pose[1], pose[2]], quaternion_multiply([pose[4], pose[5], pose[6], pose[3]]))
+p.resetBasePositionAndOrientation(kukaId, [pose[0], pose[1], pose[2]], [pose[4], pose[5], pose[6], pose[3]])
 
 chest_rotation = p.getEulerFromQuaternion([pose[8],pose[9],pose[10],pose[7]])
 neck_rotation = p.getEulerFromQuaternion([pose[12],pose[13],pose[14],pose[11]])
@@ -159,43 +144,44 @@ left_shoulder_rotation = p.getEulerFromQuaternion([pose[39],pose[40],pose[41],po
 left_elbow_rotation = pose[42]
 
 pose = [
-        chest_rotation[0],
-        chest_rotation[1],
         chest_rotation[2],
-        neck_rotation[0],
-        neck_rotation[1],
+        chest_rotation[1],
+        chest_rotation[0],
         neck_rotation[2],
-        right_shoulder_rotation[0],
-        right_shoulder_rotation[1],
+        neck_rotation[1],
+        neck_rotation[0],
         right_shoulder_rotation[2],
+        right_shoulder_rotation[1],
+        right_shoulder_rotation[0],
         right_elbow_rotation,
-        left_shoulder_rotation[0],
-        left_shoulder_rotation[1],
         left_shoulder_rotation[2],
+        left_shoulder_rotation[1],
+        left_shoulder_rotation[0],
         left_elbow_rotation,
-        right_hip_rotation[0],
-        right_hip_rotation[1],
         right_hip_rotation[2],
+        right_hip_rotation[1],
+        right_hip_rotation[0],
         right_knee_rotation,
-        right_ankle_rotation[0],
-        right_ankle_rotation[1],
         right_ankle_rotation[2],
-        left_hip_rotation[0],
-        left_hip_rotation[1],
+        right_ankle_rotation[1],
+        right_ankle_rotation[0],
         left_hip_rotation[2],
+        left_hip_rotation[1],
+        left_hip_rotation[0],
         left_knee_rotation,
-        left_ankle_rotation[0],
-        left_ankle_rotation[1],
         left_ankle_rotation[2],
+        left_ankle_rotation[1],
+        left_ankle_rotation[0],
     ]
-      
+            
 counter = 0
 for j in range(numJoints):
-      if(p.getJointInfo(kukaId,j)[2] == 0):
-          print(p.getJointInfo(kukaId, j)[1])
-          print(counter)
-          p.resetJointState(kukaId, j, pose[counter])
-          counter += 1
+  if(p.getJointInfo(kukaId,j)[2] == 0):
+      #print(p.getJointInfo(self.charID, j)[1])
+
+      pos = pose[counter]
+      p.resetJointState(kukaId, j, pos)
+      counter += 1
 
 
 ll = []
@@ -213,7 +199,6 @@ for i in range(numJoints):
 ls = p.getLinkState(kukaId, kukaEndEffectorIndex)
 c = [p.addUserDebugParameter("x", -2, 2, ls[4][0]), p.addUserDebugParameter("y", -2, 2, ls[4][1]), p.addUserDebugParameter("z", -2, 2, ls[4][2])]
 orn = ls[5]
-
 
 #ls = p.getLinkState(kukaId, kukaEndEffectorIndexL)
 #c2 = [p.addUserDebugParameter("LWrist x", -2, 2, ls[4][0]), p.addUserDebugParameter("LWrist y", -2, 2, ls[4][1]), p.addUserDebugParameter("LWrist z", -2, 2, ls[4][2])]
@@ -283,7 +268,11 @@ while 1:
 p.disconnect()
 
 """
-{'base_link': -1, 'base': 0, 'root': 1, 'root_chest_link1': 2, 'root_chest_link2': 3, 'chest': 4, 'chest_neck_link1': 5, 'chest_neck_link2': 6, 'neck': 7, 'chest_right_shoulder_link1': 8, 'chest_right_shoulder_link2': 9, 'right_shoulder': 10, 'right_elbow': 11, 'right_wrist': 12, 'chest_left_shoulder_link1': 13, 'chest_left_shoulder_link2': 14, 'left_shoulder': 15, 'left_elbow': 16, 'left_wrist': 17, 'root_right_hip_link1': 18, 'root_right_hip_link2': 19, 'right_hip': 20, 'right_knee': 21, 'right_knee_right_ankle_link1': 22, 'right_knee_right_ankle_link2': 23, 'right_ankle': 24, 'root_left_hip_link1': 25, 'root_left_hip_link2': 26, 'left_hip': 27, 'left_knee': 28, 'left_knee_left_ankle_link1': 29, 'left_knee_left_ankle_link2': 30, 'left_ankle': 31}
+{'base': -1, 'root': 0, 'root_chest_link_fixed': 1, 'root_chest_link1': 2, 'root_chest_link2': 3, 'chest': 4, 'chest_neck_link_fixed': 5, 'chest_neck_link1': 6, 'chest_neck_link2': 7, 'neck': 8, 'chest_right_shoulder_link_fixed': 9, 'chest_right_shoulder_link1': 10, 'chest_right_shoulder_link2': 11, 'right_shoulder': 12, 'right_elbow': 13, 'right_wrist': 14, 'chest_left_shoulder_link_fixed': 15, 'chest_left_shoulder_link1': 16, 'chest_left_shoulder_link2': 17, 'left_shoulder': 18, 'left_elbow': 19, 'left_wrist': 20, 'root_right_hip_link_fixed': 21, 'root_right_hip_link1': 22, 'root_right_hip_link2': 23, 'right_hip': 24, 'right_knee': 25, 'right_knee_right_ankle_link_fixed': 26, 'right_knee_right_ankle_link1': 27, 'right_knee_right_ankle_link2': 28, 'right_ankle': 29, 'root_left_hip_link_fixed': 30, 'root_left_hip_link1': 31, 'root_left_hip_link2': 32, 'left_hip': 33, 'left_knee': 34, 'left_knee_left_ankle_link_fixed': 35, 'left_knee_left_ankle_link1': 36, 'left_knee_left_ankle_link2': 37, 'left_ankle': 38}
+"""
+
+"""
+NOTE: JOINT ORDER: Z,Y,X (1->Z, 2->Y, 3->X)
 """
 
 """

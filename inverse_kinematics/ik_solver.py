@@ -21,7 +21,7 @@ class IKSolver():
 
         self.ll = []
         self.ul = []
-        self.jd = [100] * self.numJoints
+        self.jd = [0.1] * self.numJoints
 
         for i in range(self.numJoints):
             #if(p.getJointInfo(kukaId, i)[2] == 0):
@@ -99,7 +99,7 @@ class IKSolver():
         return roll_x, pitch_y, yaw_z # in radians
    
     def updatePose(self, pose):
-        p.resetBasePositionAndOrientation(self.charID, [pose[0]+0.75, pose[1], pose[2]], [pose[4], pose[5], pose[6], pose[3]])
+        p.resetBasePositionAndOrientation(self.charID, [pose[0], pose[1], pose[2]], [pose[4], pose[5], pose[6], pose[3]])
 
         chest_rotation = p.getEulerFromQuaternion([pose[8],pose[9],pose[10],pose[7]])
         neck_rotation = p.getEulerFromQuaternion([pose[12],pose[13],pose[14],pose[11]])
@@ -113,50 +113,6 @@ class IKSolver():
         left_ankle_rotation = p.getEulerFromQuaternion([pose[35],pose[36],pose[37],pose[34]])
         left_shoulder_rotation = p.getEulerFromQuaternion([pose[39],pose[40],pose[41],pose[38]])
         left_elbow_rotation = pose[42]
-
-        """
-        pose = [
-                chest_rotation[1],
-                chest_rotation[2],
-                chest_rotation[0],
-
-                neck_rotation[1],
-                neck_rotation[2],
-                neck_rotation[0],
-
-                right_shoulder_rotation[1],
-                right_shoulder_rotation[2],
-                right_shoulder_rotation[0],
-
-                right_elbow_rotation,
-
-                left_shoulder_rotation[1],
-                left_shoulder_rotation[2],
-                left_shoulder_rotation[0],
-
-                left_elbow_rotation,
-
-                right_hip_rotation[1],
-                right_hip_rotation[2],
-                right_hip_rotation[0],
-
-                right_knee_rotation,
-
-                right_ankle_rotation[1],
-                right_ankle_rotation[2],
-                right_ankle_rotation[0],
-
-                left_hip_rotation[1],
-                left_hip_rotation[2],
-                left_hip_rotation[0],
-
-                left_knee_rotation,
-
-                left_ankle_rotation[1],
-                left_ankle_rotation[2],
-                left_ankle_rotation[0],
-            ]
-        """
 
         pose = [
                 chest_rotation[2],
@@ -212,221 +168,6 @@ class IKSolver():
 
                 counter += 1
 
-    """
-
-    def updatePose(self, pose):
-        p.resetBasePositionAndOrientation(self.charID, [pose[0], pose[1], pose[2]], [pose[4], pose[5], pose[6], pose[3]])
-
-        chest_rotation = p.getEulerFromQuaternion([pose[8],pose[9],pose[10],pose[7]])
-        neck_rotation = p.getEulerFromQuaternion([pose[12],pose[13],pose[14],pose[11]])
-
-        right_hip_rotation = p.getEulerFromQuaternion([pose[16],pose[17],pose[18],pose[15]])
-        
-        right_knee_rotation = pose[19]
-        right_ankle_rotation = p.getEulerFromQuaternion([pose[21],pose[22],pose[23],pose[20]])
-        right_shoulder_rotation = p.getEulerFromQuaternion([pose[25],pose[26],pose[27],pose[24]])
-        right_elbow_rotation = pose[28]
-
-        left_hip_rotation = p.getEulerFromQuaternion([pose[30],pose[31],pose[32],pose[29]])
-
-        left_knee_rotation = pose[33]
-        left_ankle_rotation = p.getEulerFromQuaternion([pose[35],pose[36],pose[37],pose[34]])
-        left_shoulder_rotation = p.getEulerFromQuaternion([pose[39],pose[40],pose[41],pose[38]])
-        left_elbow_rotation = pose[42]
-
-        pose = [
-                chest_rotation[0],
-                chest_rotation[1]+90,
-                chest_rotation[2]+90,
-                neck_rotation[0],
-                neck_rotation[1]+90,
-                neck_rotation[2]+90,
-                right_shoulder_rotation[0],
-                right_shoulder_rotation[1]+90,
-                right_shoulder_rotation[2]+90,
-                right_elbow_rotation,
-                left_shoulder_rotation[0],
-                left_shoulder_rotation[1]+90,
-                left_shoulder_rotation[2]+90,
-                left_elbow_rotation,
-                right_hip_rotation[0],
-                right_hip_rotation[1]+90,
-                right_hip_rotation[2]+90,
-                right_knee_rotation,
-                right_ankle_rotation[0],
-                right_ankle_rotation[1]+90,
-                right_ankle_rotation[2]+90,
-                left_hip_rotation[0],
-                left_hip_rotation[1]+90,
-                left_hip_rotation[2]+90,
-                left_knee_rotation,
-                left_ankle_rotation[0],
-                left_ankle_rotation[1]+90,
-                left_ankle_rotation[2]+90,
-            ]
-
-        pose = {
-            "root_chest_joint1": chest_rotation[0],
-            "root_chest_joint2": chest_rotation[1],
-            "root_chest_joint3": chest_rotation[2],
-            "chest_neck_joint1": neck_rotation[0],
-            "chest_neck_joint2": neck_rotation[1],
-            "chest_neck_joint3": neck_rotation[2],
-            "chest_right_shoulder_joint1": right_shoulder_rotation[0],
-            "chest_right_shoulder_joint2": right_shoulder_rotation[1],
-            "chest_right_shoulder_joint3": right_shoulder_rotation[2],
-            "right_elbow": right_elbow_rotation,
-            "chest_left_shoulder_joint1": left_shoulder_rotation[0],
-            "chest_left_shoulder_joint2": left_shoulder_rotation[1],
-            "chest_left_shoulder_joint3": left_shoulder_rotation[2],
-            "left_elbow": left_elbow_rotation,
-            "root_right_hip_joint1": right_hip_rotation[0],
-            "root_right_hip_joint2": right_hip_rotation[1],
-            "root_right_hip_joint3": right_hip_rotation[2],
-            "right_knee": right_knee_rotation,
-            "right_knee_right_ankle_joint1": right_ankle_rotation[0],
-            "right_knee_right_ankle_joint2": right_ankle_rotation[1],
-            "right_knee_right_ankle_joint3": right_ankle_rotation[2],
-            "root_left_hip_joint1": left_hip_rotation[0],
-            "root_left_hip_joint2": left_hip_rotation[1],
-            "root_left_hip_joint3": left_hip_rotation[2],
-            "left_knee": left_knee_rotation,
-            "left_knee_left_ankle_joint1": left_ankle_rotation[0],
-            "left_knee_left_ankle_joint2": left_ankle_rotation[1],
-            "left_knee_left_ankle_joint3": left_ankle_rotation[2],
-        }
-        
-
-        #pose = [
-        #    chest_rotation[2],
-        #    chest_rotation[0],
-        #    chest_rotation[1],
-#
-        #    neck_rotation[0],
-        #    neck_rotation[1],
-        #    neck_rotation[2],
-#
-        #    right_hip_rotation[2],
-        #    right_hip_rotation[0],
-        #    right_hip_rotation[1],
-#
-        #    right_knee_rotation,
-        #    
-        #    right_ankle_rotation[2],
-        #    right_ankle_rotation[0],
-        #    right_ankle_rotation[1],
-        #    
-        #    right_shoulder_rotation[2],
-        #    right_shoulder_rotation[0],
-        #    right_shoulder_rotation[1],
-#
-        #    right_elbow_rotation,
-#
-        #    left_hip_rotation[2],
-        #    left_hip_rotation[0],
-        #    left_hip_rotation[1],
-#
-        #    left_knee_rotation,
-#
-        #    left_ankle_rotation[2],
-        #    left_ankle_rotation[0],
-        #    left_ankle_rotation[1],
-        #    
-        #    left_shoulder_rotation[2],
-        #    left_shoulder_rotation[0],
-        #    left_shoulder_rotation[1],
-#
-        #    left_elbow_rotation,
-        #]
-
-        options = [
-            (1, 2, 3),
-            (1, 2, -3),
-            (1, -2, 3),
-            (1, -2, -3),
-            (-1, 2, 3),
-            (-1, 2, -3),
-            (-1, -2, 3),
-            (-1, -2, -3),
-
-            (1, 3, 2),
-            (1, 3, -2),
-            (1, -3, 2),
-            (1, -3, -2),
-            (-1, 3, 2),
-            (-1, 3, -2),
-            (-1, -3, 2),
-            (-1, -3, -2),
-
-            (2, 1, 3),
-            (2, 1, -3),
-            (2, -1, 3),
-            (2, -1, -3),
-            (-2, 1, 3),
-            (-2, 1, -3),
-            (-2, -1, 3),
-            (-2, -1, -3),
-
-            (2, 3, 1),
-            (2, 3, -1),
-            (2, -3, 1),
-            (2, -3, -1),
-            (-2, 3, 1),
-            (-2, 3, -1),
-            (-2, -3, 1),
-            (-2, -3, -1),
-
-            (3, 1, 2),
-            (3, 1, -2),
-            (3, -1, 2),
-            (3, -1, -2),
-            (-3, 1, 2),
-            (-3, 1, -2),
-            (-3, -1, 2),
-            (-3, -1, -2),
-
-            (3, 2, 1),
-            (3, 2, -1),
-            (3, -2, 1),
-            (3, -2, -1),
-            (-3, 2, 1),
-            (-3, 2, -1),
-            (-3, -2, 1),
-            (-3, -2, -1),
-        ]
-
-        for option in options:
-            counter = 0
-            print(option)
-            print()
-            for j in range(self.numJoints):
-                if(p.getJointInfo(self.charID,j)[2] == 0):
-                    name = p.getJointInfo(self.charID, j)[1].decode("utf-8")
-                    number = str(name[-1])
-                    if(number.isnumeric()):
-                        pos = pose[name]
-                        
-                        cur_op = option[int(number)-1]
-                        if(cur_op > 0):
-                            name = name[:-1]
-                            name = name + str((cur_op))
-                            pos = pose[name]
-                        else:
-                            name = name[:-1]
-                            name = name + str((-cur_op))
-                            pos = -pose[name]
-
-                    else:
-                        pos = pose[name]
-
-                    p.resetJointState(self.charID, j, pos)
-                    counter += 1
-
-            time.sleep(2)
-        
-        print("DONE")
-     """
-
     def adjustBase(self, newHeight):
         poses = []
         orn = []
@@ -468,7 +209,7 @@ class IKSolver():
         if(len(jd) == 0):
             jd = self.jd
 
-        jointPoses = p.calculateInverseKinematics2(self.charID, endEffectorIndices, desiredPositions, lowerLimits=self.ll, upperLimits=self.ul, jointDamping=jd)
+        jointPoses = p.calculateInverseKinematics2(self.charID, endEffectorIndices, desiredPositions)
         
         counter = 0
         for j in range(self.numJoints):

@@ -56,37 +56,39 @@ class VisMocapEnv():
 
       # INVERSE KINEMATICS #
       self._ik_solver = IKSolver()
-      self.ik_joint_mapping = {"chest": [0,1,2],
-               "neck": [3,4,5],
+      self.ik_joint_mapping = {"chest": [2,1,0],
+               "neck": [5,4,3],
 
-               "right_hip": [14,15,16],
+               "right_hip": [16,15,14],
                "right_knee": [17],
-               "right_ankle": [18, 19, 20],
-               "right_shoulder": [6,7,8],
+               "right_ankle": [20, 19, 18],
+               "right_shoulder": [8,7,6],
                "right_elbow": [9],
 
-               "left_hip": [21, 22, 23],
+               "left_hip": [23, 22, 21],
                "left_knee": [24],
-               "left_ankle": [25, 26, 27],
-               "left_shoulder": [10,11,12],
+               "left_ankle": [27, 26, 25],
+               "left_shoulder": [12,11,10],
                "left_elbow": [13],}
+
       self.ik_link_mapping = {
         1 : 4, # Chest
-        2 : 7, # Neck
-        6 : 10, # Right Shoulder
-        7 : 11, # Right Elbow
-        8 : 12, # Right Wrist
+        2 : 8, # Neck
+        6 : 12, # Right Shoulder
+        7 : 13, # Right Elbow
+        8 : 14, # Right Wrist
 
-        12 : 15, # Left Shoulder
-        13 : 16, # Left Elbow
-        14 : 17, # Left Wrist
+        12 : 18, # Left Shoulder
+        13 : 19, # Left Elbow
+        14 : 20, # Left Wrist
 
-        4 : 21, # Right Knee
-        5 : 24, # Right Ankle
+        4 : 25, # Right Knee
+        5 : 29, # Right Ankle
 
-        10 : 28, # Left Knee
-        11 : 31 # Left Ankle
+        10 : 34, # Left Knee
+        11 : 38 # Left Ankle
       }
+      
       self.name_to_index_mapping = {
         "chest":1,
         "neck": 2,
@@ -147,21 +149,8 @@ class VisMocapEnv():
 
       #self._ik_solver.adjustBase(desired_pos["mocap"]["root"][1])   
 
-      pos = [desired_pos["mocap"]["neck"], desired_pos["mocap"]["left_wrist"], desired_pos["mocap"]["right_wrist"], desired_pos["mocap"]["left_elbow"], desired_pos["mocap"]["right_elbow"]]
-      #jointPoses = self._ik_solver.calculateKinematicSolution2(links, pos)
-
-      # Neck
-      jd = [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000]
-      jointPoses = self._ik_solver.calculateKinematicSolution(links[0], pos[0], desiredOrientation=None, jd=jd)
-
-      # Wrists
-      jd = [10000, 10000, 10000, 10000, 10000, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000]
-      #jointPoses = self._ik_solver.calculateKinematicSolution2([links[1],links[2]], [pos[1], pos[2]], jd=jd)
-
-      # Elbows
-      jd = [10000, 10000, 10000, 10000, 10000, 10000,10000, 10000, 10000, 10000, 10000, 0.1, 0.1, 10000, 10000, 10000, 0.1, 0.1, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000, 10000]
-      #jointPoses = self._ik_solver.calculateKinematicSolution2([links[3],links[4]], [pos[3], pos[4]], jd=jd)
-
+      #pos = [desired_pos["mocap"]["neck"], desired_pos["mocap"]["left_wrist"], desired_pos["mocap"]["right_wrist"], desired_pos["mocap"]["left_elbow"], desired_pos["mocap"]["right_elbow"]]
+      jointPoses = self._ik_solver.calculateKinematicSolution2(links, desired_pos)
 
       ik_frame = []
       
@@ -271,11 +260,32 @@ class VisMocapEnv():
 
     def synchronize_sim_char(self):
       count, pose, vel = self._mocap.slerp(self.t)
-
-
       pose[:3] += count * self._mocap._cyc_offset
-      self._visual.set_pose(self._char, pose, vel)
-      self._ik_solver.updatePose(pose)
+
+      pose = [-5.19675646e-02,  8.22743553e-01, -6.63578158e-03,  9.95780849e-01,
+                2.86490229e-02, -8.70246191e-02, -5.14292516e-03,  1.00000000e+00,
+                0.00000000e+00,  0.00000000e+00, -0.00000000e+00,  9.99737853e-01,
+              -2.22718819e-02, -1.90690124e-04,  5.30582990e-03,  1.09729437e-01,
+                1.52621690e-01,  9.82027864e-01,  1.69496004e-02,  1.06392785e-01,
+                8.53566546e-02,  5.64411189e-03, -1.94251003e-02,  9.96145104e-01,
+                9.77943928e-01, -9.41406757e-02, -1.24845660e-01,  1.38480200e-01,
+                5.07709289e-01,  1.02968785e-01, -2.52576803e-01,  9.62020414e-01,
+                1.09160382e-02,  1.19726564e-01,  8.53566546e-02,  5.64411189e-03,
+              -1.94251003e-02,  9.96145104e-01,  9.00902815e-01,  1.56370748e-01,
+                3.49546355e-01, -2.04302843e-01,  4.67479761e-01,]
+
+      #{'chest': (-0.050726328045129776, 1.0584944486618042, 0.007049504201859236), 'neck': (-0.049549516290426254, 1.2820090055465698, 0.020024478435516357),'right_shoulder': (-0.10492056608200073, 1.291664481163025, 0.19703546166419983), 'right_elbow': (-0.0497828871011734, 1.0283153057098389, 0.2528527081012726), 'right_wrist': (0.10641033202409744, 0.8451206684112549, 0.3482305705547333), 'left_hip': (-0.03723035752773285, 0.8275108933448792, -0.09009768813848495), 'left_knee': (0.1612449437379837, 0.45660507678985596, -0.06294204294681549), 'left_ankle': (0.3134101629257202, 0.07610821723937988, -0.055111199617385864), 'left_shoulder': (-0.04134126007556915, 1.3122317790985107, -0.16303639113903046), 'left_elbow': (-0.16516537964344025, 1.078366756439209, -0.23708510398864746), 'left_wrist': (-0.17819419503211975, 0.8548329472541809, -0.367148220539093)}
+      # Neck, Left Wrist, Right Wrist, Left Elbow, Right Elbow
+      pos = [(-0.049549516290426254, 1.2820090055465698, 0.020024478435516357),
+      (-0.17819419503211975, 0.8548329472541809, -0.367148220539093),
+      (0.10641033202409744, 0.8451206684112549, 0.3482305705547333),
+      (-0.16516537964344025, 1.078366756439209, -0.23708510398864746),
+      (-0.0497828871011734, 1.0283153057098389, 0.2528527081012726)]
+
+      links = [8, 20, 14, 19, 13]
+
+      self._visual.set_pose(self._char, self.compute_inverse_kinematics_single(pose, links, pos), vel)
+
 
       if(self._synthesized):
         frame = self.get_pose_and_links()[2]
