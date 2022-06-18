@@ -167,7 +167,7 @@ class VisMocapEnv():
                   len(desired_pos)) if desired_pos[index]["index"] == i)
 
         # Adjust Base Height
-        #self._ik_solver.adjustBase(desired_pos[gen_index]["mocap"]["root"][1])          
+        self._ik_solver.adjustBase(desired_pos[gen_index]["mocap"]["root"][1])          
 
         # Get desired neck, left and right wrist positions
         pos = [desired_pos[gen_index]["mocap"]["neck"], desired_pos[gen_index]["mocap"]["left_wrist"], desired_pos[gen_index]["mocap"]["right_wrist"], desired_pos[gen_index]["mocap"]["left_elbow"], desired_pos[gen_index]["mocap"]["right_elbow"]]
@@ -177,8 +177,8 @@ class VisMocapEnv():
         ik_frame = []
 
         # Add Base info from frame
-        #base_info = [frame[0], desired_pos[gen_index]["mocap"]["root"][1], frame[2], frame[3], frame[4], frame[5], frame[6]]
-        base_info = [frame[0], frame[1], frame[2], frame[3], frame[4], frame[5], frame[6]]
+        base_info = [frame[0], desired_pos[gen_index]["mocap"]["root"][1], frame[2], frame[3], frame[4], frame[5], frame[6]]
+        #base_info = [frame[0], frame[1], frame[2], frame[3], frame[4], frame[5], frame[6]]
         
         ik_frame += list(base_info)
           

@@ -166,22 +166,22 @@ PRESET_EMOTIONS = {
 
 # TODO: CHANGE T-POSE TO GET LOCAL FRAME INSTEAD OF CENTER OF MASS!!!!!
 T_POSE = {
-    'frame': [-0.16698190632853216, 0.8208478789814777, 0.1910868181792611, 0.9992503855746498, -0.0007243134215494251, -0.035510798615893846, -0.015398879200849844, 1.0, 0.0, 0.0, -0.0, 0.9987343710490267, 0.0001858002755274909, 1.2076377216405983e-05, 0.05029534190880983, 0.22476234873632903, 0.007103624462584861, 0.973989785667957, -0.02784461392281431, 0.01804881527261475, 0.0048504515100555685, 0.13429437369005343, 0.9903194749825479, -0.03476825830603958, 0.5367113370923698, -0.10618192214635794, -0.5577237662437339, 0.6241879048914117, 0.02954824366798683, 0.21699504864113023, -0.0004543469176178096, -0.9752027536120662, -0.043503238747886544, 0.03141429228324602, 0.0072404068297222774, -0.1344571744987444, -0.9896361284606645, -0.04989166243112469, 0.7368941237009464, 0.5344653215968344, 0.35230940537492045, 0.21728311795852154, 0.060142010491652034], 
-    'root': [(-0.16698190569877625, 0.8208478689193726, 0.1910868138074875), (-0.0007243134314194322, -0.035510800778865814, -0.01539888046681881, 0.9992503523826599), [(0.001954074012308122, 0.0006167658321652191, 0.0001598828422912501), (-0.016494608265362715, -0.004274316497034636, -0.005580577097766774)]], 
-    'chest': [(-0.15970230102539062, 1.0568866729736328, 0.1910032480955124), (-0.0007243134314194322, -0.035510800778865814, -0.01539888046681881, 0.9992503523826599), (6.376130714032577e-124, -7.970163267467595e-125, 6.376130664003356e-124)], 
-    'neck': [(-0.152800515294075, 1.2806742191314697, 0.1909240037202835), (-0.0023235774133354425, -0.035420216619968414, 0.03488483652472496, 0.9987607598304749), (0.016168579070208654, 0.0002179010454178043, 0.00041141508245339057)], 
-    'right_hip': [(-0.17300429940223694, 0.8210635781288147, 0.27575963735580444), (0.022922636941075325, 0.9651486277580261, -0.0317380428314209, 0.2587573826313019), (0.006070623193998153, -0.770042418911319, 0.029815238501249664)], 
-    'right_knee': [(-0.1985805183649063, 0.4008098542690277, 0.29658448696136475), (0.031631484627723694, 0.9649024605751038, -0.02940165437757969, 0.2590332627296448), (-0.02741423975997844,)], 
-    'right_ankle': [(-0.22984318435192108, -0.007531334646046162, 0.3131236433982849), (-0.03050919435918331, -0.2583571970462799, 0.10740445554256439, 0.9595754146575928), (0.030117010187545222, -0.01633065763028236, 0.005991738877577178)], 
-    'right_shoulder': [(-0.18916499614715576, 1.3014750480651855, 0.37185773253440857), (-0.13724477589130402, -0.5742774605751038, 0.6120885610580444, 0.5260387063026428), (-0.02532097049637, 0.016461337593482624, -0.0256478949610282)], 
-    'right_elbow': [(-0.0555269755423069, 1.2429389953613281, 0.6047157049179077), (-0.14571397006511688, -0.5721873044967651, 0.6197932958602905, 0.5169385075569153), (-0.00014755009593311967,)], 
-    'right_wrist': [(0.06722392141819, 1.1939339637756348, 0.8273910284042358), (-0.14571397006511688, -0.5721873044967651, 0.6197932958602905, 0.5169385075569153), ()], 
-    'left_hip': [(-0.16095951199531555, 0.8206321597099304, 0.10641399770975113), (0.014083372429013252, 0.982201874256134, 0.04612189158797264, -0.1815319061279297), (0.01792547001656103, -0.6528803228917127, -0.0028852713480175853)], 
-    'left_knee': [(-0.17968063056468964, 0.4010468125343323, 0.07037650793790817), (0.02950858883559704, 0.9818595051765442, 0.0432649701833725, -0.18223392963409424), (0.024397620336189495,)], 
-    'left_ankle': [(-0.2098942995071411, -0.006574932485818863, 0.039961978793144226), (0.018546290695667267, 0.183109313249588, 0.11222050338983536, 0.9764904379844666), (-0.013593623843457598, 0.07313760375509844, 0.06271052589314843)], 
-    'left_shoulder': [(-0.16318313777446747, 1.3005445003509521, 0.006561741232872009), (0.5312401652336121, 0.3178047835826874, 0.224496990442276, 0.7525855898857117), (0.09327069960064104, -3.7050682331104943, -0.2749047122806273)], 
-    'left_elbow': [(-0.16311581432819366, 1.208553671836853, -0.2523709535598755), (0.5405553579330444, 0.30168861150741577, 0.24702313542366028, 0.7454954981803894), (0.5601070748706386,)], 
-    'left_wrist': [(-0.1522010862827301, 1.1325374841690063, -0.4996682405471802), (0.5405553579330444, 0.30168861150741577, 0.24702313542366028, 0.7454954981803894), ()]
+    'frame': [0., 0.88954026, 0., 1., 0., 0., 0., 1., 0., 0., 0., 1., 0., 0., 0., 1., 0., 0., 0., 0., 1., 0., 0., 0., 1., 0., 0., 0., 0., 1., 0., 0., 0., 0., 1., 0., 0., 0., 1., 0., 0., 0., 0.], 
+    'root': [(0.0, 0.8895402550697327, 0.0)], 
+    'chest': [(0.0, 1.125691294670105, 0.0)], 
+    'neck': [(0.0, 1.3495852947235107, 0.0)], 
+    'right_hip': [(0.0, 0.8895402550697327, 0.08488699793815613)], 
+    'right_knee': [(0.0, 0.4679942727088928, 0.08488699793815613)], 
+    'right_ankle': [(0.0, 0.05812425911426544, 0.08488699793815613)], 
+    'right_shoulder': [(-0.024049999192357063, 1.369191288948059, 0.18310999870300293)], 
+    'right_elbow': [(-0.024049999192357063, 1.0944032669067383, 0.18310999870300293)], 
+    'right_wrist': [(-0.024049999192357063, 0.8354562520980835, 0.18310999870300293)], 
+    'left_hip': [(0.0, 0.8895402550697327, -0.08488699793815613)], 
+    'left_knee': [(0.0, 0.4679942727088928, -0.08488699793815613)], 
+    'left_ankle': [(0.0, 0.05812425911426544, -0.08488699793815613)], 
+    'left_shoulder': [(-0.024049999192357063, 1.369191288948059, -0.18310999870300293)], 
+    'left_elbow': [(-0.024049999192357063, 1.0944032669067383, -0.18310999870300293)], 
+    'left_wrist': [(-0.024049999192357063, 0.8354562520980835, -0.18310999870300293)]
 }
 
 #00          c3_hands           "max_hand_distance",
@@ -262,7 +262,7 @@ class MotionSynthesizer():
                 self._models[filename.split(".")[0]] = model
         """
 
-        self._frame_worth = -1.0 # How much each keyframe is worth (i.e if we have 1000 total frames and 500 keyframes then each keyframe is worth 2)
+        self._desired_emotion = np.asarray([0.0, 0.0, 0.0])
 
 
     def reset(self):
@@ -324,7 +324,15 @@ class MotionSynthesizer():
 
     def set_reference_lma(self, lma=None):
         if(lma == None):
-            self._reference = PRESET_EMOTIONS[(0.3, 0.3, 0.9)]
+            #self._reference = PRESET_EMOTIONS[(0.3, 0.3, 0.9)] # Confident
+            #self._desired_emotion = np.asarray([0.3, 0.3, 0.9])
+
+            #self._reference = PRESET_EMOTIONS[(-0.5, 0.8, 0.9)] # Angry
+            #self._desired_emotion = np.asarray([-0.5, 0.8, 0.9])
+
+            self._reference = PRESET_EMOTIONS[(-0.6, -0.3, -0.3)] # Afraid
+            self._desired_emotion = np.asarray([-0.6, -0.3, -0.3])
+
         else:
             self._reference = lma
     
@@ -363,6 +371,7 @@ class MotionSynthesizer():
         ]
 
         pad = np.asarray([pad])
+        self._desired_emotion = pad
 
         for feature in pad_order:
             lma.append(self._models[feature].predict(pad)[0])
@@ -385,8 +394,9 @@ class MotionSynthesizer():
         
         
         #self.compute_coefficient(4)
-        self.compute_coefficient(4.1)
-        self.compute_coefficient(4.2)
+        self.compute_coefficient(4)
+        #self.compute_coefficient(4.1)
+        #self.compute_coefficient(4.2)
 
     def get_motion_changes(self):
         self.rule_1()
@@ -538,18 +548,235 @@ class MotionSynthesizer():
 
     def rule_1(self):
         print("\n== RULE 1 - PELVIS ==")
+        # Move on Y axis
+
         t_pose_root_height = T_POSE["root"][0][1]
+
+        # Vector from Pelvis to Ground in T-Pose
+        #dt_pelvis = np.array(
+        #            [0.0, 
+        #             0.0 - t_pose_root_height,
+        #             0.0]
+        #            )
+
+        coefficient_index = 0
+        for i in range(len(self._mocap)):
+            coefficient = self.c1[coefficient_index]
+            coefficient_index += 1
+            
+            current_root_height = self._mocap[i]["root"][0][1]
+            
+            # Vector from Pelvis to Ground in Current Pose
+            #d_pelvis = np.array(
+            #            [0.0, 
+            #             0.0 - current_root_height,
+            #             0.0]
+            #            )
+
+            if(coefficient > 1.0):
+                new_root_height = current_root_height
+
+                new_root_height += 0.02 * coefficient
+
+                
+                gen_index = i
+                print("Original:" + str(self.generated_mocap[gen_index]['mocap']['root']))
+
+                temp = self.generated_mocap[gen_index]['mocap']['root']
+                self.generated_mocap[gen_index]['mocap']['root'] = (
+                    temp[0], new_root_height, temp[2])
+
+                print("Synthesized:" + str(self.generated_mocap[gen_index]['mocap']['root']))
+                print()
+
+            else:
+                current_root_height = self._mocap[i]["root"][0][1]
+                new_root_height = current_root_height
+                new_root_height += -0.02 * (1.0/coefficient)
+
+                gen_index = i
+
+                print("Original:" + str(self.generated_mocap[gen_index]['mocap']['root']))
+
+                temp = self.generated_mocap[gen_index]['mocap']['root']
+                self.generated_mocap[gen_index]['mocap']['root'] = (
+                    temp[0], new_root_height, temp[2])
+
+                print("Synthesized:" + str(self.generated_mocap[gen_index]['mocap']['root']))
+                print()
 
     def rule_2(self):
         print("\n== RULE 2 - HEAD ==")
+        # Move on the X and Y axis
+
         t_pose_root = T_POSE["root"][0]
         t_pose_head = T_POSE["neck"][0]
+        
+        # Vector from Head to Pelvis in T-Pose
+        dt_head = (t_pose_root[0] - t_pose_head[0], 
+                   t_pose_root[1] - t_pose_head[1],
+                   t_pose_root[2] - t_pose_head[2])
+
+        coefficient_index = 0
+        for i in range(len(self._mocap)):
+            coefficient = self.c2[coefficient_index]
+            coefficient_index += 1
+
+            current_root_position = self._mocap[i]["root"][0]
+            current_neck_position = self._mocap[i]["neck"][0]
+
+            # Vector from Head to Pelvis in Current Pose
+            d_head = (current_root_position[0] - current_neck_position[0], 
+                      current_root_position[1] - current_neck_position[1], 
+                      current_root_position[2] - current_neck_position[2])
+
+            new_neck_position_x = current_neck_position[0]
+            new_neck_position_y = current_neck_position[1]
+            new_neck_position_z = current_neck_position[2]
+
+            if(coefficient > 1.0):
+                # Lean Back (Chest Up)
+                if(self._desired_emotion[0] < 0.0 and self._desired_emotion[2] > 0.0):
+                    new_neck_position_x += 0.07 * coefficient
+                    new_neck_position_y -= 0.05 * coefficient
+                else:
+                    new_neck_position_x -= 0.035 * coefficient
+                    new_neck_position_y += 0.015 * coefficient
+            else:
+                # Lean Forward (Chest Down)
+                if(self._desired_emotion[0] < 0.0 and self._desired_emotion[2] > 0.0):
+                    new_neck_position_x += 0.07 * (1.0/coefficient)
+                    new_neck_position_y -= 0.05 * (1.0/coefficient)
+                else:
+                    new_neck_position_x += 0.035 * (1.0/coefficient)
+                    new_neck_position_y -= 0.015 * (1.0/coefficient)
+
+            gen_index = i
+
+            print(self.generated_mocap[gen_index]['mocap']['neck'])
+            self.generated_mocap[gen_index]['mocap']['neck'] = (
+                new_neck_position_x, new_neck_position_y, new_neck_position_z)
+            print(self.generated_mocap[gen_index]['mocap']['neck'])
+            print()
 
     def rule_3(self):
         print("\n== RULE 3 - HANDS ==")
+        # Move on Vector going from chest to wrist
+
+        coefficient_index = 0
+        for i in range(len(self._mocap)):
+            #0 C3_HANDS_INDICES
+            #1 C3_LEFT_HIPS_INDICES
+            #2 C3_RIGHT_HIPS_INDICES
+            #3 C3_LEFT_CHEST_INDICES
+            #4 C3_RIGHT_CHEST_INDICES
+
+            coefficients = [self.c3_1[coefficient_index], self.c3_2[coefficient_index], self.c3_3[coefficient_index], self.c3_4[coefficient_index], self.c3_5[coefficient_index]]
+            coefficient_index += 1
+
+            current_root = self._mocap[i]["root"][0]
+            current_chest = self._mocap[i]["chest"][0]
+            current_head = self._mocap[i]["neck"][0]
+
+            current_left_hand = self._mocap[i]["left_wrist"][0]
+            current_right_hand = self._mocap[i]["right_wrist"][0]
+
+
+            new_left_hand_position_x = current_left_hand[0]
+            new_left_hand_position_y = current_left_hand[1]
+            new_left_hand_position_z = current_left_hand[2]
+
+            new_right_hand_position_x = current_right_hand[0]
+            new_right_hand_position_y = current_right_hand[1]
+            new_right_hand_position_z = current_right_hand[2]
+
+            # LEFT #
+
+
+            # RIGHT #
+
+
+            gen_index = i
+
+            #print(self.generated_mocap[gen_index]
+            #      ['mocap']['left_wrist'])
+            #self.generated_mocap[gen_index]['mocap']['left_wrist'] = (
+            #    new_left_hand_position_x, new_left_hand_position_y, new_left_hand_position_z)
+            #self.generated_mocap[gen_index]['mocap']['right_wrist'] = (
+            #    new_right_hand_position_x, new_right_hand_position_y, new_right_hand_position_z)
+            #print(self.generated_mocap[gen_index]
+            #      ['mocap']['left_wrist'])
+            #print()
         
     def rule_4(self):
         print("\n== RULE 4 - ELBOWS ==")
+        # Move on vector going from root to elbow
+
+        coefficient_index = 0
+        for i in range(len(self._mocap)):
+            coefficient = self.c4[coefficient_index]
+            coefficient_index += 1
+
+            current_left_elbow_pos = self._mocap[i]["left_elbow"][0]
+            current_right_elbow_pos = self._mocap[i]["right_elbow"][0]
+            current_root_position = self._mocap[i]["root"][0]
+
+            # Unit Vectors #
+            d_left = np.asarray([current_left_elbow_pos[0] - current_root_position[0], 
+                      current_left_elbow_pos[1] - current_root_position[1], 
+                      current_left_elbow_pos[2] - current_root_position[2]])
+            d_left = d_left / np.linalg.norm(d_left)
+
+            d_right = np.asarray([current_right_elbow_pos[0] - current_root_position[0], 
+                      current_right_elbow_pos[1] - current_root_position[1], 
+                      current_right_elbow_pos[2] - current_root_position[2]])
+            d_right = d_right / np.linalg.norm(d_right)
+
+            # Left #
+            new_left_elbow_pos_x = current_left_elbow_pos[0]
+            new_left_elbow_pos_y = current_left_elbow_pos[1]
+            new_left_elbow_pos_z = current_left_elbow_pos[2]
+
+            # Right #
+            new_right_elbow_pos_x = current_right_elbow_pos[0]
+            new_right_elbow_pos_y = current_right_elbow_pos[1]
+            new_right_elbow_pos_z = current_right_elbow_pos[2]
+
+            if(coefficient > 1.0):
+                new_left_elbow_pos_x += d_left[0] * coefficient * 0.2
+                new_left_elbow_pos_y += d_left[1] * coefficient * 0.2
+                new_left_elbow_pos_z += d_left[2] * coefficient * 0.2
+
+                new_right_elbow_pos_x += d_right[0] * coefficient * 0.2
+                new_right_elbow_pos_y += d_right[1] * coefficient * 0.2
+                new_right_elbow_pos_z += d_right[2] * coefficient * 0.2
+            else:
+                new_left_elbow_pos_x -= d_left[0] * (1.0 / coefficient) * 0.2
+                new_left_elbow_pos_y -= d_left[1] * (1.0 / coefficient) * 0.2
+                new_left_elbow_pos_z -= d_left[2] * (1.0 / coefficient) * 0.2
+
+                new_right_elbow_pos_x -= d_right[0] * (1.0 / coefficient) * 0.2
+                new_right_elbow_pos_y -= d_right[1] * (1.0 / coefficient) * 0.2
+                new_right_elbow_pos_z -= d_right[2] * (1.0 / coefficient) * 0.2
+
+            gen_index = i
+
+            print(self.generated_mocap[gen_index]
+                  ['mocap']['left_elbow'])
+            self.generated_mocap[gen_index]['mocap']['left_elbow'] = (
+                new_left_elbow_pos_x, new_left_elbow_pos_y, new_left_elbow_pos_z)
+            print(self.generated_mocap[gen_index]
+                  ['mocap']['left_elbow'])
+            print()         
+
+            print(self.generated_mocap[gen_index]
+                  ['mocap']['right_elbow'])
+            self.generated_mocap[gen_index]['mocap']['right_elbow'] = (
+                new_right_elbow_pos_x, new_right_elbow_pos_y, new_right_elbow_pos_z)
+            print(self.generated_mocap[gen_index]
+                  ['mocap']['right_elbow'])
+            print()
+            
 
     def rule_1_single(self, frame, coefficient):
         print("\n== RULE 1 SINGLE - PELVIS ==")
