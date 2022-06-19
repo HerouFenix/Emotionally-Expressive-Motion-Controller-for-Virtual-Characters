@@ -330,8 +330,8 @@ class MotionSynthesizer():
             #self._reference = PRESET_EMOTIONS[(-0.5, 0.8, 0.9)] # Angry
             #self._desired_emotion = np.asarray([-0.5, 0.8, 0.9])
 
-            self._reference = PRESET_EMOTIONS[(-0.6, -0.3, -0.3)] # Afraid
-            self._desired_emotion = np.asarray([-0.6, -0.3, -0.3])
+            self._reference = PRESET_EMOTIONS[(-0.6, 0.7, -0.8)] # Afraid
+            self._desired_emotion = np.asarray([-0.6, 0.7, -0.8])
 
         else:
             self._reference = lma
@@ -573,37 +573,24 @@ class MotionSynthesizer():
             #             0.0]
             #            )
 
-            if(coefficient > 1.0):
-                new_root_height = current_root_height
+            new_root_height = current_root_height
 
-                new_root_height += 0.02 * coefficient
+            # If Coefifcient > 1.0 -> Move Up (new root height += positive value) ; Else Move Down (new root height += negative value)
+            #e.g coefficient = 1.2 -> new height += 0.2
+            #e.g coefficient = 0.8 -> new height += -0.2
+            new_root_height += 1.0 * ((coefficient - 1.0) * 0.075) #0.075 -> dampening factor
 
                 
-                gen_index = i
-                print("Original:" + str(self.generated_mocap[gen_index]['mocap']['root']))
+            gen_index = i
+            print("Original:" + str(self.generated_mocap[gen_index]['mocap']['root']))
 
-                temp = self.generated_mocap[gen_index]['mocap']['root']
-                self.generated_mocap[gen_index]['mocap']['root'] = (
-                    temp[0], new_root_height, temp[2])
+            temp = self.generated_mocap[gen_index]['mocap']['root']
+            self.generated_mocap[gen_index]['mocap']['root'] = (
+                temp[0], new_root_height, temp[2])
 
-                print("Synthesized:" + str(self.generated_mocap[gen_index]['mocap']['root']))
-                print()
+            print("Synthesized:" + str(self.generated_mocap[gen_index]['mocap']['root']))
+            print()
 
-            else:
-                current_root_height = self._mocap[i]["root"][0][1]
-                new_root_height = current_root_height
-                new_root_height += -0.02 * (1.0/coefficient)
-
-                gen_index = i
-
-                print("Original:" + str(self.generated_mocap[gen_index]['mocap']['root']))
-
-                temp = self.generated_mocap[gen_index]['mocap']['root']
-                self.generated_mocap[gen_index]['mocap']['root'] = (
-                    temp[0], new_root_height, temp[2])
-
-                print("Synthesized:" + str(self.generated_mocap[gen_index]['mocap']['root']))
-                print()
 
     def rule_2(self):
         print("\n== RULE 2 - HEAD ==")
@@ -634,22 +621,30 @@ class MotionSynthesizer():
             new_neck_position_y = current_neck_position[1]
             new_neck_position_z = current_neck_position[2]
 
-            if(coefficient > 1.0):
-                # Lean Back (Chest Up)
-                if(self._desired_emotion[0] < 0.0 and self._desired_emotion[2] > 0.0):
-                    new_neck_position_x += 0.07 * coefficient
-                    new_neck_position_y -= 0.05 * coefficient
+            
+            if(self._desired_emotion[0] < 0.0 and self._desired_emotion[2] > 0.0):
+                # Usually, high Dominance have the character arch back to elevate the shoulders. For angry (i.e when the pleasure is also low) this is the opposite
+
+                dampening_factor_x = 0.2
+                dampening_factor_y = 0.1
+
+                if(coefficient > 1.0):
+                    new_neck_position_x += 1.0 * ((coefficient - 1.0) * dampening_factor_x) 
+                    new_neck_position_y -= 1.0 * ((coefficient - 1.0) * dampening_factor_y) 
                 else:
-                    new_neck_position_x -= 0.035 * coefficient
-                    new_neck_position_y += 0.015 * coefficient
+                    new_neck_position_x -= 1.0 * ((coefficient - 1.0) * dampening_factor_x) 
+                    new_neck_position_y += 1.0 * ((coefficient - 1.0) * dampening_factor_y) 
+
             else:
-                # Lean Forward (Chest Down)
-                if(self._desired_emotion[0] < 0.0 and self._desired_emotion[2] > 0.0):
-                    new_neck_position_x += 0.07 * (1.0/coefficient)
-                    new_neck_position_y -= 0.05 * (1.0/coefficient)
+                if(coefficient > 1.0):
+                    dampening_factor_x = 0.05
+                    dampening_factor_y = 0.03
                 else:
-                    new_neck_position_x += 0.035 * (1.0/coefficient)
-                    new_neck_position_y -= 0.015 * (1.0/coefficient)
+                    dampening_factor_x = 0.2
+                    dampening_factor_y = 0.08
+
+                new_neck_position_x -= 1.0 * ((coefficient - 1.0) * dampening_factor_x) 
+                new_neck_position_y += 1.0 * ((coefficient - 1.0) * dampening_factor_y) 
 
             gen_index = i
 
@@ -742,22 +737,24 @@ class MotionSynthesizer():
             new_right_elbow_pos_y = current_right_elbow_pos[1]
             new_right_elbow_pos_z = current_right_elbow_pos[2]
 
-            if(coefficient > 1.0):
-                new_left_elbow_pos_x += d_left[0] * coefficient * 0.2
-                new_left_elbow_pos_y += d_left[1] * coefficient * 0.2
-                new_left_elbow_pos_z += d_left[2] * coefficient * 0.2
+            if(self._desired_emotion[0] < -0.3 and self._desired_emotion[1] > 0.5 and self._desired_emotion[2] < -0.3): 
+                #Usually, high Arousal emotions have broad elbows, but for afraid that is different
 
-                new_right_elbow_pos_x += d_right[0] * coefficient * 0.2
-                new_right_elbow_pos_y += d_right[1] * coefficient * 0.2
-                new_right_elbow_pos_z += d_right[2] * coefficient * 0.2
+                new_left_elbow_pos_x -= d_left[0] * (coefficient-1.0) * 0.5
+                new_left_elbow_pos_y -= d_left[1] * (coefficient-1.0) * 0.5
+                new_left_elbow_pos_z -= d_left[2] * (coefficient-1.0) * 0.5
+
+                new_right_elbow_pos_x -= d_right[0] * (coefficient-1.0) * 0.5
+                new_right_elbow_pos_y -= d_right[1] * (coefficient-1.0) * 0.5
+                new_right_elbow_pos_z -= d_right[2] * (coefficient-1.0) * 0.5
             else:
-                new_left_elbow_pos_x -= d_left[0] * (1.0 / coefficient) * 0.2
-                new_left_elbow_pos_y -= d_left[1] * (1.0 / coefficient) * 0.2
-                new_left_elbow_pos_z -= d_left[2] * (1.0 / coefficient) * 0.2
+                new_left_elbow_pos_x += d_left[0] * (coefficient-1.0) * 0.5
+                new_left_elbow_pos_y += d_left[1] * (coefficient-1.0) * 0.5
+                new_left_elbow_pos_z += d_left[2] * (coefficient-1.0) * 0.5
 
-                new_right_elbow_pos_x -= d_right[0] * (1.0 / coefficient) * 0.2
-                new_right_elbow_pos_y -= d_right[1] * (1.0 / coefficient) * 0.2
-                new_right_elbow_pos_z -= d_right[2] * (1.0 / coefficient) * 0.2
+                new_right_elbow_pos_x += d_right[0] * (coefficient-1.0) * 0.5
+                new_right_elbow_pos_y += d_right[1] * (coefficient-1.0) * 0.5
+                new_right_elbow_pos_z += d_right[2] * (coefficient-1.0) * 0.5
 
             gen_index = i
 
