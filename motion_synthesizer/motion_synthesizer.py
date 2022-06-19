@@ -187,7 +187,7 @@ T_POSE = {
 #00          c3_hips, c3_chest          "max_hand_distance",
 #01          c3_hips                    "avg_l_hand_hip_distance",
 #02          c3_hips                    "avg_r_hand_hip_distance",
-#03          --                         "max_stride_length",
+#03          c5                         "max_stride_length",
 #04          c3_chest                   "avg_l_hand_chest_distance",
 #05          c3_chest                   "avg_r_hand_chest_distance",
 #06          c4                         "avg_l_elbow_hip_distance",
@@ -196,11 +196,11 @@ T_POSE = {
 #09          c2                         "avg_neck_chest_distance",
 #          
 #10          c1, c2, c3_hips, c3_chest  "avg_total_body_volume",
-#11          c1                         "avg_lower_body_volume",
+#11          c1, c5                     "avg_lower_body_volume",
 #12          c2, c3_hips, c3_chest      "avg_upper_body_volume",
 #          
 #13          c3_hands, c3_chest         "avg_triangle_area_hands_neck",
-#14          c1                         "avg_triangle_area_feet_hips",
+#14          c1,c5                      "avg_triangle_area_feet_hips",
 
 C1_INDICES = [8, 10, 11, 14]
 C2_INDICES = [9, 10, 12]
@@ -213,6 +213,8 @@ C4_INDICES = [6,7]
 C4_LEFT_INDICES = [6]
 C4_RIGHT_INDICES = [7]
 
+C5_INDICES = [3, 11, 14]
+
 
 class MotionSynthesizer():
     def __init__(self):
@@ -221,15 +223,12 @@ class MotionSynthesizer():
         self.c2 = [1.0]
 
         self.c3 = [1.0]
-        self.c3_1 = [1.0] #C3_HANDS_INDICES
-        self.c3_2 = [1.0] #C3_LEFT_HIPS_INDICES
-        self.c3_3 = [1.0] #C3_RIGHT_HIPS_INDICES
-        self.c3_4 = [1.0] #C3_LEFT_CHEST_INDICES
-        self.c3_5 = [1.0] #C3_RIGHT_CHEST_INDICES
+        self.c3_1 = [1.0] #C3_HANDS_HIPS_INDICES
+        self.c3_2 = [1.0] #C3_HANDS_CHEST_INDICES
 
         self.c4 = [1.0]
-        self.c4_1 = [1.0] #C4_LEFT
-        self.c4_2 = [1.0] #C4_RIGHT
+
+        self.c5 = [1.0] #C5
 
         self.current_reference_features = []
         self.current_features = []
@@ -240,11 +239,6 @@ class MotionSynthesizer():
         self._lma = []
 
         self._reference = []
-
-        self._extraction_framerate  = -1.0
-
-        # TODO: CHANGE THIS TO GET THE ACTUAL CURRENT FRAMERATE!!!!
-        self._current_framerate = -1.0
 
         self._models = {}
         """
@@ -263,8 +257,14 @@ class MotionSynthesizer():
     def reset(self):
         self.c1 = [1.0]
         self.c2 = [1.0]
+
         self.c3 = [1.0]
+        self.c3_1 = [1.0] #C3_HANDS_HIPS_INDICES
+        self.c3_2 = [1.0] #C3_HANDS_CHEST_INDICES
+
         self.c4 = [1.0]
+
+        self.c5 = [1.0] #C5
 
         self.current_reference_features = []
         self.current_features = []
@@ -274,12 +274,25 @@ class MotionSynthesizer():
 
         self._lma = []
 
-        #self._reference = []
+        self._reference = []
 
-        self._extraction_framerate  = -1.0
+        self._desired_emotion = np.asarray([0.0, 0.0, 0.0])
 
-        # TODO: CHANGE THIS TO GET THE ACTUAL CURRENT FRAMERATE!!!!
-        self._current_framerate = -1.0
+    def reset_coefficients(self):
+        self.c1 = [1.0]
+        self.c2 = [1.0]
+
+        self.c3 = [1.0]
+        self.c3_1 = [1.0] #C3_HANDS_HIPS_INDICES
+        self.c3_2 = [1.0] #C3_HANDS_CHEST_INDICES
+
+        self.c4 = [1.0]
+
+        self.c5 = [1.0] #C5
+
+        self.generated_mocap = []
+        self._reference = []
+
 
     def set_current_mocap(self, mocap):
         self._mocap = []
@@ -291,8 +304,8 @@ class MotionSynthesizer():
             frame.pop("frame")
             self._mocap.append(frame) # This already ignores the first frame, which is why we start i at 1
 
-            gen = {"root": frame["root"][0], "neck": frame["neck"][0], "left_wrist":frame["left_wrist"][0], "right_wrist":frame["right_wrist"][0], "left_elbow":frame["left_elbow"][0], "right_elbow":frame["right_elbow"][0]}
-            orn = {"root": frame["root"][1], "neck": frame["neck"][1], "left_wrist":frame["left_wrist"][1], "right_wrist":frame["right_wrist"][1], "left_elbow":frame["left_elbow"][1], "right_elbow":frame["right_elbow"][1]}
+            gen = {"root": frame["root"][0], "neck": frame["neck"][0], "left_wrist":frame["left_wrist"][0], "right_wrist":frame["right_wrist"][0], "left_elbow":frame["left_elbow"][0], "right_elbow":frame["right_elbow"][0], "left_ankle":frame["left_ankle"][0], "right_ankle":frame["right_ankle"][0]}
+            orn = {"root": frame["root"][1], "neck": frame["neck"][1], "left_wrist":frame["left_wrist"][1], "right_wrist":frame["right_wrist"][1], "left_elbow":frame["left_elbow"][1], "right_elbow":frame["right_elbow"][1], "left_ankle":frame["left_ankle"][1], "right_ankle":frame["right_ankle"][1]}
             
             self.generated_mocap.append({'index': i, 'mocap': gen, 'orn': orn})
 
@@ -319,11 +332,11 @@ class MotionSynthesizer():
 
     def set_reference_lma(self, lma=None):
         if(lma == None):
-            #self._reference = PRESET_EMOTIONS[(0.3, 0.3, 0.9)] # Confident
-            #self._desired_emotion = np.asarray([0.3, 0.3, 0.9])
+            self._reference = PRESET_EMOTIONS[(0.3, 0.3, 0.9)] # Confident
+            self._desired_emotion = np.asarray([0.3, 0.3, 0.9])
 
-            self._reference = PRESET_EMOTIONS[(-0.5, 0.8, 0.9)] # Angry
-            self._desired_emotion = np.asarray([-0.5, 0.8, 0.9])
+            #self._reference = PRESET_EMOTIONS[(-0.5, 0.8, 0.9)] # Angry
+            #self._desired_emotion = np.asarray([-0.5, 0.8, 0.9])
 
             #self._reference = PRESET_EMOTIONS[(-0.6, 0.7, -0.8)] # Afraid
             #self._desired_emotion = np.asarray([-0.6, 0.7, -0.8])
@@ -379,21 +392,19 @@ class MotionSynthesizer():
         self.compute_coefficient(1)
         self.compute_coefficient(2)
         
-        
-        #self.compute_coefficient(3)
         self.compute_coefficient(3.1)
         self.compute_coefficient(3.2)
         
-        
         self.compute_coefficient(4)
-        #self.compute_coefficient(4.1)
-        #self.compute_coefficient(4.2)
+        
+        self.compute_coefficient(5)
 
     def get_motion_changes(self):
         self.rule_1()
         self.rule_2()
         self.rule_3()
         self.rule_4()
+        self.rule_5()
 
         return self.generated_mocap
 
@@ -407,14 +418,17 @@ class MotionSynthesizer():
 
         frame_c1 = self.c1[closest_index]
         frame_c2 = self.c2[closest_index]
-        frame_c3 = 0.0
-        frame_c4 = 0.0
+        frame_c3_1 = self.c3_1[closest_index]
+        frame_c3_2 = self.c3_2[closest_index]
+        frame_c4 = self.c4[closest_index]
+        frame_c5 = self.c5[closest_index]
 
-        generated = {"mocap": {"root": [], "neck": [], "left_wrist": [], "right_wrist":[], "left_elbow":[], "right_elbow":[]}}
+        generated = {"mocap": {"root": [], "neck": [], "left_wrist": [], "right_wrist":[], "left_elbow":[], "right_elbow":[], "left_ankle": [], "right_ankle": []}}
         root = self.rule_1_single(frame, frame_c1)
         neck = self.rule_2_single(frame, frame_c2)
-        left_wrist, right_wrist = self.rule_3_single(frame, frame_c3)
+        left_wrist, right_wrist = self.rule_3_single(frame, frame_c3_1, frame_c3_2)
         left_elbow, right_elbow = self.rule_4_single(frame, frame_c4)
+        left_ankle, right_ankle = self.rule_4_single(frame, frame_c5)
 
         generated["mocap"]["root"] = root
         generated["mocap"]["neck"] = neck
@@ -422,6 +436,8 @@ class MotionSynthesizer():
         generated["mocap"]["right_wrist"] = right_wrist
         generated["mocap"]["left_elbow"] = left_elbow
         generated["mocap"]["right_elbow"] = right_elbow
+        generated["mocap"]["left_ankle"] = left_ankle
+        generated["mocap"]["right_ankle"] = right_ankle
 
         return generated
 
@@ -454,6 +470,10 @@ class MotionSynthesizer():
             print("== COMPUTING COEFFICIENT C4 - RIGHT ELBOW ==")
             feature_index = C4_RIGHT_INDICES
 
+        elif(coefficient_number == 5):
+            print("== COMPUTING COEFFICIENT C5 - FEET ==")
+            feature_index = C5_INDICES
+
         else:
             print("UNKNOWN COEFFICIENT!")
 
@@ -479,7 +499,7 @@ class MotionSynthesizer():
                        coefficient,
                        method='Powell',
                        #callback = self.minimize_callback,
-                       options={'maxiter': 50000, 'disp': False})
+                       options={'maxiter': 50000, 'disp': False}) # TODO: REDUCE MAXITER
 
         coefficient = res.x
         print(str(coefficient) + "\n")
@@ -502,6 +522,9 @@ class MotionSynthesizer():
             self.c4_1 = coefficient
         elif(coefficient_number == 4.2):
             self.c4_2 = coefficient
+
+        elif(coefficient_number == 5):
+            self.c5 = coefficient
 
     def compute_norms(self, reference, current_features, coefficient):
         norms = []
@@ -787,6 +810,79 @@ class MotionSynthesizer():
             print(self.generated_mocap[gen_index]
                   ['mocap']['right_elbow'])
             print()
+
+    def rule_5(self):
+        print("\n== RULE 5 - FEET ==")
+        # Move on Vector going from left foot to right and right foot to left (ignoring height)
+
+        coefficient_index = 0
+        for i in range(len(self._mocap)):
+            coefficient = self.c5[coefficient_index]
+            coefficient_index += 1
+
+            coefficient = min(coefficient, 1.5) # We dont want this coefficient to be too large
+            coefficient = max(coefficient, 0.5) # Or too small
+
+            current_left_ankle_pos = self._mocap[i]["left_ankle"][0]
+            current_right_ankle_pos = self._mocap[i]["right_ankle"][0]
+            current_root_pos = self._mocap[i]["root"][0]
+
+            # Unit Vectors #
+            d_right_2_root = np.asarray([current_root_pos[0] - current_right_ankle_pos[0], 
+                      0.0, 
+                      current_root_pos[2] - current_right_ankle_pos[2]])
+            d_right_2_root = d_right_2_root / np.linalg.norm(d_right_2_root)
+        
+            d_left_2_root = np.asarray([current_root_pos[0] - current_left_ankle_pos[0], 
+                      0.0, 
+                      current_root_pos[2] - current_left_ankle_pos[2]])
+            d_left_2_root = d_left_2_root / np.linalg.norm(d_left_2_root)
+
+
+            # Left #
+            new_left_ankle_pos_x = current_left_ankle_pos[0]
+            new_left_ankle_pos_y = current_left_ankle_pos[1]
+            new_left_ankle_pos_z = current_left_ankle_pos[2]
+
+            # Right #
+            new_right_ankle_pos_x = current_right_ankle_pos[0]
+            new_right_ankle_pos_y = current_right_ankle_pos[1]
+            new_right_ankle_pos_z = current_right_ankle_pos[2]
+
+
+            if(current_left_ankle_pos[0] > current_right_ankle_pos[0]): # If left ankle in front of right
+                # If coefficient is > 1.0 then we move forward (increase distance). Else we move backwards (decrease distance)
+                new_left_ankle_pos_x += d_left_2_root[0] * (coefficient-1.0) * 0.1
+                new_left_ankle_pos_z += d_left_2_root[2] * (coefficient-1.0) * 0.1
+            else:
+                new_left_ankle_pos_x -= d_left_2_root[0] * (coefficient-1.0) * 0.1
+                new_left_ankle_pos_z -= d_left_2_root[2] * (coefficient-1.0) * 0.1
+
+            if(current_right_ankle_pos[0] > current_left_ankle_pos[0]):
+                new_right_ankle_pos_x += d_right_2_root[0] * (coefficient-1.0) * 0.1
+                new_right_ankle_pos_z += d_right_2_root[2] * (coefficient-1.0) * 0.1
+            else:
+                new_right_ankle_pos_x -= d_right_2_root[0] * (coefficient-1.0) * 0.1
+                new_right_ankle_pos_z -= d_right_2_root[2] * (coefficient-1.0) * 0.1
+
+
+            gen_index = i
+
+            print(self.generated_mocap[gen_index]
+                  ['mocap']['left_ankle'])
+            self.generated_mocap[gen_index]['mocap']['left_ankle'] = (
+                new_left_ankle_pos_x, new_left_ankle_pos_y, new_left_ankle_pos_z)
+            print(self.generated_mocap[gen_index]
+                  ['mocap']['left_ankle'])
+            print()         
+
+            print(self.generated_mocap[gen_index]
+                  ['mocap']['right_ankle'])
+            self.generated_mocap[gen_index]['mocap']['right_ankle'] = (
+                new_right_ankle_pos_x, new_right_ankle_pos_y, new_right_ankle_pos_z)
+            print(self.generated_mocap[gen_index]
+                  ['mocap']['right_ankle'])
+            print()
             
 
     def rule_1_single(self, frame, coefficient):
@@ -804,7 +900,7 @@ class MotionSynthesizer():
 
         return generated_pose
 
-    def rule_3_single(self, frame, coefficient):
+    def rule_3_single(self, frame, coefficient_1, coefficient_2):
         print("\n== RULE 3 SINGLE - HANDS ==")
         generated_pose_l = (
                 frame["left_wrist"][0], frame["left_wrist"][1], frame["left_wrist"][2])
