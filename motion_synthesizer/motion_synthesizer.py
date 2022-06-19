@@ -184,35 +184,30 @@ T_POSE = {
     'left_wrist': [(-0.024049999192357063, 0.8354562520980835, -0.18310999870300293)]
 }
 
-#00          c3_hands           "max_hand_distance",
-#01          c3l_hips           "avg_l_hand_hip_distance",
-#02          c3r_hips           "avg_r_hand_hip_distance",
-#03          --                 "max_stride_length",
-#04          c3l_chest          "avg_l_hand_chest_distance",
-#05          c3r_chest          "avg_r_hand_chest_distance",
-#06          c4_l               "avg_l_elbow_hip_distance",
-#07          c4_r               "avg_r_elbow_hip_distance",
-#08          c1                 "avg_chest_pelvis_distance",
-#09          c2                 "avg_neck_chest_distance",
+#00          c3_hips, c3_chest          "max_hand_distance",
+#01          c3_hips                    "avg_l_hand_hip_distance",
+#02          c3_hips                    "avg_r_hand_hip_distance",
+#03          --                         "max_stride_length",
+#04          c3_chest                   "avg_l_hand_chest_distance",
+#05          c3_chest                   "avg_r_hand_chest_distance",
+#06          c4                         "avg_l_elbow_hip_distance",
+#07          c4                         "avg_r_elbow_hip_distance",
+#08          c1                         "avg_chest_pelvis_distance",
+#09          c2                         "avg_neck_chest_distance",
 #          
-#10          c1, c2,c3_hands    "avg_total_body_volume",
-#11          c1                 "avg_lower_body_volume",
-#12          c2,c3_hands        "avg_upper_body_volume",
+#10          c1, c2, c3_hips, c3_chest  "avg_total_body_volume",
+#11          c1                         "avg_lower_body_volume",
+#12          c2, c3_hips, c3_chest      "avg_upper_body_volume",
 #          
-#13          c3_hands, c3_chest "avg_triangle_area_hands_neck",
-#14          c1                 "avg_triangle_area_feet_hips",
+#13          c3_hands, c3_chest         "avg_triangle_area_hands_neck",
+#14          c1                         "avg_triangle_area_feet_hips",
 
 C1_INDICES = [8, 10, 11, 14]
 C2_INDICES = [9, 10, 12]
 
-C3_INDICES = [0,1,2,4,5,12,13]
-C3_HANDS_INDICES = [0, 10, 12, 13]
-
-C3_LEFT_HIPS_INDICES = [1]
-C3_RIGHT_HIPS_INDICES = [2]
-
-C3_LEFT_CHEST_INDICES = [4, 13]
-C3_RIGHT_CHEST_INDICES = [5, 13]
+C3_INDICES = [0,1,2,4,5, 10, 12,13]
+C3_HIPS_INDICES = [0, 1, 2, 10, 12, 13]
+C3_CHEST_INDICES = [0, 4, 5, 10, 12, 13]
 
 C4_INDICES = [6,7]
 C4_LEFT_INDICES = [6]
@@ -327,11 +322,11 @@ class MotionSynthesizer():
             #self._reference = PRESET_EMOTIONS[(0.3, 0.3, 0.9)] # Confident
             #self._desired_emotion = np.asarray([0.3, 0.3, 0.9])
 
-            #self._reference = PRESET_EMOTIONS[(-0.5, 0.8, 0.9)] # Angry
-            #self._desired_emotion = np.asarray([-0.5, 0.8, 0.9])
+            self._reference = PRESET_EMOTIONS[(-0.5, 0.8, 0.9)] # Angry
+            self._desired_emotion = np.asarray([-0.5, 0.8, 0.9])
 
-            self._reference = PRESET_EMOTIONS[(-0.6, 0.7, -0.8)] # Afraid
-            self._desired_emotion = np.asarray([-0.6, 0.7, -0.8])
+            #self._reference = PRESET_EMOTIONS[(-0.6, 0.7, -0.8)] # Afraid
+            #self._desired_emotion = np.asarray([-0.6, 0.7, -0.8])
 
         else:
             self._reference = lma
@@ -388,12 +383,8 @@ class MotionSynthesizer():
         #self.compute_coefficient(3)
         self.compute_coefficient(3.1)
         self.compute_coefficient(3.2)
-        self.compute_coefficient(3.3)
-        self.compute_coefficient(3.4)
-        self.compute_coefficient(3.5)
         
         
-        #self.compute_coefficient(4)
         self.compute_coefficient(4)
         #self.compute_coefficient(4.1)
         #self.compute_coefficient(4.2)
@@ -447,20 +438,11 @@ class MotionSynthesizer():
             print("== COMPUTING COEFFICIENT C3 - HANDS ==")
             feature_index = C3_INDICES
         elif(coefficient_number == 3.1):
-            print("== COMPUTING COEFFICIENT C3 - HANDS-HANDS ==")
-            feature_index = C3_HANDS_INDICES
+            print("== COMPUTING COEFFICIENT C3 - HANDS-HIPS ==")
+            feature_index = C3_HIPS_INDICES
         elif(coefficient_number == 3.2):
-            print("== COMPUTING COEFFICIENT C3 - L HAND-HIPS ==")
-            feature_index = C3_LEFT_HIPS_INDICES
-        elif(coefficient_number == 3.3):
-            print("== COMPUTING COEFFICIENT C3 - R HAND-HIPS ==")
-            feature_index = C3_RIGHT_HIPS_INDICES
-        elif(coefficient_number == 3.4):
-            print("== COMPUTING COEFFICIENT C3 - L HAND-CHEST ==")
-            feature_index = C3_LEFT_CHEST_INDICES
-        elif(coefficient_number == 3.5):
-            print("== COMPUTING COEFFICIENT C3 - R HAND-CBEST ==")
-            feature_index = C3_RIGHT_CHEST_INDICES
+            print("== COMPUTING COEFFICIENT C3 - HANDS-CHEST ==")
+            feature_index = C3_CHEST_INDICES
 
         elif(coefficient_number == 4):
             print("== COMPUTING COEFFICIENT C4 - ELBOWS ==")
@@ -513,13 +495,6 @@ class MotionSynthesizer():
             self.c3_1 = coefficient
         elif(coefficient_number == 3.2):
             self.c3_2 = coefficient
-        elif(coefficient_number == 3.3):
-            self.c3_3 = coefficient
-        elif(coefficient_number == 3.4):
-            self.c3_4 = coefficient
-        elif(coefficient_number == 3.5):
-            self.c3_5 = coefficient
-
             
         elif(coefficient_number == 4):
             self.c4 = coefficient
@@ -656,26 +631,35 @@ class MotionSynthesizer():
 
     def rule_3(self):
         print("\n== RULE 3 - HANDS ==")
-        # Move on Vector going from chest to wrist
+        # Move on Vector going from root to wrist and from wrist to neck
 
         coefficient_index = 0
         for i in range(len(self._mocap)):
-            #0 C3_HANDS_INDICES
-            #1 C3_LEFT_HIPS_INDICES
-            #2 C3_RIGHT_HIPS_INDICES
-            #3 C3_LEFT_CHEST_INDICES
-            #4 C3_RIGHT_CHEST_INDICES
+            #1 C3 HANDS HIPS
+            #2 C3 HANDS CHEST
 
-            coefficients = [self.c3_1[coefficient_index], self.c3_2[coefficient_index], self.c3_3[coefficient_index], self.c3_4[coefficient_index], self.c3_5[coefficient_index]]
+            coefficient_hips = self.c3_1[coefficient_index]
+            coefficient_chest = self.c3_2[coefficient_index]
             coefficient_index += 1
 
-            current_root = self._mocap[i]["root"][0]
-            current_chest = self._mocap[i]["chest"][0]
-            current_head = self._mocap[i]["neck"][0]
+            current_root_position = self._mocap[i]["root"][0]
+            current_head_position = self._mocap[i]["neck"][0]
 
             current_left_hand = self._mocap[i]["left_wrist"][0]
             current_right_hand = self._mocap[i]["right_wrist"][0]
 
+            # Unit Vectors ROOT #
+            # Left to Root #
+            d_left_hips = np.asarray([current_left_hand[0] - current_root_position[0], 
+                      current_left_hand[1] - current_root_position[1], 
+                      current_left_hand[2] - current_root_position[2]])
+            d_left_hips = d_left_hips / np.linalg.norm(d_left_hips)
+
+            # Right to Root #
+            d_right_hips = np.asarray([current_right_hand[0] - current_root_position[0], 
+                      current_right_hand[1] - current_root_position[1], 
+                      current_right_hand[2] - current_root_position[2]])
+            d_right_hips = d_right_hips / np.linalg.norm(d_right_hips)
 
             new_left_hand_position_x = current_left_hand[0]
             new_left_hand_position_y = current_left_hand[1]
@@ -686,22 +670,52 @@ class MotionSynthesizer():
             new_right_hand_position_z = current_right_hand[2]
 
             # LEFT #
-
+            new_left_hand_position_x += d_left_hips[0] * (coefficient_hips-1.0) * 0.15
+            new_left_hand_position_y += d_left_hips[1] * (coefficient_hips-1.0) * 0.15
+            new_left_hand_position_z += d_left_hips[2] * (coefficient_hips-1.0) * 0.15
 
             # RIGHT #
+            new_right_hand_position_x += d_right_hips[0] * (coefficient_hips-1.0) * 0.15
+            new_right_hand_position_y += d_right_hips[1] * (coefficient_hips-1.0) * 0.15
+            new_right_hand_position_z += d_right_hips[2] * (coefficient_hips-1.0) * 0.15
+
+
+            # Unit Vectors HEAD #
+            # Neck to Left #
+            d_left_head = np.asarray([current_head_position[0] - new_left_hand_position_x, 
+                      current_head_position[1] - new_left_hand_position_y, 
+                      current_head_position[2] - new_left_hand_position_z])
+            d_left_head = d_left_head / np.linalg.norm(d_left_head)
+
+            # Right to Head #
+            d_right_head = np.asarray([current_head_position[0] - new_right_hand_position_x, 
+                      current_head_position[1] - new_right_hand_position_y, 
+                      current_head_position[2] - new_right_hand_position_z])
+            d_right_head = d_right_head / np.linalg.norm(d_right_head)
+
+
+            # LEFT #
+            new_left_hand_position_x -= d_left_head[0] * (coefficient_chest-1.0) * 0.3
+            new_left_hand_position_y -= d_left_head[1] * (coefficient_chest-1.0) * 0.3
+            new_left_hand_position_z -= d_left_head[2] * (coefficient_chest-1.0) * 0.3
+
+            # RIGHT #
+            new_right_hand_position_x -= d_right_head[0] * (coefficient_chest-1.0) * 0.3
+            new_right_hand_position_y -= d_right_head[1] * (coefficient_chest-1.0) * 0.3
+            new_right_hand_position_z -= d_right_head[2] * (coefficient_chest-1.0) * 0.3
 
 
             gen_index = i
 
-            #print(self.generated_mocap[gen_index]
-            #      ['mocap']['left_wrist'])
-            #self.generated_mocap[gen_index]['mocap']['left_wrist'] = (
-            #    new_left_hand_position_x, new_left_hand_position_y, new_left_hand_position_z)
-            #self.generated_mocap[gen_index]['mocap']['right_wrist'] = (
-            #    new_right_hand_position_x, new_right_hand_position_y, new_right_hand_position_z)
-            #print(self.generated_mocap[gen_index]
-            #      ['mocap']['left_wrist'])
-            #print()
+            print(self.generated_mocap[gen_index]
+                  ['mocap']['left_wrist'])
+            self.generated_mocap[gen_index]['mocap']['left_wrist'] = (
+                new_left_hand_position_x, new_left_hand_position_y, new_left_hand_position_z)
+            self.generated_mocap[gen_index]['mocap']['right_wrist'] = (
+                new_right_hand_position_x, new_right_hand_position_y, new_right_hand_position_z)
+            print(self.generated_mocap[gen_index]
+                  ['mocap']['left_wrist'])
+            print()
         
     def rule_4(self):
         print("\n== RULE 4 - ELBOWS ==")

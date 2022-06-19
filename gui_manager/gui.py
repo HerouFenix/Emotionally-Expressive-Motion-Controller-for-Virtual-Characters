@@ -45,7 +45,7 @@ COLOURS = {
 class GUIManager():
     def __init__(self):
         self.window = tk.Tk()
-        self.window.minsize(400,475)
+        self.window.minsize(415,500)
         self.window.title("Emotion Prediction and Synthesis")
 
         # Emotion Classification frame
@@ -76,9 +76,9 @@ class GUIManager():
         font =('Verdana 11'))
         self.dominance_text.grid(row=3, column=1, sticky=tk.W)
 
-        self.closest_emotion = tk.Label(self.e_frame, text = 'Closest Emotion: neutral', 
-        font =('Verdana 11 bold'))
-        self.closest_emotion.grid(row=4, pady=15, columnspan=2)
+        #self.closest_emotion = tk.Label(self.e_frame, text = 'Closest Emotion: neutral', 
+        #font =('Verdana 11 bold'))
+        #self.closest_emotion.grid(row=4, pady=15, columnspan=2)
 
 
         # Emotion Classification frame
@@ -90,31 +90,61 @@ class GUIManager():
 
         self.n_frame.columnconfigure(0, weight=1)
         self.n_frame.columnconfigure(1, weight=1)
+        self.n_frame.columnconfigure(2, weight=1)
 
         tk.Label(self.n_frame, text = 'Pleasure:', 
         font =('Verdana 11 bold')).grid(row=1, column=0)
         self.new_pleasure = tk.Entry(self.n_frame, 
         font =('Verdana 11'))
         self.new_pleasure.insert(0,"0.0")
-        self.new_pleasure.grid(row=1, column=1, sticky=tk.W)
+        self.new_pleasure.grid(row=1, column=1, columnspan=2, sticky=tk.W)
 
         tk.Label(self.n_frame, text = 'Arousal:', 
         font =('Verdana 11 bold')).grid(row=2, column=0)
         self.new_arousal = tk.Entry(self.n_frame, 
         font =('Verdana 11'))
         self.new_arousal.insert(0,"0.0")
-        self.new_arousal.grid(row=2, column=1, sticky=tk.W)
+        self.new_arousal.grid(row=2, column=1, columnspan=2, sticky=tk.W)
 
         tk.Label(self.n_frame, text = 'Dominance:', 
         font =('Verdana 11 bold')).grid(row=3, column=0)
         self.new_dominance = tk.Entry(self.n_frame, 
         font =('Verdana 11'))
         self.new_dominance.insert(0,"0.0")
-        self.new_dominance.grid(row=3, column=1, sticky=tk.W)
+        self.new_dominance.grid(row=3, column=1, columnspan=2, sticky=tk.W)
 
         self.start_motion_synthesis = tk.Button(self.n_frame, text = 'CONFIRM', 
         font =('Verdana 11 bold'))
-        self.start_motion_synthesis.grid(row=6, pady=15, columnspan=2)
+        self.start_motion_synthesis.grid(row=4, pady=15, columnspan=3)
+
+        # Preset Emotions
+        # Row 1
+        self.normal_button = tk.Button(self.n_frame, text = 'Normal', 
+        font =('Verdana 10 bold'), width=7, command= lambda: self._change_emotion_by_preset(0))
+        self.normal_button.grid(row=5, pady=5, column=0, columnspan=1)
+
+        self.confident_button = tk.Button(self.n_frame, text = 'Confident', 
+        font =('Verdana 10 bold'), width=7, command= lambda: self._change_emotion_by_preset(1))
+        self.confident_button.grid(row=5, pady=5, column=1, columnspan=1)
+
+        self.angry_button = tk.Button(self.n_frame, text = 'Angry', 
+        font =('Verdana 10 bold'), width=7, command= lambda: self._change_emotion_by_preset(2))
+        self.angry_button.grid(row=5, pady=5, column=2, columnspan=1)
+
+        # Row 2
+        self.afraid_button = tk.Button(self.n_frame, text = 'Afraid', 
+        font =('Verdana 10 bold'), width=7, command= lambda: self._change_emotion_by_preset(3))
+        self.afraid_button.grid(row=6, pady=5, column=0, columnspan=1)
+
+        self.happy_button = tk.Button(self.n_frame, text = 'Happy', 
+        font =('Verdana 10 bold'), width=7, command= lambda: self._change_emotion_by_preset(4))
+        self.happy_button.grid(row=6, pady=5, column=1, columnspan=1)
+
+        self.sad_button = tk.Button(self.n_frame, text = 'Sad', 
+        font =('Verdana 10 bold'), width=7, command= lambda: self._change_emotion_by_preset(5))
+        self.sad_button.grid(row=6, pady=5, column=2, columnspan=1)
+
+
 
 
         # Emotion Classification frame
@@ -148,6 +178,71 @@ class GUIManager():
     def update(self):
         self.window.update()
 
+    def _change_emotion_by_preset(self, index):
+        if(index == 0): # Neutral
+            self.new_pleasure.delete(0,tk.END)
+            self.new_pleasure.insert(0,"0.05")
+
+            self.new_arousal.delete(0,tk.END)
+            self.new_arousal.insert(0,"-0.1")
+
+            self.new_dominance.delete(0,tk.END)
+            self.new_dominance.insert(0,"0.0")
+        elif(index == 1): # Confident
+            self.new_pleasure.delete(0,tk.END)
+            self.new_pleasure.insert(0,"0.3")
+
+            self.new_arousal.delete(0,tk.END)
+            self.new_arousal.insert(0,"0.3")
+
+            self.new_dominance.delete(0,tk.END)
+            self.new_dominance.insert(0,"0.9")
+        elif(index == 2): # Angry
+            self.new_pleasure.delete(0,tk.END)
+            self.new_pleasure.insert(0,"-0.5")
+
+            self.new_arousal.delete(0,tk.END)
+            self.new_arousal.insert(0,"0.8")
+
+            self.new_dominance.delete(0,tk.END)
+            self.new_dominance.insert(0,"0.9")
+        elif(index == 3): # Afraid
+            self.new_pleasure.delete(0,tk.END)
+            self.new_pleasure.insert(0,"-0.6")
+
+            self.new_arousal.delete(0,tk.END)
+            self.new_arousal.insert(0,"0.7")
+
+            self.new_dominance.delete(0,tk.END)
+            self.new_dominance.insert(0,"-0.8")
+        elif(index == 4): # Happy
+            self.new_pleasure.delete(0,tk.END)
+            self.new_pleasure.insert(0,"0.8")
+
+            self.new_arousal.delete(0,tk.END)
+            self.new_arousal.insert(0,"0.5")
+
+            self.new_dominance.delete(0,tk.END)
+            self.new_dominance.insert(0,"0.15")
+        elif(index == 5): # Sad
+            self.new_pleasure.delete(0,tk.END)
+            self.new_pleasure.insert(0,"-0.6")
+
+            self.new_arousal.delete(0,tk.END)
+            self.new_arousal.insert(0,"-0.4")
+
+            self.new_dominance.delete(0,tk.END)
+            self.new_dominance.insert(0,"-0.3")
+        else: # Neutral
+            self.new_pleasure.delete(0,tk.END)
+            self.new_pleasure.insert(0,"0.05")
+
+            self.new_arousal.delete(0,tk.END)
+            self.new_arousal.insert(0,"-0.1")
+
+            self.new_dominance.delete(0,tk.END)
+            self.new_dominance.insert(0,"0.0")
+
     def _find_closest_emotion(self, pad):
         p, a, d = pad
         #dist = lambda key: (p - EMOTION_COORDINATES[key][0]) ** 2 + (a - EMOTION_COORDINATES[key][1]) ** 2 + (d - EMOTION_COORDINATES[key][2]) ** 2
@@ -159,7 +254,7 @@ class GUIManager():
         self.arousal_text.config(text = str(arousal))
         self.dominance_text.config(text = str(dominance))
         
-        self.closest_emotion.config(text = "Closest Emotion: " + self._find_closest_emotion((pleasure,arousal,dominance)))
+        #self.closest_emotion.config(text = "Closest Emotion: " + self._find_closest_emotion((pleasure,arousal,dominance)))
 
     def change_animation_status(self, new_status):
         if(new_status == 0):
