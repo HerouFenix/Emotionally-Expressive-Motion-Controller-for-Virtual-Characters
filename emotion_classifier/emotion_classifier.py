@@ -13,19 +13,19 @@ xgb.set_config(verbosity=0)
 class EmotionClassifier():
     def __init__(self):
         self._model_p = xgb.XGBRegressor(verbosity=0)
-        self._model_p.load_model("../emotion_classifier/models/bandai_kin5_l2p_model.json")
+        self._model_p.load_model("../emotion_classifier/models/bandai_l2p_model.json")
 
         self._model_a = xgb.XGBRegressor(verbosity=0)
-        self._model_a.load_model("../emotion_classifier/models/bandai_kin5_l2a_model.json")
+        self._model_a.load_model("../emotion_classifier/models/bandai_l2a_model.json")
 
         self._model_d = xgb.XGBRegressor(verbosity=0)
-        self._model_d.load_model("../emotion_classifier/models/bandai_kin5_l2d_model.json")
+        self._model_d.load_model("../emotion_classifier/models/bandai_l2d_model.json")
 
         self.p_predictions = []
         self.a_predictions = []
         self.d_predictions = []
         
-        self.normalizer = joblib.load(r'../emotion_classifier/models/scalers/S_BANDAI_KIN5_5frame.pkl') 
+        self.normalizer = joblib.load(r'../emotion_classifier/models/scalers/S_BANDAI_5frame.pkl') 
 
         self.predicted_p = 0.0
         self.predicted_a = 0.0

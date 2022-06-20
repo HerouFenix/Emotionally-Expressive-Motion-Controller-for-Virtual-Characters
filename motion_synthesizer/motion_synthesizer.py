@@ -51,21 +51,7 @@ PRESET_EMOTIONS = {
    0.0859726 ,  0.02596105,  0.21177863, -0.2379167 , -0.21990552, -0.16867742,
   -0.28235362, -0.21497578,  0.02257726,  0.07411671,  0.0837294 ,  0.01054426,
    0.02439681],
-    
-    # HAPPY
-    (0.8, 0.5, 0.15): [ 0.62895403,  0.28924824,  0.33817309,  0.30717667,  0.39698883,  0.42866225,
-   0.23510907,  0.26563808,  0.23615096,  0.22389403,  0.32104657,  0.02306457,
-   0.0543723 ,  0.15397796,  0.09533507, -0.02423276, -0.15098949, -0.11906824,
-  -0.03863518, -0.07934174,  0.04183279,  0.03219935,  0.0057589 ,  0.01831188,
-   0.01759122],
-    
-    # HAPPY 2
-    (0.6, 0.4, 0.1): [ 0.54932366,  0.14031404,  0.43870564,  0.3856451,   0.17669227,  0.42007307,
-   0.09711947,  0.25737955,  0.23615102,  0.223894  ,  0.35843939,  0.08044427,
-   0.05713033,  0.09086024,  0.1029739 , -0.15114259, -0.18987385, -0.17932219,
-  -0.07464918, -0.1615106 ,  0.02929636,  0.02472049,  0.02621871,  0.01596762,
-   0.01032188],
-    
+
     # SAD
     (-0.6, -0.4, -0.3): [ 0.48203249,  0.30429993,  0.32106327,  0.3275376,   0.17515474,  0.30992711,
    0.25770942,  0.38230947,  0.23615101,  0.223894  ,  0.35171322,  0.08729186,
@@ -124,8 +110,8 @@ PRESET_EMOTIONS = {
   -0.00205315, -0.00272447 , 0.03883486 , 0.00842329 , 0.00230566 , 0.00163432,
    0.00361933],
 
-    # HAPPY 3
-    (0.6, 0.5, 0.2): [ 0.87840172,  0.40800089,  0.69014457,  0.60317439,  0.4222134,   0.57671535,
+    # HAPPY
+    (0.8, 0.5, 0.15): [ 0.87840172,  0.40800089,  0.69014457,  0.60317439,  0.4222134,   0.57671535,
    0.22764189,  0.396286  ,  0.236151  ,  0.223894  ,  0.5703048 ,  0.1081096,
    0.14953151,  0.14243552,  0.22793017, -0.09510082, -0.15857715, -0.06167734,
   -0.07744886, -0.07451435,  0.05870626,  0.06389066,  0.03951913,  0.04674497,
@@ -153,13 +139,6 @@ PRESET_EMOTIONS = {
    0.06255196,  0.01292796,  0.1270879 , -0.02234098, -0.02249944, -0.01096152,
   -0.0250001 , -0.01976945,  0.0124769 ,  0.01528433,  0.00939255,  0.03051273,
    0.01267987],
-
-    # NEUTRAL 2
-    (0.0, 0.0, 0.0): [ 0.65396667,  0.39230998,  0.26207914,  0.28074901,  0.43823131,  0.37012581,
-   0.29183602,  0.22392862,  0.23615098,  0.22389404,  0.29173512,  0.10834897,
-   0.05081195,  0.14995357,  0.0809965 , -0.00239144, -0.01068324, -0.00267103,
-  -0.01422459, -0.00402122,  0.00279384,  0.00551916,  0.00357097,  0.00630504,
-   0.00334763],
 }
 
 
@@ -343,6 +322,17 @@ class MotionSynthesizer():
 
         else:
             self._reference = lma
+
+
+    def _find_closest_emotion(self, pad):
+        p, a, d = pad
+        #dist = lambda key: (p - EMOTION_COORDINATES[key][0]) ** 2 + (a - EMOTION_COORDINATES[key][1]) ** 2 + (d - EMOTION_COORDINATES[key][2]) ** 2
+        dist = lambda key: (p - key[0]) ** 2 + (a - key[1]) ** 2 + (d - key[2]) ** 2
+        closest_coordinates = min(PRESET_EMOTIONS, key=dist)
+
+        distance = (p - closest_coordinates[0]) ** 2 + (a - closest_coordinates[1]) ** 2 + (d - closest_coordinates[2]) ** 2
+
+        return closest_coordinates, distance
     
     def set_desired_pad(self, pad):
         lma = []
@@ -378,14 +368,22 @@ class MotionSynthesizer():
             "neck_acceleration_magnitude",
         ]
 
-        pad = np.asarray([pad])
-        self._desired_emotion = pad
 
-        for feature in pad_order:
-            lma.append(self._models[feature].predict(pad)[0])
+        # Check if we have a "close enough" preset emotion
+        emotion, dist = self._find_closest_emotion(pad)
+        if(dist <= 0.05):
+            lma = PRESET_EMOTIONS[emotion]
+            pad = np.asarray([emotion[0], emotion[1], emotion[2]])
+            self._desired_emotion = pad
+        else:
+            # Else call our models (TODO)
+            pad = np.asarray([pad[0], pad[1], pad[2]])
+            self._desired_emotion = pad
+            #for feature in pad_order:
+            #    lma.append(self._models[feature].predict(pad)[0])
         
         self._reference = lma
-        print(self._reference)
+        #print(self._reference)
 
 
     def compute_coefficients(self):
@@ -413,22 +411,22 @@ class MotionSynthesizer():
         #closest_index = int((counter/self._frame_worth)/self._extraction_framerate)
         closest_index = int(counter/5)
 
-        if(closest_index >= len(self.c1)):
-            closest_index = len(self.c1)-1
+        #if(closest_index >= len(self.c1)):
+        #    closest_index = len(self.c1)-1
 
-        frame_c1 = self.c1[closest_index]
-        frame_c2 = self.c2[closest_index]
-        frame_c3_1 = self.c3_1[closest_index]
-        frame_c3_2 = self.c3_2[closest_index]
-        frame_c4 = self.c4[closest_index]
-        frame_c5 = self.c5[closest_index]
+        frame_c1 = self.c1#[closest_index]
+        frame_c2 = self.c2#[closest_index]
+        frame_c3_1 = self.c3_1#[closest_index]
+        frame_c3_2 = self.c3_2#[closest_index]
+        frame_c4 = self.c4#[closest_index]
+        frame_c5 = self.c5#[closest_index]
 
         generated = {"mocap": {"root": [], "neck": [], "left_wrist": [], "right_wrist":[], "left_elbow":[], "right_elbow":[], "left_ankle": [], "right_ankle": []}}
         root = self.rule_1_single(frame, frame_c1)
         neck = self.rule_2_single(frame, frame_c2)
         left_wrist, right_wrist = self.rule_3_single(frame, frame_c3_1, frame_c3_2)
         left_elbow, right_elbow = self.rule_4_single(frame, frame_c4)
-        left_ankle, right_ankle = self.rule_4_single(frame, frame_c5)
+        left_ankle, right_ankle = self.rule_5_single(frame, frame_c5)
 
         generated["mocap"]["root"] = root
         generated["mocap"]["neck"] = neck
@@ -493,7 +491,7 @@ class MotionSynthesizer():
 
         self.current_features = np.asarray(self.current_features)
 
-        coefficient = [1.0] * len(self.current_features)
+        coefficient = 1.0 #[1.0] * len(self.current_features)
 
         res = minimize(self.compute_sse,
                        coefficient,
@@ -531,7 +529,7 @@ class MotionSynthesizer():
 
         for i in range(len(current_features)):
             norms.append(np.linalg.norm(
-                reference - (current_features[i] * coefficient[i])) ** 2)
+                reference - (current_features[i] * coefficient)) ** 2)
 
         return norms
 
@@ -559,7 +557,7 @@ class MotionSynthesizer():
 
         coefficient_index = 0
         for i in range(len(self._mocap)):
-            coefficient = self.c1[coefficient_index]
+            coefficient = self.c1#[coefficient_index]
             coefficient_index += 1
             
             current_root_height = self._mocap[i]["root"][0][1]
@@ -576,7 +574,7 @@ class MotionSynthesizer():
             # If Coefifcient > 1.0 -> Move Up (new root height += positive value) ; Else Move Down (new root height += negative value)
             #e.g coefficient = 1.2 -> new height += 0.2
             #e.g coefficient = 0.8 -> new height += -0.2
-            new_root_height += 1.0 * ((coefficient - 1.0) * 0.075) #0.075 -> dampening factor
+            new_root_height += 1.0 * ((coefficient - 1.0) * 0.1) #0.1 -> dampening factor
 
                 
             gen_index = i
@@ -604,7 +602,7 @@ class MotionSynthesizer():
 
         coefficient_index = 0
         for i in range(len(self._mocap)):
-            coefficient = self.c2[coefficient_index]
+            coefficient = self.c2#[coefficient_index]
             coefficient_index += 1
 
             current_root_position = self._mocap[i]["root"][0]
@@ -623,23 +621,23 @@ class MotionSynthesizer():
             if(self._desired_emotion[0] < 0.0 and self._desired_emotion[2] > 0.0):
                 # Usually, high Dominance have the character arch back to elevate the shoulders. For angry (i.e when the pleasure is also low) this is the opposite
 
-                dampening_factor_x = 0.2
-                dampening_factor_y = 0.1
+                dampening_factor_x = 0.25
+                dampening_factor_y = 0.15
 
                 if(coefficient > 1.0):
-                    new_neck_position_x += 1.0 * ((coefficient - 1.0) * dampening_factor_x) 
-                    new_neck_position_y -= 1.0 * ((coefficient - 1.0) * dampening_factor_y) 
+                    new_neck_position_x += 1.0 * (((coefficient+0.2) - 1.0) * dampening_factor_x) 
+                    new_neck_position_y -= 1.0 * (((coefficient+0.2) - 1.0) * dampening_factor_y) 
                 else:
-                    new_neck_position_x -= 1.0 * ((coefficient - 1.0) * dampening_factor_x) 
-                    new_neck_position_y += 1.0 * ((coefficient - 1.0) * dampening_factor_y) 
+                    new_neck_position_x -= 1.0 * (((coefficient-0.2) - 1.0) * dampening_factor_x) 
+                    new_neck_position_y += 1.0 * (((coefficient-0.2) - 1.0) * dampening_factor_y) 
 
             else:
                 if(coefficient > 1.0):
-                    dampening_factor_x = 0.05
-                    dampening_factor_y = 0.03
+                    dampening_factor_x = 0.25
+                    dampening_factor_y = 0.15
                 else:
-                    dampening_factor_x = 0.2
-                    dampening_factor_y = 0.08
+                    dampening_factor_x = 0.25
+                    dampening_factor_y = 0.15
 
                 new_neck_position_x -= 1.0 * ((coefficient - 1.0) * dampening_factor_x) 
                 new_neck_position_y += 1.0 * ((coefficient - 1.0) * dampening_factor_y) 
@@ -661,8 +659,8 @@ class MotionSynthesizer():
             #1 C3 HANDS HIPS
             #2 C3 HANDS CHEST
 
-            coefficient_hips = self.c3_1[coefficient_index]
-            coefficient_chest = self.c3_2[coefficient_index]
+            coefficient_hips = self.c3_1#[coefficient_index]
+            coefficient_chest = self.c3_2#[coefficient_index]
             coefficient_index += 1
 
             current_root_position = self._mocap[i]["root"][0]
@@ -670,6 +668,9 @@ class MotionSynthesizer():
 
             current_left_hand = self._mocap[i]["left_wrist"][0]
             current_right_hand = self._mocap[i]["right_wrist"][0]
+
+            current_left_elbow = self._mocap[i]["left_elbow"][0]
+            current_right_elbow = self._mocap[i]["right_elbow"][0]
 
             # Unit Vectors ROOT #
             # Left to Root #
@@ -693,39 +694,69 @@ class MotionSynthesizer():
             new_right_hand_position_z = current_right_hand[2]
 
             # LEFT #
-            new_left_hand_position_x += d_left_hips[0] * (coefficient_hips-1.0) * 0.15
-            new_left_hand_position_y += d_left_hips[1] * (coefficient_hips-1.0) * 0.15
-            new_left_hand_position_z += d_left_hips[2] * (coefficient_hips-1.0) * 0.15
+            new_left_hand_position_x += d_left_hips[0] * (coefficient_hips-1.0) * 0.3
+            new_left_hand_position_y += d_left_hips[1] * (coefficient_hips-1.0) * 0.3
+            new_left_hand_position_z += d_left_hips[2] * (coefficient_hips-1.0) * 0.3
 
-            # RIGHT #
-            new_right_hand_position_x += d_right_hips[0] * (coefficient_hips-1.0) * 0.15
-            new_right_hand_position_y += d_right_hips[1] * (coefficient_hips-1.0) * 0.15
-            new_right_hand_position_z += d_right_hips[2] * (coefficient_hips-1.0) * 0.15
+            ## RIGHT #
+            new_right_hand_position_x += d_right_hips[0] * (coefficient_hips-1.0) * 0.3
+            new_right_hand_position_y += d_right_hips[1] * (coefficient_hips-1.0) * 0.3
+            new_right_hand_position_z += d_right_hips[2] * (coefficient_hips-1.0) * 0.3
 
 
             # Unit Vectors HEAD #
-            # Neck to Left #
-            d_left_head = np.asarray([current_head_position[0] - new_left_hand_position_x, 
+            # Left to Head #
+            d_left_head = np.asarray([current_head_position[0] + 0.4 - new_left_hand_position_x, 
                       current_head_position[1] - new_left_hand_position_y, 
                       current_head_position[2] - new_left_hand_position_z])
             d_left_head = d_left_head / np.linalg.norm(d_left_head)
 
             # Right to Head #
-            d_right_head = np.asarray([current_head_position[0] - new_right_hand_position_x, 
+            d_right_head = np.asarray([current_head_position[0] + 0.4 - new_right_hand_position_x, 
                       current_head_position[1] - new_right_hand_position_y, 
                       current_head_position[2] - new_right_hand_position_z])
             d_right_head = d_right_head / np.linalg.norm(d_right_head)
 
 
-            # LEFT #
-            new_left_hand_position_x -= d_left_head[0] * (coefficient_chest-1.0) * 0.3
-            new_left_hand_position_y -= d_left_head[1] * (coefficient_chest-1.0) * 0.3
-            new_left_hand_position_z -= d_left_head[2] * (coefficient_chest-1.0) * 0.3
+            if(self._desired_emotion[0] < 0.0 and self._desired_emotion[1] < 0.0 and self._desired_emotion[2] < 0.0):
+                # LEFT #
+                new_left_hand_position_x -= d_left_head[0] * (coefficient_chest-1.0) * 0.5
+                new_left_hand_position_y += d_left_head[1] * (coefficient_chest-1.0) * 0.5
+                new_left_hand_position_z -= d_left_head[2] * (coefficient_chest-1.0) * 0.5
 
-            # RIGHT #
-            new_right_hand_position_x -= d_right_head[0] * (coefficient_chest-1.0) * 0.3
-            new_right_hand_position_y -= d_right_head[1] * (coefficient_chest-1.0) * 0.3
-            new_right_hand_position_z -= d_right_head[2] * (coefficient_chest-1.0) * 0.3
+                # RIGHT #
+                new_right_hand_position_x -= d_right_head[0] * (coefficient_chest-1.0) * 0.5
+                new_right_hand_position_y += d_right_head[1] * (coefficient_chest-1.0) * 0.5
+                new_right_hand_position_z -= d_right_head[2] * (coefficient_chest-1.0) * 0.5
+
+                # Left to Elbow #
+                #d_left_elbow = np.asarray([current_left_elbow[0] - new_left_hand_position_x, 
+                #        0.0, 
+                #        current_left_elbow[2] - new_left_hand_position_z])
+                #d_left_elbow = d_left_elbow / np.linalg.norm(d_left_elbow)
+
+                #new_left_hand_position_x -= d_left_elbow[0] * (coefficient_chest-1.0) * 0.2
+                #new_left_hand_position_z -= d_left_elbow[2] * (coefficient_chest-1.0) * 0.2
+
+                # Right to Elbow #
+                #d_right_elbow = np.asarray([current_right_elbow[0] - new_right_hand_position_x, 
+                #        0.0, 
+                #        current_right_elbow[2] - new_right_hand_position_z])
+                #d_right_elbow = d_right_elbow / np.linalg.norm(d_right_elbow)
+
+                #new_right_hand_position_x -= d_right_elbow[0] * (coefficient_chest-1.0) * 0.2
+                #new_right_hand_position_z -= d_right_elbow[2] * (coefficient_chest-1.0) * 0.2
+
+            else:
+                # LEFT #
+                new_left_hand_position_x -= d_left_head[0] * (coefficient_chest-1.0) * 0.5
+                new_left_hand_position_y -= d_left_head[1] * (coefficient_chest-1.0) * 0.5
+                new_left_hand_position_z -= d_left_head[2] * (coefficient_chest-1.0) * 0.5
+
+                # RIGHT #
+                new_right_hand_position_x -= d_right_head[0] * (coefficient_chest-1.0) * 0.5
+                new_right_hand_position_y -= d_right_head[1] * (coefficient_chest-1.0) * 0.5
+                new_right_hand_position_z -= d_right_head[2] * (coefficient_chest-1.0) * 0.5
 
 
             gen_index = i
@@ -746,7 +777,7 @@ class MotionSynthesizer():
 
         coefficient_index = 0
         for i in range(len(self._mocap)):
-            coefficient = self.c4[coefficient_index]
+            coefficient = self.c4#[coefficient_index]
             coefficient_index += 1
 
             current_left_elbow_pos = self._mocap[i]["left_elbow"][0]
@@ -774,24 +805,34 @@ class MotionSynthesizer():
             new_right_elbow_pos_y = current_right_elbow_pos[1]
             new_right_elbow_pos_z = current_right_elbow_pos[2]
 
-            if(self._desired_emotion[0] < -0.3 and self._desired_emotion[1] > 0.5 and self._desired_emotion[2] < -0.3): 
+            if((self._desired_emotion[0] < -0.3 and self._desired_emotion[1] > 0.5 and self._desired_emotion[2] < -0.3)): 
                 #Usually, high Arousal emotions have broad elbows, but for afraid that is different
 
-                new_left_elbow_pos_x -= d_left[0] * (coefficient-1.0) * 0.5
-                new_left_elbow_pos_y -= d_left[1] * (coefficient-1.0) * 0.5
-                new_left_elbow_pos_z -= d_left[2] * (coefficient-1.0) * 0.5
+                new_left_elbow_pos_x -= d_left[0] * (coefficient-1.0) * 0.4
+                new_left_elbow_pos_y -= d_left[1] * (coefficient-1.0) * 0.4
+                new_left_elbow_pos_z -= d_left[2] * (coefficient-1.0) * 0.4
 
-                new_right_elbow_pos_x -= d_right[0] * (coefficient-1.0) * 0.5
-                new_right_elbow_pos_y -= d_right[1] * (coefficient-1.0) * 0.5
-                new_right_elbow_pos_z -= d_right[2] * (coefficient-1.0) * 0.5
+                new_right_elbow_pos_x -= d_right[0] * (coefficient-1.0) * 0.4
+                new_right_elbow_pos_y -= d_right[1] * (coefficient-1.0) * 0.4
+                new_right_elbow_pos_z -= d_right[2] * (coefficient-1.0) * 0.4
+
+            elif(self._desired_emotion[0] < 0.0 and self._desired_emotion[1] < 0.0 and self._desired_emotion[2] < 0.0):
+                new_left_elbow_pos_x -= d_left[0] * (coefficient-1.0) * 0.3
+                new_left_elbow_pos_y -= d_left[1] * (coefficient-1.0) * 0.3
+                new_left_elbow_pos_z -= d_left[2] * (coefficient-1.0) * 0.3
+
+                new_right_elbow_pos_x -= d_right[0] * (coefficient-1.0) * 0.3
+                new_right_elbow_pos_y -= d_right[1] * (coefficient-1.0) * 0.3
+                new_right_elbow_pos_z -= d_right[2] * (coefficient-1.0) * 0.3
+
             else:
                 new_left_elbow_pos_x += d_left[0] * (coefficient-1.0) * 0.5
-                new_left_elbow_pos_y += d_left[1] * (coefficient-1.0) * 0.5
-                new_left_elbow_pos_z += d_left[2] * (coefficient-1.0) * 0.5
+                new_left_elbow_pos_y += d_left[1] * (coefficient-1.0) * 0.4
+                new_left_elbow_pos_z += d_left[2] * (coefficient-1.0) * 0.4
 
                 new_right_elbow_pos_x += d_right[0] * (coefficient-1.0) * 0.5
-                new_right_elbow_pos_y += d_right[1] * (coefficient-1.0) * 0.5
-                new_right_elbow_pos_z += d_right[2] * (coefficient-1.0) * 0.5
+                new_right_elbow_pos_y += d_right[1] * (coefficient-1.0) * 0.4
+                new_right_elbow_pos_z += d_right[2] * (coefficient-1.0) * 0.4
 
             gen_index = i
 
@@ -809,7 +850,7 @@ class MotionSynthesizer():
                 new_right_elbow_pos_x, new_right_elbow_pos_y, new_right_elbow_pos_z)
             print(self.generated_mocap[gen_index]
                   ['mocap']['right_elbow'])
-            print()
+            print()    
 
     def rule_5(self):
         print("\n== RULE 5 - FEET ==")
@@ -817,7 +858,7 @@ class MotionSynthesizer():
 
         coefficient_index = 0
         for i in range(len(self._mocap)):
-            coefficient = self.c5[coefficient_index]
+            coefficient = self.c5#[coefficient_index]
             coefficient_index += 1
 
             coefficient = min(coefficient, 1.5) # We dont want this coefficient to be too large
@@ -828,15 +869,15 @@ class MotionSynthesizer():
             current_root_pos = self._mocap[i]["root"][0]
 
             # Unit Vectors #
-            d_right_2_root = np.asarray([current_root_pos[0] - current_right_ankle_pos[0], 
+            d_right_2_left = np.asarray([current_left_ankle_pos[0] - current_right_ankle_pos[0], 
                       0.0, 
-                      current_root_pos[2] - current_right_ankle_pos[2]])
-            d_right_2_root = d_right_2_root / np.linalg.norm(d_right_2_root)
+                      current_left_ankle_pos[2] - current_right_ankle_pos[2]])
+            d_right_2_left = d_right_2_left / np.linalg.norm(d_right_2_left)
         
-            d_left_2_root = np.asarray([current_root_pos[0] - current_left_ankle_pos[0], 
+            d_left_2_right = np.asarray([current_right_ankle_pos[0] - current_left_ankle_pos[0], 
                       0.0, 
-                      current_root_pos[2] - current_left_ankle_pos[2]])
-            d_left_2_root = d_left_2_root / np.linalg.norm(d_left_2_root)
+                      current_right_ankle_pos[2] - current_left_ankle_pos[2]])
+            d_left_2_right = d_left_2_right / np.linalg.norm(d_left_2_right)
 
 
             # Left #
@@ -849,21 +890,12 @@ class MotionSynthesizer():
             new_right_ankle_pos_y = current_right_ankle_pos[1]
             new_right_ankle_pos_z = current_right_ankle_pos[2]
 
+            new_left_ankle_pos_x -= d_left_2_right[0] * (coefficient-1.0) * 0.2
+            new_left_ankle_pos_z -= d_left_2_right[2] * (coefficient-1.0) * 0.2
 
-            if(current_left_ankle_pos[0] > current_right_ankle_pos[0]): # If left ankle in front of right
-                # If coefficient is > 1.0 then we move forward (increase distance). Else we move backwards (decrease distance)
-                new_left_ankle_pos_x += d_left_2_root[0] * (coefficient-1.0) * 0.1
-                new_left_ankle_pos_z += d_left_2_root[2] * (coefficient-1.0) * 0.1
-            else:
-                new_left_ankle_pos_x -= d_left_2_root[0] * (coefficient-1.0) * 0.1
-                new_left_ankle_pos_z -= d_left_2_root[2] * (coefficient-1.0) * 0.1
+            new_right_ankle_pos_x -= d_right_2_left[0] * (coefficient-1.0) * 0.2
+            new_right_ankle_pos_z -= d_right_2_left[2] * (coefficient-1.0) * 0.2
 
-            if(current_right_ankle_pos[0] > current_left_ankle_pos[0]):
-                new_right_ankle_pos_x += d_right_2_root[0] * (coefficient-1.0) * 0.1
-                new_right_ankle_pos_z += d_right_2_root[2] * (coefficient-1.0) * 0.1
-            else:
-                new_right_ankle_pos_x -= d_right_2_root[0] * (coefficient-1.0) * 0.1
-                new_right_ankle_pos_z -= d_right_2_root[2] * (coefficient-1.0) * 0.1
 
 
             gen_index = i
@@ -888,37 +920,292 @@ class MotionSynthesizer():
     def rule_1_single(self, frame, coefficient):
         print("\n== RULE 1 SINGLE - PELVIS ==")
 
+        coefficient = self.c1
+            
+        current_root_height = frame["root"][1]
+        
+        new_root_height = current_root_height
+
+        new_root_height += 1.0 * ((coefficient - 1.0) * 0.1) #0.1 -> dampening factor
+
         generated_pose = (
-                frame["root"][0], frame["root"][1], frame["root"][2])
+                frame["root"][0], new_root_height, frame["root"][2])
 
         return generated_pose
 
     def rule_2_single(self, frame, coefficient):
         print("\n== RULE 2 SINGLE - NECK ==")
+
+        t_pose_root = T_POSE["root"][0]
+        t_pose_head = T_POSE["neck"][0]
+        
+        # Vector from Head to Pelvis in T-Pose
+        dt_head = (t_pose_root[0] - t_pose_head[0], 
+                   t_pose_root[1] - t_pose_head[1],
+                   t_pose_root[2] - t_pose_head[2])
+
+        coefficient = self.c2
+
+        current_root_position = frame["root"]
+        current_neck_position = frame["neck"]
+
+        # Vector from Head to Pelvis in Current Pose
+        d_head = (current_root_position[0] - current_neck_position[0], 
+                  current_root_position[1] - current_neck_position[1], 
+                  current_root_position[2] - current_neck_position[2])
+
+        new_neck_position_x = current_neck_position[0]
+        new_neck_position_y = current_neck_position[1]
+        new_neck_position_z = current_neck_position[2]
+
+            
+        if(self._desired_emotion[0] < 0.0 and self._desired_emotion[2] > 0.0):
+            # Usually, high Dominance have the character arch back to elevate the shoulders. For angry (i.e when the pleasure is also low) this is the opposite
+            dampening_factor_x = 0.25
+            dampening_factor_y = 0.15
+            if(coefficient > 1.0):
+                new_neck_position_x += 1.0 * (((coefficient+0.2) - 1.0) * dampening_factor_x) 
+                new_neck_position_y -= 1.0 * (((coefficient+0.2) - 1.0) * dampening_factor_y) 
+            else:
+                new_neck_position_x -= 1.0 * (((coefficient-0.2) - 1.0) * dampening_factor_x) 
+                new_neck_position_y += 1.0 * (((coefficient-0.2) - 1.0) * dampening_factor_y) 
+
+        else:
+            if(coefficient > 1.0):
+                dampening_factor_x = 0.25
+                dampening_factor_y = 0.15
+            else:
+                dampening_factor_x = 0.25
+                dampening_factor_y = 0.15
+            new_neck_position_x -= 1.0 * ((coefficient - 1.0) * dampening_factor_x) 
+            new_neck_position_y += 1.0 * ((coefficient - 1.0) * dampening_factor_y) 
+
         generated_pose = (
-                frame["neck"][0], frame["neck"][1], frame["neck"][2])
+                new_neck_position_x, new_neck_position_y, new_neck_position_z)
+
+        #generated_pose = (frame["neck"][0], frame["neck"][1], frame["neck"][2])
 
         return generated_pose
 
     def rule_3_single(self, frame, coefficient_1, coefficient_2):
         print("\n== RULE 3 SINGLE - HANDS ==")
+        # Move on Vector going from root to wrist and from wrist to neck
+
+        #1 C3 HANDS HIPS
+        #2 C3 HANDS CHEST
+
+        coefficient_hips = self.c3_1#[coefficient_index]
+        coefficient_chest = self.c3_2#[coefficient_index]
+
+        current_root_position = frame["root"]
+        current_head_position = frame["neck"]
+
+        current_left_hand = frame["left_wrist"]
+        current_right_hand = frame["right_wrist"]
+
+        current_left_elbow = frame["left_elbow"]
+        current_right_elbow = frame["right_elbow"]
+
+        # Unit Vectors ROOT #
+        # Left to Root #
+        d_left_hips = np.asarray([current_left_hand[0] - current_root_position[0], 
+                  current_left_hand[1] - current_root_position[1], 
+                  current_left_hand[2] - current_root_position[2]])
+        d_left_hips = d_left_hips / np.linalg.norm(d_left_hips)
+
+        # Right to Root #
+        d_right_hips = np.asarray([current_right_hand[0] - current_root_position[0], 
+                  current_right_hand[1] - current_root_position[1], 
+                  current_right_hand[2] - current_root_position[2]])
+        d_right_hips = d_right_hips / np.linalg.norm(d_right_hips)
+
+        new_left_hand_position_x = current_left_hand[0]
+        new_left_hand_position_y = current_left_hand[1]
+        new_left_hand_position_z = current_left_hand[2]
+
+        new_right_hand_position_x = current_right_hand[0]
+        new_right_hand_position_y = current_right_hand[1]
+        new_right_hand_position_z = current_right_hand[2]
+
+        # LEFT #
+        new_left_hand_position_x += d_left_hips[0] * (coefficient_hips-1.0) * 0.3
+        new_left_hand_position_y += d_left_hips[1] * (coefficient_hips-1.0) * 0.3
+        new_left_hand_position_z += d_left_hips[2] * (coefficient_hips-1.0) * 0.3
+
+        ## RIGHT #
+        new_right_hand_position_x += d_right_hips[0] * (coefficient_hips-1.0) * 0.3
+        new_right_hand_position_y += d_right_hips[1] * (coefficient_hips-1.0) * 0.3
+        new_right_hand_position_z += d_right_hips[2] * (coefficient_hips-1.0) * 0.3
+
+
+        # Unit Vectors HEAD #
+        # Left to Head #
+        d_left_head = np.asarray([current_head_position[0] + 0.4 - new_left_hand_position_x, 
+                  current_head_position[1] - new_left_hand_position_y, 
+                  current_head_position[2] - new_left_hand_position_z])
+        d_left_head = d_left_head / np.linalg.norm(d_left_head)
+
+        # Right to Head #
+        d_right_head = np.asarray([current_head_position[0] + 0.4 - new_right_hand_position_x, 
+                  current_head_position[1] - new_right_hand_position_y, 
+                  current_head_position[2] - new_right_hand_position_z])
+        d_right_head = d_right_head / np.linalg.norm(d_right_head)
+
+
+        if(self._desired_emotion[0] < 0.0 and self._desired_emotion[1] < 0.0 and self._desired_emotion[2] < 0.0):
+            # LEFT #
+            new_left_hand_position_x -= d_left_head[0] * (coefficient_chest-1.0) * 0.5
+            new_left_hand_position_y += d_left_head[1] * (coefficient_chest-1.0) * 0.5
+            new_left_hand_position_z -= d_left_head[2] * (coefficient_chest-1.0) * 0.5
+
+            # RIGHT #
+            new_right_hand_position_x -= d_right_head[0] * (coefficient_chest-1.0) * 0.5
+            new_right_hand_position_y += d_right_head[1] * (coefficient_chest-1.0) * 0.5
+            new_right_hand_position_z -= d_right_head[2] * (coefficient_chest-1.0) * 0.5
+
+        else:
+            # LEFT #
+            new_left_hand_position_x -= d_left_head[0] * (coefficient_chest-1.0) * 0.5
+            new_left_hand_position_y -= d_left_head[1] * (coefficient_chest-1.0) * 0.5
+            new_left_hand_position_z -= d_left_head[2] * (coefficient_chest-1.0) * 0.5
+
+            # RIGHT #
+            new_right_hand_position_x -= d_right_head[0] * (coefficient_chest-1.0) * 0.5
+            new_right_hand_position_y -= d_right_head[1] * (coefficient_chest-1.0) * 0.5
+            new_right_hand_position_z -= d_right_head[2] * (coefficient_chest-1.0) * 0.5
+
+
         generated_pose_l = (
-                frame["left_wrist"][0], frame["left_wrist"][1], frame["left_wrist"][2])
+                new_left_hand_position_x, new_left_hand_position_y, new_left_hand_position_z)
 
         generated_pose_r = (
-                frame["right_wrist"][0], frame["right_wrist"][1], frame["right_wrist"][2])
+                new_right_hand_position_x, new_right_hand_position_y, new_right_hand_position_z)
+
+        #generated_pose_l = (frame["left_wrist"][0], frame["left_wrist"][1], frame["left_wrist"][2])
+        #generated_pose_r = (frame["right_wrist"][0], frame["right_wrist"][1], frame["right_wrist"][2])
 
         return (generated_pose_l, generated_pose_r)
 
     def rule_4_single(self, frame, coefficient):
         print("\n== RULE 4 SINGLE - ELBOWS ==")
+
+        coefficient = self.c4#[coefficient_index]
+
+        current_left_elbow_pos = frame["left_elbow"]
+        current_right_elbow_pos = frame["right_elbow"]
+        current_root_position = frame["root"]
+
+        # Unit Vectors #
+        d_left = np.asarray([current_left_elbow_pos[0] - current_root_position[0], 
+                  current_left_elbow_pos[1] - current_root_position[1], 
+                  current_left_elbow_pos[2] - current_root_position[2]])
+        d_left = d_left / np.linalg.norm(d_left)
+
+        d_right = np.asarray([current_right_elbow_pos[0] - current_root_position[0], 
+                  current_right_elbow_pos[1] - current_root_position[1], 
+                  current_right_elbow_pos[2] - current_root_position[2]])
+        d_right = d_right / np.linalg.norm(d_right)
+
+        # Left #
+        new_left_elbow_pos_x = current_left_elbow_pos[0]
+        new_left_elbow_pos_y = current_left_elbow_pos[1]
+        new_left_elbow_pos_z = current_left_elbow_pos[2]
+
+        # Right #
+        new_right_elbow_pos_x = current_right_elbow_pos[0]
+        new_right_elbow_pos_y = current_right_elbow_pos[1]
+        new_right_elbow_pos_z = current_right_elbow_pos[2]
+
+        if((self._desired_emotion[0] < -0.3 and self._desired_emotion[1] > 0.5 and self._desired_emotion[2] < -0.3)): 
+            #Usually, high Arousal emotions have broad elbows, but for afraid that is different
+            new_left_elbow_pos_x -= d_left[0] * (coefficient-1.0) * 0.4
+            new_left_elbow_pos_y -= d_left[1] * (coefficient-1.0) * 0.4
+            new_left_elbow_pos_z -= d_left[2] * (coefficient-1.0) * 0.4
+
+            new_right_elbow_pos_x -= d_right[0] * (coefficient-1.0) * 0.4
+            new_right_elbow_pos_y -= d_right[1] * (coefficient-1.0) * 0.4
+            new_right_elbow_pos_z -= d_right[2] * (coefficient-1.0) * 0.4
+        elif(self._desired_emotion[0] < 0.0 and self._desired_emotion[1] < 0.0 and self._desired_emotion[2] < 0.0):
+            new_left_elbow_pos_x -= d_left[0] * (coefficient-1.0) * 0.3
+            new_left_elbow_pos_y -= d_left[1] * (coefficient-1.0) * 0.3
+            new_left_elbow_pos_z -= d_left[2] * (coefficient-1.0) * 0.3
+
+            new_right_elbow_pos_x -= d_right[0] * (coefficient-1.0) * 0.3
+            new_right_elbow_pos_y -= d_right[1] * (coefficient-1.0) * 0.3
+            new_right_elbow_pos_z -= d_right[2] * (coefficient-1.0) * 0.3
+        else:
+            new_left_elbow_pos_x += d_left[0] * (coefficient-1.0) * 0.5
+            new_left_elbow_pos_y += d_left[1] * (coefficient-1.0) * 0.4
+            new_left_elbow_pos_z += d_left[2] * (coefficient-1.0) * 0.4
+
+            new_right_elbow_pos_x += d_right[0] * (coefficient-1.0) * 0.5
+            new_right_elbow_pos_y += d_right[1] * (coefficient-1.0) * 0.4
+            new_right_elbow_pos_z += d_right[2] * (coefficient-1.0) * 0.4
+
         generated_pose_l = (
-                frame["left_elbow"][0], frame["left_elbow"][1], frame["left_elbow"][2])
+                new_left_elbow_pos_x, new_left_elbow_pos_y, new_left_elbow_pos_z)
 
         generated_pose_r = (
-                frame["right_elbow"][0], frame["right_elbow"][1], frame["right_elbow"][2])
+                new_right_elbow_pos_x, new_right_elbow_pos_y, new_right_elbow_pos_z)
+
+        #generated_pose_l = (frame["left_elbow"][0], frame["left_elbow"][1], frame["left_elbow"][2])
+        #generated_pose_r = (frame["right_elbow"][0], frame["right_elbow"][1], frame["right_elbow"][2])
 
         return (generated_pose_l, generated_pose_r)
+
+    def rule_5_single(self, frame, coefficient):
+        print("\n== RULE 5 SINGLE - FEET ==")
+        # Move on Vector going from left foot to right and right foot to left (ignoring height)
+
+        coefficient = self.c5#[coefficient_index]
+
+        coefficient = min(coefficient, 1.5) # We dont want this coefficient to be too large
+        coefficient = max(coefficient, 0.5) # Or too small
+
+        current_left_ankle_pos = frame["left_ankle"]
+        current_right_ankle_pos = frame["right_ankle"]
+        current_root_pos = frame["root"]
+
+        # Unit Vectors #
+        d_right_2_left = np.asarray([current_left_ankle_pos[0] - current_right_ankle_pos[0], 
+                  0.0, 
+                  current_left_ankle_pos[2] - current_right_ankle_pos[2]])
+        d_right_2_left = d_right_2_left / np.linalg.norm(d_right_2_left)
+    
+        d_left_2_right = np.asarray([current_right_ankle_pos[0] - current_left_ankle_pos[0], 
+                  0.0, 
+                  current_right_ankle_pos[2] - current_left_ankle_pos[2]])
+        d_left_2_right = d_left_2_right / np.linalg.norm(d_left_2_right)
+
+
+        # Left #
+        new_left_ankle_pos_x = current_left_ankle_pos[0]
+        new_left_ankle_pos_y = current_left_ankle_pos[1]
+        new_left_ankle_pos_z = current_left_ankle_pos[2]
+
+        # Right #
+        new_right_ankle_pos_x = current_right_ankle_pos[0]
+        new_right_ankle_pos_y = current_right_ankle_pos[1]
+        new_right_ankle_pos_z = current_right_ankle_pos[2]
+
+        new_left_ankle_pos_x -= d_left_2_right[0] * (coefficient-1.0) * 0.2
+        new_left_ankle_pos_z -= d_left_2_right[2] * (coefficient-1.0) * 0.2
+
+        new_right_ankle_pos_x -= d_right_2_left[0] * (coefficient-1.0) * 0.2
+        new_right_ankle_pos_z -= d_right_2_left[2] * (coefficient-1.0) * 0.2
+
+
+        generated_pose_l = (
+                new_left_ankle_pos_x, new_left_ankle_pos_y, new_left_ankle_pos_z)
+
+        generated_pose_r = (
+                new_right_ankle_pos_x, new_right_ankle_pos_y, new_right_ankle_pos_z)
+
+        #generated_pose_l = (frame["left_ankle"][0], frame["left_ankle"][1], frame["left_ankle"][2])
+        #generated_pose_r = (frame["right_ankle"][0], frame["right_ankle"][1], frame["right_ankle"][2])
+
+        return (generated_pose_l, generated_pose_r)
+
 
     """
     def rule_1(self):

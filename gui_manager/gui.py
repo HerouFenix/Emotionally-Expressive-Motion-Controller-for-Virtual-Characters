@@ -45,7 +45,7 @@ COLOURS = {
 class GUIManager():
     def __init__(self):
         self.window = tk.Tk()
-        self.window.minsize(415,500)
+        self.window.minsize(415,515)
         self.window.title("Emotion Prediction and Synthesis")
 
         # Emotion Classification frame
@@ -76,9 +76,9 @@ class GUIManager():
         font =('Verdana 11'))
         self.dominance_text.grid(row=3, column=1, sticky=tk.W)
 
-        #self.closest_emotion = tk.Label(self.e_frame, text = 'Closest Emotion: neutral', 
-        #font =('Verdana 11 bold'))
-        #self.closest_emotion.grid(row=4, pady=15, columnspan=2)
+        self.closest_emotion = tk.Label(self.e_frame, text = 'Closest Emotion: neutral', 
+        font =('Verdana 10 bold'))
+        self.closest_emotion.grid(row=4, pady=10, columnspan=2)
 
 
         # Emotion Classification frame
@@ -152,7 +152,7 @@ class GUIManager():
         font =('Verdana 13 bold')).pack(pady=(20,0))
 
         self.s_frame = tk.Frame(self.window)
-        self.s_frame.pack(fill=tk.X)
+        self.s_frame.pack(fill=tk.X, pady=(0,20))
 
         self.s_frame.columnconfigure(0, weight=1)
         self.s_frame.columnconfigure(1, weight=1)
@@ -247,14 +247,26 @@ class GUIManager():
         p, a, d = pad
         #dist = lambda key: (p - EMOTION_COORDINATES[key][0]) ** 2 + (a - EMOTION_COORDINATES[key][1]) ** 2 + (d - EMOTION_COORDINATES[key][2]) ** 2
         dist = lambda key: (p - key[0]) ** 2 + (a - key[1]) ** 2 + (d - key[2]) ** 2
-        return EMOTION_COORDINATES[min(EMOTION_COORDINATES, key=dist)]
+
+        closest_coordinates = min(EMOTION_COORDINATES, key=dist)
+        distance = (p - closest_coordinates[0]) ** 2 + (a - closest_coordinates[1]) ** 2 + (d - closest_coordinates[2]) ** 2
+
+        return EMOTION_COORDINATES[closest_coordinates], distance
 
     def change_emotion_coordinates(self, pleasure, arousal, dominance):
         self.pleasure_text.config(text = str(pleasure))
         self.arousal_text.config(text = str(arousal))
         self.dominance_text.config(text = str(dominance))
         
-        #self.closest_emotion.config(text = "Closest Emotion: " + self._find_closest_emotion((pleasure,arousal,dominance)))
+        closest_emotion, closest_emotion_dist = self._find_closest_emotion((pleasure,arousal,dominance))
+        if(closest_emotion_dist < 0.03):
+            self.closest_emotion.config(fg=COLOURS['green'])
+        elif(closest_emotion_dist < 0.06):
+            self.closest_emotion.config(fg=COLOURS['yellow'])
+        else:
+            self.closest_emotion.config(fg=COLOURS['red'])
+            
+        self.closest_emotion.config(text = "Closest Emotion: " + str(closest_emotion))
 
     def change_animation_status(self, new_status):
         if(new_status == 0):

@@ -9,6 +9,7 @@ from utils import bullet_client
 from utils.humanoid_kin import HumanoidSkeleton
 from utils.humanoid_mocap import HumanoidMocap
 from utils.humanoid_vis import HumanoidVis
+from utils.humanoid_no_vis import HumanoidNoVis
 import pybullet as p1
 
 from multiprocessing import Process
@@ -116,18 +117,7 @@ class VisMocapEnv():
         char_file = "data/characters/humanoid3d.txt"
         ctrl_file = "data/controllers/humanoid3d_ctrl.txt"
         self._skeleton = HumanoidSkeleton(char_file, ctrl_file)
-        self._mocap = HumanoidMocap(self._skeleton, self._motion_file)
-        print("mocap duration: %f" % self._mocap._cycletime)
-      elif self._model == "atlas":
-        char_file = "data/characters/atlas.txt"
-        ctrl_file = "data/controllers/atlas_ctrl.txt"
-        self._skeleton = HumanoidSkeleton(char_file, ctrl_file)
-        self._mocap = HumanoidMocap(self._skeleton, self._motion_file)
-        print("mocap duration: %f" % self._mocap._cycletime)
-      elif self._model == "atlas_jason":
-        char_file = "data/characters/atlas_jason.txt"
-        ctrl_file = "data/controllers/atlas_jason_ctrl.txt"
-        self._skeleton = HumanoidSkeleton(char_file, ctrl_file)
+        self._skeleton_2 = HumanoidSkeleton(char_file, ctrl_file)
         self._mocap = HumanoidMocap(self._skeleton, self._motion_file)
         print("mocap duration: %f" % self._mocap._cycletime)
       else:
@@ -139,7 +129,12 @@ class VisMocapEnv():
       self._char = self._visual.add_character("mocap", color)
       self._visual.camera_follow(self._char, 2, 0, 0)
 
+      self._no_visual = HumanoidNoVis(self._skeleton_2, self._model)
+      self._char_no_vis = self._no_visual.add_character("mocap", color)
+
       self._pybullet_client = self._visual._pybullet_client
+      self._pybullet_client_no_vis = self._no_visual._pybullet_client
+
       self._play_speed = self._pybullet_client.addUserDebugParameter("play_speed", 0, 2, 1.0)
       self._phase_ctrl = self._pybullet_client.addUserDebugParameter("frame", 0, 1, 0)
 
@@ -147,16 +142,16 @@ class VisMocapEnv():
     def compute_inverse_kinematics_single(self,frame, links, desired_pos):
       self._ik_solver.updatePose(frame)
 
-      #self._ik_solver.adjustBase(desired_pos["mocap"]["root"][1])   
+      self._ik_solver.adjustBase(desired_pos["mocap"]["root"][1])   
 
-      pos = [desired_pos["mocap"]["neck"], (desired_pos["mocap"]["left_wrist"][0], 1.2, desired_pos["mocap"]["left_wrist"][2]), desired_pos["mocap"]["right_wrist"], desired_pos["mocap"]["left_elbow"], desired_pos["mocap"]["right_elbow"]]
+      pos = [desired_pos["mocap"]["neck"], desired_pos["mocap"]["left_wrist"], desired_pos["mocap"]["right_wrist"], desired_pos["mocap"]["left_elbow"], desired_pos["mocap"]["right_elbow"], desired_pos["mocap"]["left_ankle"], desired_pos["mocap"]["right_ankle"]]
       jointPoses = self._ik_solver.calculateKinematicSolution2(links, pos)
 
       ik_frame = []
       
       # Add Base info from frame
-      #base_info = [frame[0], desired_pos[gen_index]["mocap"]["root"][1], frame[2], frame[3], frame[4], frame[5], frame[6]]
-      base_info = [frame[0], frame[1], frame[2], frame[3], frame[4], frame[5], frame[6]]
+      base_info = [frame[0], desired_pos["mocap"]["root"][1], frame[2], frame[3], frame[4], frame[5], frame[6]]
+      #base_info = [frame[0], frame[1], frame[2], frame[3], frame[4], frame[5], frame[6]]
       ik_frame += list(base_info)
         
       # Add the rest of our frame info from our computed IK solution
@@ -197,9 +192,8 @@ class VisMocapEnv():
         new_process.start()
 
     def compute_and_apply_motion_synthesis_multithreaded(self, pad):
-      # TODO: Uncomment this to get synthesized lma set
-      #self._ms.set_desired_pad(pad)
-      self._ms.set_reference_lma()
+      self._ms.set_desired_pad(pad)
+      #self._ms.set_reference_lma()
 
       self._ms.compute_coefficients()
 
@@ -253,10 +247,9 @@ class VisMocapEnv():
       count, pose, vel = self._mocap.slerp(self.t)
       pose[:3] += count * self._mocap._cyc_offset
 
-      self._visual.set_pose(self._char, pose, vel)
-
       if(self._synthesized):
-        frame = self.get_pose_and_links()[2]
+        self._no_visual.set_pose(self._char_no_vis, pose, vel)
+        frame = self.get_pose_and_links_no_visual()[2]
 
         gen_pose = self._ms.convert_single_frame(frame, self.counter)
         indices = []
@@ -266,6 +259,8 @@ class VisMocapEnv():
         
         pose = self.compute_inverse_kinematics_single(pose, indices, gen_pose)
 
+        self._visual.set_pose(self._char, pose, vel)
+      else:
         self._visual.set_pose(self._char, pose, vel)
 
       self.counter += 1
@@ -288,6 +283,9 @@ class VisMocapEnv():
 
     def get_pose_and_links(self):
       return self._get_full_model_pose(self._visual.characters["mocap"])
+
+    def get_pose_and_links_no_visual(self):
+      return self._get_full_model_pose_no_vis(self._no_visual.characters["mocap"])
 
     def get_pose_and_links_world(self):
       return self._get_full_model_pose_world(self._visual.characters["mocap"])
@@ -349,6 +347,65 @@ class VisMocapEnv():
       vel = self._skeleton.padVel(vel)
       
       return pose, vel, links_pos, links_orn, vel_dict
+
+    def _get_full_model_pose_no_vis(self, phys_model):
+      """ Get current pose and velocity expressed in general coordinate
+        Unlike _get_model_pose it also returns the Position and Velocity of each link/joint.
+        Inputs:
+          phys_model
+
+        Outputs:
+          pose
+          vel
+      """
+      pose = []
+      vel = []
+
+      links_pos = {}
+      links_orn = {}
+
+      vel_dict = {}
+
+      # root position/orientation and vel/angvel
+      pos, orn = self._pybullet_client_no_vis.getBasePositionAndOrientation(self._no_visual.characters["mocap"])
+      linvel, angvel = self._pybullet_client_no_vis.getBaseVelocity(self._no_visual.characters["mocap"])
+      pose += pos
+      if orn[3] < 0:
+        orn = [-orn[0], -orn[1], -orn[2], -orn[3]]
+      pose.append(orn[3])  # w
+      pose += orn[:3] # x, y, z
+      vel += linvel
+      vel += angvel
+
+      vel_dict["root"] = [linvel, angvel]
+
+      for i in range(self._skeleton_2.num_joints):
+        j_info = self._pybullet_client_no_vis.getJointStateMultiDof(phys_model, i)
+        orn = j_info[0]
+        if len(orn) == 4:
+          pose.append(orn[3])  # w
+          pose += orn[:3] # x, y, z
+        else:
+          pose += orn
+        vel += j_info[1]
+
+        l_info = self._pybullet_client_no_vis.getJointInfo(phys_model, i)
+        
+        if(not l_info[12].decode('UTF-8') == "root"):
+          vel_dict[l_info[12].decode('UTF-8')] = j_info[1]
+        
+        link_name = l_info[12].decode('UTF-8')
+        
+        l_info = self._pybullet_client_no_vis.getLinkState(phys_model, i)
+        
+        links_pos[link_name] = l_info[4]
+        links_orn[link_name] = l_info[5]
+
+      pose = np.array(pose)
+      vel = self._skeleton_2.padVel(vel)
+      
+      return pose, vel, links_pos, links_orn, vel_dict
+
 
     def _get_full_model_pose_world(self, phys_model):
       """ Get current pose and velocity expressed in general coordinate

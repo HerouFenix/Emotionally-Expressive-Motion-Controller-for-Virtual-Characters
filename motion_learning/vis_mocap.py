@@ -223,9 +223,8 @@ class VisMocapEnv():
         new_process.start()
 
     def compute_and_apply_motion_synthesis_multithreaded(self, pad):
-      # TODO: Uncomment this to get synthesized lma set
-      #self._ms.set_desired_pad(pad)
-      self._ms.set_reference_lma()
+      self._ms.set_desired_pad(pad)
+      #self._ms.set_reference_lma()
 
       self._ms.compute_coefficients()
 
