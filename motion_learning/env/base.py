@@ -6,6 +6,8 @@ import argparse
 from utils.humanoid_kin import HumanoidSkeleton
 from utils.humanoid_mocap import HumanoidMocap
 from utils.humanoid_vis import HumanoidVis
+from utils.humanoid_no_vis import HumanoidNoVis
+
 from sim import engine_builder
 import threading
 
@@ -77,6 +79,7 @@ class BaseEnv(ABC):
     ctrl_file = "data/controllers/%s_ctrl.txt" % self._model
     motion_file = "data/motions/%s_%s.txt" % (self._model, self._task)
     self._skeleton = HumanoidSkeleton(char_file, ctrl_file)
+    self._skeleton_2 = HumanoidSkeleton(char_file, ctrl_file)
     self._mocap = HumanoidMocap(self._skeleton, motion_file)
     self.curr_phase = None
 
@@ -108,49 +111,49 @@ class BaseEnv(ABC):
     self._ms = None
     self._synthesizing = False
 
-    self.ik_joint_mapping = {"chest": [0,1,2],
-               "neck": [3,4,5],
+    # INVERSE KINEMATICS #
+    self.ik_joint_mapping = {"chest": [2,1,0],
+             "neck": [5,4,3],
+             "right_hip": [16,15,14],
+             "right_knee": [17],
+             "right_ankle": [20, 19, 18],
+             "right_shoulder": [8,7,6],
+             "right_elbow": [9],
+             "left_hip": [23, 22, 21],
+             "left_knee": [24],
+             "left_ankle": [27, 26, 25],
+             "left_shoulder": [12,11,10],
+             "left_elbow": [13],}
 
-               "right_hip": [14,15,16],
-               "right_knee": [17],
-               "right_ankle": [18, 19, 20],
-               "right_shoulder": [6,7,8],
-               "right_elbow": [9],
-
-               "left_hip": [21, 22, 23],
-               "left_knee": [24],
-               "left_ankle": [25, 26, 27],
-               "left_shoulder": [10,11,12],
-               "left_elbow": [13],}
     self.ik_link_mapping = {
-        2 : 7, # Neck/Chest
-        6 : 10, # Right Shoulder
-        7 : 11, # Right Elbow
-        8 : 12, # Right Wrist
-
-        12 : 15, # Left Shoulder
-        13 : 16, # Left Elbow
-        14 : 17, # Left Wrist
-
-        4 : 21, # Right Knee
-        5 : 24, # Right Ankle
-
-        10 : 28, # Left Knee
-        11 : 31 # Left Ankle
-      }
+      1 : 4, # Chest
+      2 : 8, # Neck
+      6 : 12, # Right Shoulder
+      7 : 13, # Right Elbow
+      8 : 14, # Right Wrist
+      12 : 18, # Left Shoulder
+      13 : 19, # Left Elbow
+      14 : 20, # Left Wrist
+      4 : 25, # Right Knee
+      5 : 29, # Right Ankle
+      10 : 34, # Left Knee
+      11 : 38 # Left Ankle
+    }
+      
     self.name_to_index_mapping = {
-        "neck": 2,
-        "right_shoulder": 6,
-        "right_elbow": 7,
-        "right_wrist": 8,
-        "left_shoulder": 12,
-        "left_elbow": 13,
-        "left_wrist": 14,
-        "right_knee": 4,
-        "right_ankle": 5,
-        "left_knee": 10,
-        "left_ankle": 11
-      }
+      "chest":1,
+      "neck": 2,
+      "right_shoulder": 6,
+      "right_elbow": 7,
+      "right_wrist": 8,
+      "left_shoulder": 12,
+      "left_elbow": 13,
+      "left_wrist": 14,
+      "right_knee": 4,
+      "right_ankle": 5,
+      "left_knee": 10,
+      "left_ankle": 11
+    }
 
     self.counter = 0
 

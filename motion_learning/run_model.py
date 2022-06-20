@@ -7,7 +7,6 @@ from multiprocessing import Process
 import threading
 
 
-## TODO: see if theres a better way to do this import
 import sys
 import os
 current = os.path.dirname(os.path.realpath(__file__))

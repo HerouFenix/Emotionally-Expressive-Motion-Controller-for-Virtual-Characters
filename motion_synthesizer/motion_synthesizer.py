@@ -631,6 +631,17 @@ class MotionSynthesizer():
                     new_neck_position_x -= 1.0 * (((coefficient-0.2) - 1.0) * dampening_factor_x) 
                     new_neck_position_y += 1.0 * (((coefficient-0.2) - 1.0) * dampening_factor_y) 
 
+            elif(self._desired_emotion[0] < 0.0 and self._desired_emotion[1] < 0.0 and self._desired_emotion[2] < 0.0):
+                if(coefficient > 1.0):
+                    dampening_factor_x = 0.3
+                    dampening_factor_y = 0.2
+                else:
+                    dampening_factor_x = 0.3
+                    dampening_factor_y = 0.2
+
+                new_neck_position_x -= 1.0 * ((coefficient - 1.0) * dampening_factor_x) 
+                new_neck_position_y += 1.0 * ((coefficient - 1.0) * dampening_factor_y) 
+
             else:
                 if(coefficient > 1.0):
                     dampening_factor_x = 0.25
@@ -704,6 +715,7 @@ class MotionSynthesizer():
             new_right_hand_position_z += d_right_hips[2] * (coefficient_hips-1.0) * 0.3
 
 
+            # TODO: TRY TO USE THE DESIRED CHEST POSE INSTEAD OF THE CURRENT!!!! #
             # Unit Vectors HEAD #
             # Left to Head #
             d_left_head = np.asarray([current_head_position[0] + 0.4 - new_left_hand_position_x, 
@@ -969,6 +981,15 @@ class MotionSynthesizer():
             else:
                 new_neck_position_x -= 1.0 * (((coefficient-0.2) - 1.0) * dampening_factor_x) 
                 new_neck_position_y += 1.0 * (((coefficient-0.2) - 1.0) * dampening_factor_y) 
+        elif(self._desired_emotion[0] < 0.0 and self._desired_emotion[1] < 0.0 and self._desired_emotion[2] < 0.0):
+            if(coefficient > 1.0):
+                dampening_factor_x = 0.3
+                dampening_factor_y = 0.2
+            else:
+                dampening_factor_x = 0.3
+                dampening_factor_y = 0.2
+            new_neck_position_x -= 1.0 * ((coefficient - 1.0) * dampening_factor_x) 
+            new_neck_position_y += 1.0 * ((coefficient - 1.0) * dampening_factor_y) 
 
         else:
             if(coefficient > 1.0):
