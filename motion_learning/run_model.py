@@ -6,6 +6,7 @@ import time
 from multiprocessing import Process
 import threading
 
+import tkinter as tk
 
 import sys
 import os
@@ -51,7 +52,7 @@ def write_link_data(outfile, link_data):
       wh.write("  " + str(link_data[link]) + "\n")
     wh.write("----------")
 
-def test_model(env, model, select_set=None, record=False, random=True, record_lma='', predict_emotion=True):
+def test_model(env, model, select_set=None, record=False, random=True, record_lma='', predict_emotion=True, ms_models = ''):
   env.set_mode(1)
   #env.set_task_t(20)
 
@@ -95,9 +96,9 @@ def test_model(env, model, select_set=None, record=False, random=True, record_lm
   start_time = time.time()
 
   if(record_lma != ""):
-    lma_extractor = LMAExtractor(env._engine,  env._mocap._durations[0], record_lma, append_to_file=True, pool_rate=-1)
+    lma_extractor = LMAExtractor(env._visual,  env._mocap._durations[0], record_lma, append_to_file=True, pool_rate=-1)
   else:
-    lma_extractor = LMAExtractor(env._engine, env._mocap._durations[0], append_to_file=False, label="NONE", pool_rate=-1)
+    lma_extractor = LMAExtractor(env._visual, env._mocap._durations[0], append_to_file=False, label="NONE", pool_rate=-1)
 
   if(predict_emotion):
     gui = GUIManager()
@@ -108,10 +109,33 @@ def test_model(env, model, select_set=None, record=False, random=True, record_lm
     gui.start_motion_synthesis.configure(state=DISABLED)
     
     current_emotion = [0.0, 0.0, 0.0]
+
+    window = tk.Tk()
+    window.minsize(250,100)
+    window.title("LOADING ML MODELS")
+    tk.Label(window, text = '== EMOTION PREDICTION MODELS ==', 
+        font =('Verdana 12 bold')).pack(pady=(10,0))
+    loading_emotion = tk.Label(window, text = 'Loading...', 
+        font =('Verdana 10 bold'), fg='#5c111f')
+    loading_emotion.pack(pady=(5,0))
+
+    tk.Label(window, text = '== EMOTION SYNTHESIS MODELS ==', 
+        font =('Verdana 12 bold')).pack(pady=(10,0))
+    loading_synthesis = tk.Label(window, text = 'Loading...', 
+        font =('Verdana 10 bold'), fg='#5c111f')
+    loading_synthesis.pack(pady=(5,10))
+
+    window.update()
+
     emotion_predictor = EmotionClassifier()
 
-    ms = MotionSynthesizer()
+    ms = MotionSynthesizer(ms_models)
     env._ms = ms
+
+    loading_synthesis.config(fg='green', text="Loaded!")
+    window.update()
+
+    window.destroy()
 
     env._gui = gui
 
@@ -312,6 +336,8 @@ if __name__=="__main__":
   parser.add_argument("--record_lma",default='', action="store_true", help="specify a file name if you want to store the lma features on a file")
   parser.add_argument("--predict_emotion",default=True, action="store_true" , help="specify whether you want to output the predicted emotional coordinates")
 
+  parser.add_argument("--ms_models", type=str, default='direct', help="specify the motion synthesis models - '' , direct (default), ae")
+
   args = parser.parse_args()
 
   # load env
@@ -341,4 +367,4 @@ if __name__=="__main__":
     select_set = data["select_set"]
   else:
     select_set = None
-  test_model(test_env, model, select_set, args.record, args.random, args.record_lma, args.predict_emotion)
+  test_model(test_env, model, select_set, args.record, args.random, args.record_lma, args.predict_emotion, args.ms_models)

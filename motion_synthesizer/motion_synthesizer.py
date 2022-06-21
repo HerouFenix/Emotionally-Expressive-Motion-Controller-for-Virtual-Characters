@@ -10,6 +10,9 @@ import pandas as pd
 
 import xgboost as xgb
 
+import tensorflow as tf
+from tensorflow import keras
+
 
 xgb.set_config(verbosity=0)
 from scipy.optimize import minimize
@@ -25,11 +28,11 @@ PRESET_EMOTIONS = {
    0.03035523],
     
     # TIRED
-    (0.1, -0.7, -0.2): [ 0.61826428,  0.29773832,  0.31631444,  0.61099298,  0.38177025,  0.4067126,
-   0.27889606,  0.27638706,  0.23615097,  0.22389406,  0.41153708,  0.08924712,
-   0.10776476,  0.14451101,  0.22792978, -0.03813869, -0.07015731, -0.05813905,
-  -0.04415843, -0.06872438,  0.00450561,  0.00533833,  0.023505  ,  0.01636196,
-   0.00294026],
+    (0.1, -0.7, -0.2): [ 0.4450052,   0.30267617,  0.44533758,  0.29547794,  0.23564595,  0.35828984,
+   0.11714197,  0.13302721,  0.236151  ,  0.22389399,  0.20719219,  0.07022425,
+   0.06840402,  0.06758865,  0.08148723, -0.13730852, -0.13381774, -0.05919065,
+  -0.14447553, -0.1255996 ,  0.01493876,  0.02008506,  0.00624596,  0.01632991,
+   0.01687064],
     
     # TIRED 2
     (0.1, -0.75, -0.25): [ 0.4450052,   0.30267617,  0.44533758,  0.29547794,  0.23564595,  0.35828984,
@@ -39,11 +42,11 @@ PRESET_EMOTIONS = {
    0.01687064],
     
     # EXHAUSTED
-    (-0.1, -0.6, -0.15): [ 0.62813831,  0.33296396,  0.29231774,  0.23793207,  0.41810269,  0.37391618,
-   0.27755375,  0.278451  ,  0.23615101,  0.22389397,  0.19359697,  0.06910677,
-   0.05304403,  0.14552894,  0.08755464, -0.01530395, -0.03951186, -0.06149991,
-  -0.00867908, -0.03103101,  0.00392392,  0.00452358,  0.00586803,  0.00200847,
-   0.00397053],
+    (-0.1, -0.6, -0.15): [ 0.4450052,   0.30267617,  0.44533758,  0.29547794,  0.23564595,  0.35828984,
+   0.11714197,  0.13302721,  0.236151  ,  0.22389399,  0.20719219,  0.07022425,
+   0.06840402,  0.06758865,  0.08148723, -0.13730852, -0.13381774, -0.05919065,
+  -0.14447553, -0.1255996 ,  0.01493876,  0.02008506,  0.00624596,  0.01632991,
+   0.01687064],
     
     # ANGRY
     (-0.5, 0.8, 0.9): [ 0.4849567,   0.43509817,  0.40199345,  0.72839327,  0.33868578,  0.19559014,
@@ -74,18 +77,18 @@ PRESET_EMOTIONS = {
    0.01475212],
     
     # CONFIDENT 2
-    (0.25, 0.15, 0.4): [ 0.74932451,  0.3292823,   0.43148791,  0.66676494,  0.416184,    0.44834246,
-   0.29014289,  0.29981556,  0.236151  ,  0.22389402,  0.59168066,  0.08334877,
-   0.0842501 ,  0.16201821,  0.24783783, -0.09810907, -0.09096309, -0.06815321,
-  -0.07576912, -0.09878263,  0.01330656,  0.00623767,  0.00886188,  0.02393857,
-   0.00483165],
+    (0.25, 0.15, 0.4): [ 0.72487293,  0.35887094,  0.42138989,  0.78525169,  0.31323459,  0.41962872,
+   0.3456292 ,  0.36508856,  0.236151  ,  0.22389399,  0.64049156,  0.14345473,
+   0.15673073,  0.10815576,  0.27122958, -0.12987   , -0.15814968, -0.13852751,
+  -0.14657472, -0.14309478,  0.02549621,  0.01590126,  0.01748402,  0.03745181,
+   0.01475212],
     
     # CONFIDENT 3
-    (0.3, 0.4, 0.6): [ 0.83631549,  0.4374688,   0.41346408,  0.68161331,  0.43397967,  0.45622925,
-   0.37222944,  0.33910005,  0.23615101,  0.22389399,  0.58342321,  0.14029728,
-   0.10669285,  0.15740731,  0.24650132, -0.07381996, -0.07477095, -0.03838059,
-  -0.11446716, -0.08053586,  0.0059353 ,  0.00862793,  0.00701826,  0.01004484,
-   0.00694983],
+    (0.3, 0.4, 0.6): [ 0.72487293,  0.35887094,  0.42138989,  0.78525169,  0.31323459,  0.41962872,
+   0.3456292 ,  0.36508856,  0.236151  ,  0.22389399,  0.64049156,  0.14345473,
+   0.15673073,  0.10815576,  0.27122958, -0.12987   , -0.15814968, -0.13852751,
+  -0.14657472, -0.14309478,  0.02549621,  0.01590126,  0.01748402,  0.03745181,
+   0.01475212],
     
     # AFRAID
     (-0.6, 0.7, -0.8): [ 2.08340828e-01,  2.64129062e-01,  2.27426258e-01,  2.30559942e-01,
@@ -104,11 +107,11 @@ PRESET_EMOTIONS = {
    0.00587643],
     
     # ANGRY 2
-    (-0.5, 0.7, 0.9): [ 0.35083197,  0.55445003,  0.53397469,  0.16899797,  0.44933407,  0.42984391,
-   0.34636631,  0.36784071 , 0.23615104 , 0.22389401 , 0.39055913 , 0.13535529,
-   0.0112442 ,  0.07009147 , 0.07013562 ,-0.02260682 ,-0.03678275 ,-0.00227649,
-  -0.00205315, -0.00272447 , 0.03883486 , 0.00842329 , 0.00230566 , 0.00163432,
-   0.00361933],
+    (-0.5, 0.7, 0.9): [ 0.4450052,   0.30267617,  0.44533758,  0.29547794,  0.23564595,  0.35828984,
+   0.11714197,  0.13302721,  0.236151  ,  0.22389399,  0.20719219,  0.07022425,
+   0.06840402,  0.06758865,  0.08148723, -0.13730852, -0.13381774, -0.05919065,
+  -0.14447553, -0.1255996 ,  0.01493876,  0.02008506,  0.00624596,  0.01632991,
+   0.01687064],
 
     # HAPPY
     (0.8, 0.5, 0.15): [ 0.87840172,  0.40800089,  0.69014457,  0.60317439,  0.4222134,   0.57671535,
@@ -118,27 +121,20 @@ PRESET_EMOTIONS = {
    0.04283095],
 
     # SAD 2
-    (-0.6, -0.3, -0.3): [ 6.07361422e-02,  4.73387724e-01,  4.24869513e-01,  3.19499137e-01,
-   2.75486194e-01,  2.23666970e-01,  2.39500768e-01,  2.23175646e-01,
-   2.36150994e-01,  2.23894031e-01,  1.72089341e-01,  6.15466172e-02,
-   3.93021977e-02,  4.70122402e-03,  1.31860887e-01, -3.34407410e-02,
-  -4.12166130e-02, -6.68352569e-04, -4.60027201e-04, -1.50126704e-03,
-   1.14945239e-02,  1.41309644e-02,  2.74578227e-03,  3.15886054e-03,
-   8.74024321e-04],
-
-    # DISGUSTED
-    (-0.4, 0.25, -0.1): [ 0.36427822,  0.14763415,  0.23171892,  0.3113933,   0.31870399,  0.36442134,
-   0.16946413 , 0.22656426,  0.23615096,  0.22389405,  0.10435639,  0.01964235,
-   0.04378811 , 0.09296647,  0.12856039, -0.00715507, -0.00746254, -0.00743695,
-  -0.00758209 ,-0.00526928,  0.00302902,  0.00302307,  0.00269212,  0.00412398,
-   0.00252165],
+    (-0.6, -0.3, -0.3): [ 0.48203249,  0.30429993,  0.32106327,  0.3275376,   0.17515474,  0.30992711,
+   0.25770942,  0.38230947,  0.23615101,  0.223894  ,  0.35171322,  0.08729186,
+   0.05838501,  0.05864761,  0.09994176, -0.07459375, -0.13680961, -0.13222726,
+  -0.05183191, -0.08656714,  0.0209568 ,  0.02331046,  0.00706071,  0.01917414,
+   0.02123904],
 
     # AFRAID 2
-    (-0.5, 0.7, -0.8): [ 0.17382527,  0.47317039,  0.45626894,  0.32589129,  0.26317262,  0.25809266,
-   0.223039  ,  0.23820646,  0.23615101,  0.22389399,  0.18209588,  0.03709195,
-   0.06255196,  0.01292796,  0.1270879 , -0.02234098, -0.02249944, -0.01096152,
-  -0.0250001 , -0.01976945,  0.0124769 ,  0.01528433,  0.00939255,  0.03051273,
-   0.01267987],
+    (-0.5, 0.7, -0.8): [ 2.08340828e-01,  2.64129062e-01,  2.27426258e-01,  2.30559942e-01,
+   1.28220619e-01,  1.26505977e-01,  2.62098755e-01,  3.14412678e-01,
+   2.36151019e-01,  2.23893942e-01,  2.06627529e-01,  5.68116833e-02,
+   3.86782264e-02,  2.64402409e-02,  9.19677408e-02, -1.91390101e-02,
+  -2.03380232e-02, -1.51719401e-02, -1.05658747e-02, -1.84225226e-02,
+   9.78201230e-04,  7.71277062e-04,  1.90137609e-03,  1.32488543e-03,
+   2.00411355e-04],
 }
 
 
@@ -198,7 +194,7 @@ C6_INDICES = [9,10, 12] # Chest Z-Rotation
 
 
 class MotionSynthesizer():
-    def __init__(self):
+    def __init__(self,models=""):
         # Initializer with no files
         self.c1 = [1.0]
         self.c2 = [1.0]
@@ -223,16 +219,39 @@ class MotionSynthesizer():
 
         self._reference = []
 
-        self._models = {}
-        """
-        for filename in os.listdir("../motion_synthesizer/models/"):
-            f = os.path.join("../motion_synthesizer/models/bandai_kin/5frame/xgb/", filename)
-            if os.path.isfile(f):
-                print(filename)
-                model = xgb.XGBRegressor(verbosity=0)
-                model.load_model(f)
-                self._models[filename.split(".")[0]] = model
-        """
+        if(models=="direct" or models=="DIRECT"):
+            self._models = {}
+            self._models_type = models
+
+            for filename in os.listdir("../motion_synthesizer/models/bandai_kin/5frame/xgb/"):
+                f = os.path.join("../motion_synthesizer/models/bandai_kin/5frame/xgb/", filename)
+                if os.path.isfile(f):
+                    print(filename)
+                    model = xgb.XGBRegressor(verbosity=0)
+                    model.load_model(f)
+                    self._models[filename.split(".")[0]] = model
+
+            #print(self._models)
+        
+        elif(models=="ae" or models=="AE"):
+            self._models = {"ae": None, "xgb": {}}
+            self._models_type = models
+
+            ae_model = keras.models.load_model('../motion_synthesizer/models/bandai_kin/5frame/ae/autoencoder_5/')
+            self._models["ae"] = ae_model
+
+            for filename in os.listdir("../motion_synthesizer/models/bandai_kin/5frame/ae/"):
+                f = os.path.join("../motion_synthesizer/models/bandai_kin/5frame/ae/", filename)
+                if os.path.isfile(f):
+                    print(filename)
+                    model = xgb.XGBRegressor(verbosity=0)
+                    model.load_model(f)
+                    self._models["xgb"][filename.split(".")[0]] = model
+
+            #print(self._models)
+        else:
+            self._models = {}
+            self._models_type = models
 
         self._desired_emotion = np.asarray([0.0, 0.0, 0.0])
 
@@ -375,18 +394,49 @@ class MotionSynthesizer():
         ]
 
 
+
+
         # Check if we have a "close enough" preset emotion
         emotion, dist = self._find_closest_emotion(pad)
         if(dist <= 0.03):
             lma = PRESET_EMOTIONS[emotion]
             pad = np.asarray([emotion[0], emotion[1], emotion[2]])
             self._desired_emotion = pad
-        else:
-            # Else call our models (TODO)
+        elif(self._models_type == "direct" or self._models_type == "DIRECT"):
+            pad_predict = np.asarray([[pad[0], pad[1], pad[2]]])
+            
             pad = np.asarray([pad[0], pad[1], pad[2]])
             self._desired_emotion = pad
-            #for feature in pad_order:
-            #    lma.append(self._models[feature].predict(pad)[0])
+
+            for feature in pad_order:
+                lma.append(self._models[feature].predict(pad_predict)[0])
+
+        elif(self._models_type == "ae" or self._models_type == "AE"):
+            pad_predict = np.asarray([[pad[0], pad[1], pad[2]]])
+            
+            pad = np.asarray([pad[0], pad[1], pad[2]])
+            self._desired_emotion = pad
+
+            latent_order = ["bandai_pad2l1_model",
+                     "bandai_pad2l2_model",
+                     "bandai_pad2l3_model",
+                     "bandai_pad2l4_model",
+                     "bandai_pad2l5_model"]
+            latent_space = []
+
+
+
+            for latent_feature in latent_order:
+                latent_space.append(self._models["xgb"][latent_feature].predict(pad_predict)[0])
+
+            latent_space = np.asarray([latent_space])
+            lma = self._models["ae"].decoder.predict(latent_space)[0]
+            
+        else:
+            lma = PRESET_EMOTIONS[emotion]
+            pad = np.asarray([emotion[0], emotion[1], emotion[2]])
+            self._desired_emotion = pad
+            print(pad)
         
         self._reference = lma
         #print(self._reference)
@@ -754,14 +804,14 @@ class MotionSynthesizer():
             new_right_hand_position_z = current_right_hand[2]
 
             # LEFT #
-            new_left_hand_position_x += d_left_hips[0] * (coefficient_hips-1.0) * 0.3
-            new_left_hand_position_y += d_left_hips[1] * (coefficient_hips-1.0) * 0.3
-            new_left_hand_position_z += d_left_hips[2] * (coefficient_hips-1.0) * 0.3
+            new_left_hand_position_x += d_left_hips[0] * (coefficient_hips-1.0) * 0.5
+            new_left_hand_position_y += d_left_hips[1] * (coefficient_hips-1.0) * 0.5
+            new_left_hand_position_z += d_left_hips[2] * (coefficient_hips-1.0) * 0.5
 
             ## RIGHT #
-            new_right_hand_position_x += d_right_hips[0] * (coefficient_hips-1.0) * 0.3
-            new_right_hand_position_y += d_right_hips[1] * (coefficient_hips-1.0) * 0.3
-            new_right_hand_position_z += d_right_hips[2] * (coefficient_hips-1.0) * 0.3
+            new_right_hand_position_x += d_right_hips[0] * (coefficient_hips-1.0) * 0.5
+            new_right_hand_position_y += d_right_hips[1] * (coefficient_hips-1.0) * 0.5
+            new_right_hand_position_z += d_right_hips[2] * (coefficient_hips-1.0) * 0.5
 
 
             # Unit Vectors HEAD #
@@ -991,7 +1041,7 @@ class MotionSynthesizer():
             
 
     def rule_6(self):
-        print("\n== RULE 6 - NECK ROTATION ==")
+        #print("\n== RULE 6 - NECK ROTATION ==")
         # Rotate head on the Z axis to make it look down or up
 
         coefficient_index = 0
@@ -1029,7 +1079,7 @@ class MotionSynthesizer():
 
 
     def rule_1_single(self, frame, coefficient):
-        print("\n== RULE 1 SINGLE - PELVIS ==")
+        #print("\n== RULE 1 SINGLE - PELVIS ==")
 
         coefficient = self.c1
             
@@ -1045,7 +1095,7 @@ class MotionSynthesizer():
         return generated_pose
 
     def rule_2_single(self, frame, coefficient):
-        print("\n== RULE 2 SINGLE - NECK ==")
+        #print("\n== RULE 2 SINGLE - NECK ==")
 
         t_pose_root = T_POSE["root"][0]
         t_pose_head = T_POSE["neck"][0]
@@ -1108,7 +1158,7 @@ class MotionSynthesizer():
         return generated_pose
 
     def rule_3_single(self, frame, coefficient_1, coefficient_2):
-        print("\n== RULE 3 SINGLE - HANDS ==")
+        #print("\n== RULE 3 SINGLE - HANDS ==")
         # Move on Vector going from root to wrist and from wrist to neck
 
         #1 C3 HANDS HIPS
@@ -1148,14 +1198,14 @@ class MotionSynthesizer():
         new_right_hand_position_z = current_right_hand[2]
 
         # LEFT #
-        new_left_hand_position_x += d_left_hips[0] * (coefficient_hips-1.0) * 0.3
-        new_left_hand_position_y += d_left_hips[1] * (coefficient_hips-1.0) * 0.3
-        new_left_hand_position_z += d_left_hips[2] * (coefficient_hips-1.0) * 0.3
+        new_left_hand_position_x += d_left_hips[0] * (coefficient_hips-1.0) * 0.5
+        new_left_hand_position_y += d_left_hips[1] * (coefficient_hips-1.0) * 0.5
+        new_left_hand_position_z += d_left_hips[2] * (coefficient_hips-1.0) * 0.5
 
         ## RIGHT #
-        new_right_hand_position_x += d_right_hips[0] * (coefficient_hips-1.0) * 0.3
-        new_right_hand_position_y += d_right_hips[1] * (coefficient_hips-1.0) * 0.3
-        new_right_hand_position_z += d_right_hips[2] * (coefficient_hips-1.0) * 0.3
+        new_right_hand_position_x += d_right_hips[0] * (coefficient_hips-1.0) * 0.5
+        new_right_hand_position_y += d_right_hips[1] * (coefficient_hips-1.0) * 0.5
+        new_right_hand_position_z += d_right_hips[2] * (coefficient_hips-1.0) * 0.5
 
 
         # Unit Vectors HEAD #
@@ -1223,7 +1273,7 @@ class MotionSynthesizer():
         return (generated_pose_l, generated_pose_r)
 
     def rule_4_single(self, frame, coefficient):
-        print("\n== RULE 4 SINGLE - ELBOWS ==")
+        #print("\n== RULE 4 SINGLE - ELBOWS ==")
 
         coefficient = self.c4#[coefficient_index]
 
@@ -1278,7 +1328,7 @@ class MotionSynthesizer():
         return (generated_pose_l, generated_pose_r)
 
     def rule_5_single(self, frame, coefficient):
-        print("\n== RULE 5 SINGLE - FEET ==")
+        #print("\n== RULE 5 SINGLE - FEET ==")
         # Move on Vector going from left foot to right and right foot to left (ignoring height)
 
         coefficient = self.c5#[coefficient_index]
@@ -1331,7 +1381,7 @@ class MotionSynthesizer():
         return (generated_pose_l, generated_pose_r)
 
     def rule_6_single(self, frame, coefficient):
-        print("\n== RULE 6 SINGLE - NECK ROTATION ==")
+        #print("\n== RULE 6 SINGLE - NECK ROTATION ==")
 
         coefficient = self.c6
 

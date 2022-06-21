@@ -3,6 +3,7 @@
 from concurrent.futures import process
 from tkinter import DISABLED, END
 from tkinter.font import NORMAL
+import tkinter as tk
 import numpy as np
 import math
 from utils import bullet_client
@@ -370,7 +371,7 @@ class VisMocapEnv():
       return pose, vel, links_pos, links_orn, vel_dict
 
 
-def show_mocap(mocap_file, model, record_lma='', predict_emotion=True, record_mocap=''):
+def show_mocap(mocap_file, model, record_lma='', predict_emotion=True, record_mocap='', ms_models = ''):
   env = VisMocapEnv(mocap_file, None, model)
   #env._mocap.show_com()
   env.reset()
@@ -392,13 +393,40 @@ def show_mocap(mocap_file, model, record_lma='', predict_emotion=True, record_mo
 
     #gui.update()
     current_emotion = [0.0, 0.0, 0.0]
+
+
+    window = tk.Tk()
+    window.minsize(250,100)
+    window.title("LOADING ML MODELS")
+    tk.Label(window, text = '== EMOTION PREDICTION MODELS ==', 
+        font =('Verdana 12 bold')).pack(pady=(10,0))
+    loading_emotion = tk.Label(window, text = 'Loading...', 
+        font =('Verdana 10 bold'), fg='#5c111f')
+    loading_emotion.pack(pady=(5,0))
+
+    tk.Label(window, text = '== EMOTION SYNTHESIS MODELS ==', 
+        font =('Verdana 12 bold')).pack(pady=(10,0))
+    loading_synthesis = tk.Label(window, text = 'Loading...', 
+        font =('Verdana 10 bold'), fg='#5c111f')
+    loading_synthesis.pack(pady=(5,10))
+
+    window.update()
+    
     emotion_predictor = EmotionClassifier()
 
+    loading_emotion.config(fg='green', text="Loaded!")
+    window.update()
 
-    ms = MotionSynthesizer()
+    ms = MotionSynthesizer(ms_models)
     env._ms = ms
 
+    loading_synthesis.config(fg='green', text="Loaded!")
+    window.update()
+
+    window.destroy()
+    
     env._gui = gui
+    
   
   processes = []
   has_looped_once = False
@@ -505,9 +533,11 @@ if __name__=="__main__":
   parser.add_argument("--model", type=str, default='humanoid3d', help="model")
   parser.add_argument("--record_lma", type=str, default='', help="specify a file name if you want to store the lma features on a file")
   parser.add_argument("--record_mocap", type=str, default='', help="specify a file name if you want to store the mocap on a file")
+
+  parser.add_argument("--ms_models", type=str, default='direct', help="specify the motion synthesis models - '' , direct (default), ae")
   
   parser.add_argument("--predict_emotion",default=True, action="store_true" , help="specify whether you want to output the predicted emotional coordinates")
 
   args = parser.parse_args()
 
-  show_mocap(args.mocap, args.model, args.record_lma, args.predict_emotion, args.record_mocap)
+  show_mocap(args.mocap, args.model, args.record_lma, args.predict_emotion, args.record_mocap, args.ms_models)

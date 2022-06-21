@@ -1,6 +1,5 @@
 import os.path
 import tkinter as tk
-from turtle import left
 
 EMOTION_COORDINATES = {
     (0.05, -0.1, 0.0): "Neutral", # Normal bandai 1/2
@@ -291,7 +290,39 @@ class GUIManager():
             self.motion_synthesis.config(text="In Progress", fg=COLOURS['yellow'])
 
     def get_pad(self):
-        return [float(self.new_pleasure.get()), float(self.new_arousal.get()), float(self.new_dominance.get())]
+        pleasure = float(self.new_pleasure.get())
+        arousal = float(self.new_arousal.get())
+        dominance = float(self.new_dominance.get())
+
+        if(pleasure > 1.0):
+            pleasure = 1.0
+            self.new_pleasure.delete(0,tk.END)
+            self.new_pleasure.insert(0,"1.0")
+        elif(pleasure < -1.0):
+            pleasure = -1.0
+            self.new_pleasure.delete(0,tk.END)
+            self.new_pleasure.insert(0,"-1.0")
+
+        if(arousal > 1.0):
+            arousal = 1.0
+            self.new_arousal.delete(0,tk.END)
+            self.new_arousal.insert(0,"1.0")
+        elif(arousal < -1.0):
+            arousal = -1.0
+            self.new_arousal.delete(0,tk.END)
+            self.new_arousal.insert(0,"-1.0")
+
+        if(dominance > 1.0):
+            dominance = 1.0
+            self.new_pleasure.delete(0,tk.END)
+            self.new_pleasure.insert(0,"1.0")
+        elif(dominance < -1.0):
+            dominance = -1.0
+            self.new_dominance.delete(0,tk.END)
+            self.new_dominance.insert(0,"-1.0")
+
+        print([pleasure, arousal, dominance])
+        return [pleasure, arousal, dominance]
 
 #manager = GUIManager()
 #while True:
