@@ -119,9 +119,9 @@ class GUIManager():
 
         # Preset Emotions
         # Row 1
-        self.normal_button = tk.Button(self.n_frame, text = 'Normal', 
+        self.tired_button = tk.Button(self.n_frame, text = 'Exhausted', 
         font =('Verdana 10 bold'), width=7, command= lambda: self._change_emotion_by_preset(0))
-        self.normal_button.grid(row=5, pady=5, column=0, columnspan=1)
+        self.tired_button.grid(row=5, pady=5, column=0, columnspan=1)
 
         self.confident_button = tk.Button(self.n_frame, text = 'Confident', 
         font =('Verdana 10 bold'), width=7, command= lambda: self._change_emotion_by_preset(1))
@@ -179,15 +179,15 @@ class GUIManager():
         self.window.update()
 
     def _change_emotion_by_preset(self, index):
-        if(index == 0): # Neutral
+        if(index == 0): # Tired
             self.new_pleasure.delete(0,tk.END)
-            self.new_pleasure.insert(0,"0.05")
+            self.new_pleasure.insert(0,"0.1")
 
             self.new_arousal.delete(0,tk.END)
-            self.new_arousal.insert(0,"-0.1")
+            self.new_arousal.insert(0,"-0.75")
 
             self.new_dominance.delete(0,tk.END)
-            self.new_dominance.insert(0,"0.0")
+            self.new_dominance.insert(0,"-0.25")
         elif(index == 1): # Confident
             self.new_pleasure.delete(0,tk.END)
             self.new_pleasure.insert(0,"0.3")

@@ -2,7 +2,7 @@ import math
 import numpy as np
 import os.path
 import os
-
+import pybullet as p1
 import pandas as pd
 
 
@@ -163,36 +163,38 @@ T_POSE = {
     'left_wrist': [(-0.024049999192357063, 0.8354562520980835, -0.18310999870300293)]
 }
 
-#00          c3_hips, c3_chest          "max_hand_distance",
-#01          c3_hips                    "avg_l_hand_hip_distance",
-#02          c3_hips                    "avg_r_hand_hip_distance",
-#03          c5                         "max_stride_length",
-#04          c3_chest                   "avg_l_hand_chest_distance",
-#05          c3_chest                   "avg_r_hand_chest_distance",
-#06          c4                         "avg_l_elbow_hip_distance",
-#07          c4                         "avg_r_elbow_hip_distance",
-#08          c1                         "avg_chest_pelvis_distance",
-#09          c2                         "avg_neck_chest_distance",
+#00          c3_hips, c3_chest                      "max_hand_distance",
+#01          c3_hips                                "avg_l_hand_hip_distance",
+#02          c3_hips                                "avg_r_hand_hip_distance",
+#03          c5                                     "max_stride_length",
+#04          c3_chest                               "avg_l_hand_chest_distance",
+#05          c3_chest                               "avg_r_hand_chest_distance",
+#06          c4                                     "avg_l_elbow_hip_distance",
+#07          c4                                     "avg_r_elbow_hip_distance",
+#08          c1, c2                                 "avg_chest_pelvis_distance",
+#09          c6                                     "avg_neck_chest_distance",
 #          
-#10          c1, c2, c3_hips, c3_chest  "avg_total_body_volume",
-#11          c1, c5                     "avg_lower_body_volume",
-#12          c2, c3_hips, c3_chest      "avg_upper_body_volume",
+#10          c1, c2, c3_hips, c3_chest, c4, c5, c6  "avg_total_body_volume",
+#11          c1, c5                                 "avg_lower_body_volume",
+#12          c2, c3_hips, c3_chest, c4, c6          "avg_upper_body_volume",
 #          
-#13          c3_hands, c3_chest         "avg_triangle_area_hands_neck",
-#14          c1,c5                      "avg_triangle_area_feet_hips",
+#13          c3_hips, c3_chest                      "avg_triangle_area_hands_neck",
+#14          c1,c5                                  "avg_triangle_area_feet_hips",
 
-C1_INDICES = [8, 10, 11, 14]
-C2_INDICES = [9, 10, 12]
+C1_INDICES = [8, 10, 11, 14] # Root
+C2_INDICES = [8, 10, 12] # Chest
 
-C3_INDICES = [0,1,2,4,5, 10, 12,13]
-C3_HIPS_INDICES = [0, 1, 2, 10, 12, 13]
-C3_CHEST_INDICES = [0, 4, 5, 10, 12, 13]
+C3_INDICES = [0,1,2,4,5, 10, 12,13] # L/R Hand [DEPRECATED]
+C3_HIPS_INDICES = [0, 1, 2, 10, 12, 13] # Hand-Hips
+C3_CHEST_INDICES = [0, 4, 5, 10, 12, 13] # Hand-Chest
 
-C4_INDICES = [6,7]
-C4_LEFT_INDICES = [6]
-C4_RIGHT_INDICES = [7]
+C4_INDICES = [6,7,10,12] # Elbows
+C4_LEFT_INDICES = [6] # L-Elbow [DEPRECATED]
+C4_RIGHT_INDICES = [7] # R-Elbow [DEPRECATED]
 
-C5_INDICES = [3, 11, 14]
+C5_INDICES = [3,10, 11, 14] # Feet
+
+C6_INDICES = [9,10, 12] # Chest Z-Rotation
 
 
 class MotionSynthesizer():
@@ -208,6 +210,8 @@ class MotionSynthesizer():
         self.c4 = [1.0]
 
         self.c5 = [1.0] #C5
+
+        self.c6 = [1.0]
 
         self.current_reference_features = []
         self.current_features = []
@@ -245,6 +249,8 @@ class MotionSynthesizer():
 
         self.c5 = [1.0] #C5
 
+        self.c6 = [1.0]
+
         self.current_reference_features = []
         self.current_features = []
 
@@ -269,6 +275,8 @@ class MotionSynthesizer():
 
         self.c5 = [1.0] #C5
 
+        self.c6 = [1.0]
+
         self.generated_mocap = []
         self._reference = []
 
@@ -280,9 +288,7 @@ class MotionSynthesizer():
         i = 1
         for frame in mocap:
             frame = frame.copy()
-            frame.pop("frame")
             self._mocap.append(frame) # This already ignores the first frame, which is why we start i at 1
-
             gen = {"root": frame["root"][0], "neck": frame["neck"][0], "left_wrist":frame["left_wrist"][0], "right_wrist":frame["right_wrist"][0], "left_elbow":frame["left_elbow"][0], "right_elbow":frame["right_elbow"][0], "left_ankle":frame["left_ankle"][0], "right_ankle":frame["right_ankle"][0]}
             orn = {"root": frame["root"][1], "neck": frame["neck"][1], "left_wrist":frame["left_wrist"][1], "right_wrist":frame["right_wrist"][1], "left_elbow":frame["left_elbow"][1], "right_elbow":frame["right_elbow"][1], "left_ankle":frame["left_ankle"][1], "right_ankle":frame["right_ankle"][1]}
             
@@ -371,7 +377,7 @@ class MotionSynthesizer():
 
         # Check if we have a "close enough" preset emotion
         emotion, dist = self._find_closest_emotion(pad)
-        if(dist <= 0.05):
+        if(dist <= 0.03):
             lma = PRESET_EMOTIONS[emotion]
             pad = np.asarray([emotion[0], emotion[1], emotion[2]])
             self._desired_emotion = pad
@@ -397,16 +403,19 @@ class MotionSynthesizer():
         
         self.compute_coefficient(5)
 
+        self.compute_coefficient(6)
+
     def get_motion_changes(self):
         self.rule_1()
         self.rule_2()
         self.rule_3()
         self.rule_4()
         self.rule_5()
+        self.rule_6()
 
         return self.generated_mocap
 
-    def convert_single_frame(self, frame, counter):
+    def convert_single_frame(self, frame, counter, pose):
         # Get the coefficients of the closest key frame and compute the changes of this single frame alone
         #closest_index = int((counter/self._frame_worth)/self._extraction_framerate)
         closest_index = int(counter/5)
@@ -420,13 +429,15 @@ class MotionSynthesizer():
         frame_c3_2 = self.c3_2#[closest_index]
         frame_c4 = self.c4#[closest_index]
         frame_c5 = self.c5#[closest_index]
+        frame_c6 = self.c6
 
-        generated = {"mocap": {"root": [], "neck": [], "left_wrist": [], "right_wrist":[], "left_elbow":[], "right_elbow":[], "left_ankle": [], "right_ankle": []}}
+        generated = {"mocap": {"root": [], "neck": [], "left_wrist": [], "right_wrist":[], "left_elbow":[], "right_elbow":[], "left_ankle": [], "right_ankle": []}, "orn": {"neck": []}}
         root = self.rule_1_single(frame, frame_c1)
         neck = self.rule_2_single(frame, frame_c2)
         left_wrist, right_wrist = self.rule_3_single(frame, frame_c3_1, frame_c3_2)
         left_elbow, right_elbow = self.rule_4_single(frame, frame_c4)
         left_ankle, right_ankle = self.rule_5_single(frame, frame_c5)
+        neck_rotation = self.rule_6_single(pose, frame_c6)
 
         generated["mocap"]["root"] = root
         generated["mocap"]["neck"] = neck
@@ -436,6 +447,7 @@ class MotionSynthesizer():
         generated["mocap"]["right_elbow"] = right_elbow
         generated["mocap"]["left_ankle"] = left_ankle
         generated["mocap"]["right_ankle"] = right_ankle
+        generated["orn"]["neck"] = neck_rotation
 
         return generated
 
@@ -471,6 +483,10 @@ class MotionSynthesizer():
         elif(coefficient_number == 5):
             print("== COMPUTING COEFFICIENT C5 - FEET ==")
             feature_index = C5_INDICES
+
+        elif(coefficient_number == 6):
+            print("== COMPUTING COEFFICIENT C6 - NECK ROTATION ==")
+            feature_index = C6_INDICES
 
         else:
             print("UNKNOWN COEFFICIENT!")
@@ -524,6 +540,9 @@ class MotionSynthesizer():
         elif(coefficient_number == 5):
             self.c5 = coefficient
 
+        elif(coefficient_number == 6):
+            self.c6 = coefficient
+
     def compute_norms(self, reference, current_features, coefficient):
         norms = []
 
@@ -574,7 +593,7 @@ class MotionSynthesizer():
             # If Coefifcient > 1.0 -> Move Up (new root height += positive value) ; Else Move Down (new root height += negative value)
             #e.g coefficient = 1.2 -> new height += 0.2
             #e.g coefficient = 0.8 -> new height += -0.2
-            new_root_height += 1.0 * ((coefficient - 1.0) * 0.1) #0.1 -> dampening factor
+            new_root_height += 1.0 * ((coefficient - 1.0) * 0.08) #0.1 -> change weight
 
                 
             gen_index = i
@@ -618,40 +637,70 @@ class MotionSynthesizer():
             new_neck_position_z = current_neck_position[2]
 
             
+            #if(self._desired_emotion[0] < 0.0 and self._desired_emotion[2] > 0.0):
+            #    # Usually, high Dominance have the character arch back to elevate the shoulders. For angry (i.e when the pleasure is also low) this is the opposite
+            #
+            #    dampening_factor_x = 0.25
+            #    dampening_factor_y = 0.15
+            #
+            #    if(coefficient > 1.0):
+            #        new_neck_position_x += 1.0 * (((coefficient+0.2) - 1.0) * dampening_factor_x) 
+            #        new_neck_position_y -= 1.0 * (((coefficient+0.2) - 1.0) * dampening_factor_y) 
+            #    else:
+            #        new_neck_position_x -= 1.0 * (((coefficient-0.2) - 1.0) * dampening_factor_x) 
+            #        new_neck_position_y += 1.0 * (((coefficient-0.2) - 1.0) * dampening_factor_y) 
+            #
+            #elif(self._desired_emotion[0] < 0.0 and self._desired_emotion[1] < 0.0 and self._desired_emotion[2] < 0.0):
+            #    if(coefficient > 1.0):
+            #        dampening_factor_x = 0.3
+            #        dampening_factor_y = 0.2
+            #    else:
+            #        dampening_factor_x = 0.3
+            #        dampening_factor_y = 0.2
+            #
+            #    new_neck_position_x -= 1.0 * ((coefficient - 1.0) * dampening_factor_x) 
+            #    new_neck_position_y += 1.0 * ((coefficient - 1.0) * dampening_factor_y) 
+            #
+            #else:
+            #    if(coefficient > 1.0):
+            #        dampening_factor_x = 0.25
+            #        dampening_factor_y = 0.15
+            #    else:
+            #        dampening_factor_x = 0.25
+            #        dampening_factor_y = 0.15
+            #   new_neck_position_x -= 1.0 * ((coefficient - 1.0) * change_weight_factor_x) 
+            #    new_neck_position_y += 1.0 * ((coefficient - 1.0) * change_weight_factor_y) 
+
             if(self._desired_emotion[0] < 0.0 and self._desired_emotion[2] > 0.0):
-                # Usually, high Dominance have the character arch back to elevate the shoulders. For angry (i.e when the pleasure is also low) this is the opposite
-
-                dampening_factor_x = 0.25
-                dampening_factor_y = 0.15
-
-                if(coefficient > 1.0):
-                    new_neck_position_x += 1.0 * (((coefficient+0.2) - 1.0) * dampening_factor_x) 
-                    new_neck_position_y -= 1.0 * (((coefficient+0.2) - 1.0) * dampening_factor_y) 
+            # Usually, high Dominance have the character arch back to elevate the shoulders. For angry (i.e when the pleasure is also low) this is the opposite
+                if(coefficient < 1.1 and coefficient > 0.9):
+                    change_weight_factor_x = 1.5
+                    change_weight_factor_y = 1.5
                 else:
-                    new_neck_position_x -= 1.0 * (((coefficient-0.2) - 1.0) * dampening_factor_x) 
-                    new_neck_position_y += 1.0 * (((coefficient-0.2) - 1.0) * dampening_factor_y) 
+                    change_weight_factor_x = 0.12
+                    change_weight_factor_y = 0.12
 
-            elif(self._desired_emotion[0] < 0.0 and self._desired_emotion[1] < 0.0 and self._desired_emotion[2] < 0.0):
-                if(coefficient > 1.0):
-                    dampening_factor_x = 0.3
-                    dampening_factor_y = 0.2
-                else:
-                    dampening_factor_x = 0.3
-                    dampening_factor_y = 0.2
-
-                new_neck_position_x -= 1.0 * ((coefficient - 1.0) * dampening_factor_x) 
-                new_neck_position_y += 1.0 * ((coefficient - 1.0) * dampening_factor_y) 
-
+                new_neck_position_x += 1.0 * ((coefficient - 1.0) * change_weight_factor_x) 
+                new_neck_position_y -= 1.0 * ((coefficient - 1.0) * change_weight_factor_y) 
             else:
-                if(coefficient > 1.0):
-                    dampening_factor_x = 0.25
-                    dampening_factor_y = 0.15
-                else:
-                    dampening_factor_x = 0.25
-                    dampening_factor_y = 0.15
+                if(self._desired_emotion[1] > 0.0 and self._desired_emotion[2] < 0.0):
+                    if(coefficient > 1.0):
+                        change_weight_factor_x = 0.025
+                        change_weight_factor_y = 0.025
+                    else:
+                        change_weight_factor_x = 0.25
+                        change_weight_factor_y = 0.25
 
-                new_neck_position_x -= 1.0 * ((coefficient - 1.0) * dampening_factor_x) 
-                new_neck_position_y += 1.0 * ((coefficient - 1.0) * dampening_factor_y) 
+                else:
+                    if(coefficient > 1.0):
+                        change_weight_factor_x = 0.025
+                        change_weight_factor_y = 0.025
+                    else:
+                        change_weight_factor_x = 0.1
+                        change_weight_factor_y = 0.1
+
+                new_neck_position_x -= 1.0 * ((coefficient - 1.0) * change_weight_factor_x) 
+                new_neck_position_y += 1.0 * ((coefficient - 1.0) * change_weight_factor_y) 
 
             gen_index = i
 
@@ -715,7 +764,6 @@ class MotionSynthesizer():
             new_right_hand_position_z += d_right_hips[2] * (coefficient_hips-1.0) * 0.3
 
 
-            # TODO: TRY TO USE THE DESIRED CHEST POSE INSTEAD OF THE CURRENT!!!! #
             # Unit Vectors HEAD #
             # Left to Head #
             d_left_head = np.asarray([current_head_position[0] + 0.4 - new_left_hand_position_x, 
@@ -730,7 +778,7 @@ class MotionSynthesizer():
             d_right_head = d_right_head / np.linalg.norm(d_right_head)
 
 
-            if(self._desired_emotion[0] < 0.0 and self._desired_emotion[1] < 0.0 and self._desired_emotion[2] < 0.0):
+            if(self._desired_emotion[1] < 0.0 and self._desired_emotion[2] < 0.0):
                 # LEFT #
                 new_left_hand_position_x -= d_left_head[0] * (coefficient_chest-1.0) * 0.5
                 new_left_hand_position_y += d_left_head[1] * (coefficient_chest-1.0) * 0.5
@@ -769,7 +817,6 @@ class MotionSynthesizer():
                 new_right_hand_position_x -= d_right_head[0] * (coefficient_chest-1.0) * 0.5
                 new_right_hand_position_y -= d_right_head[1] * (coefficient_chest-1.0) * 0.5
                 new_right_hand_position_z -= d_right_head[2] * (coefficient_chest-1.0) * 0.5
-
 
             gen_index = i
 
@@ -817,34 +864,48 @@ class MotionSynthesizer():
             new_right_elbow_pos_y = current_right_elbow_pos[1]
             new_right_elbow_pos_z = current_right_elbow_pos[2]
 
-            if((self._desired_emotion[0] < -0.3 and self._desired_emotion[1] > 0.5 and self._desired_emotion[2] < -0.3)): 
-                #Usually, high Arousal emotions have broad elbows, but for afraid that is different
+            #if((self._desired_emotion[0] < -0.3 and self._desired_emotion[1] > 0.5 and self._desired_emotion[2] < -0.3)): 
+            #    #Usually, high Arousal emotions have broad elbows, but for afraid that is different
+#
+            #    new_left_elbow_pos_x -= d_left[0] * (coefficient-1.0) * 0.4
+            #    new_left_elbow_pos_y -= d_left[1] * (coefficient-1.0) * 0.4
+            #    new_left_elbow_pos_z -= d_left[2] * (coefficient-1.0) * 0.4
+#
+            #    new_right_elbow_pos_x -= d_right[0] * (coefficient-1.0) * 0.4
+            #    new_right_elbow_pos_y -= d_right[1] * (coefficient-1.0) * 0.4
+            #    new_right_elbow_pos_z -= d_right[2] * (coefficient-1.0) * 0.4
+#
+            #elif(self._desired_emotion[0] < 0.0 and self._desired_emotion[1] < 0.0 and self._desired_emotion[2] < 0.0):
+            #    new_left_elbow_pos_x -= d_left[0] * (coefficient-1.0) * 0.3
+            #    new_left_elbow_pos_y -= d_left[1] * (coefficient-1.0) * 0.3
+            #    new_left_elbow_pos_z -= d_left[2] * (coefficient-1.0) * 0.3
+#
+            #    new_right_elbow_pos_x -= d_right[0] * (coefficient-1.0) * 0.3
+            #    new_right_elbow_pos_y -= d_right[1] * (coefficient-1.0) * 0.3
+            #    new_right_elbow_pos_z -= d_right[2] * (coefficient-1.0) * 0.3
+#
+            #else:
+            #    new_left_elbow_pos_x += d_left[0] * (coefficient-1.0) * 0.5
+            #    new_left_elbow_pos_y += d_left[1] * (coefficient-1.0) * 0.4
+            #    new_left_elbow_pos_z += d_left[2] * (coefficient-1.0) * 0.4
+#
+            #    new_right_elbow_pos_x += d_right[0] * (coefficient-1.0) * 0.5
+            #    new_right_elbow_pos_y += d_right[1] * (coefficient-1.0) * 0.4
+            #    new_right_elbow_pos_z += d_right[2] * (coefficient-1.0) * 0.4
 
-                new_left_elbow_pos_x -= d_left[0] * (coefficient-1.0) * 0.4
-                new_left_elbow_pos_y -= d_left[1] * (coefficient-1.0) * 0.4
-                new_left_elbow_pos_z -= d_left[2] * (coefficient-1.0) * 0.4
+            new_left_elbow_pos_x += d_left[0] * (coefficient-1.0) * 0.5
+            new_left_elbow_pos_y += d_left[1] * (coefficient-1.0) * 0.5
+            new_left_elbow_pos_z += d_left[2] * (coefficient-1.0) * 0.5
 
-                new_right_elbow_pos_x -= d_right[0] * (coefficient-1.0) * 0.4
-                new_right_elbow_pos_y -= d_right[1] * (coefficient-1.0) * 0.4
-                new_right_elbow_pos_z -= d_right[2] * (coefficient-1.0) * 0.4
+            new_right_elbow_pos_x += d_right[0] * (coefficient-1.0) * 0.5
+            new_right_elbow_pos_y += d_right[1] * (coefficient-1.0) * 0.5
+            new_right_elbow_pos_z += d_right[2] * (coefficient-1.0) * 0.5
 
-            elif(self._desired_emotion[0] < 0.0 and self._desired_emotion[1] < 0.0 and self._desired_emotion[2] < 0.0):
-                new_left_elbow_pos_x -= d_left[0] * (coefficient-1.0) * 0.3
-                new_left_elbow_pos_y -= d_left[1] * (coefficient-1.0) * 0.3
-                new_left_elbow_pos_z -= d_left[2] * (coefficient-1.0) * 0.3
+            if(abs(new_left_elbow_pos_z - current_root_position[2]) < 0.15):
+                new_left_elbow_pos_z = current_root_position[2] - 0.15
 
-                new_right_elbow_pos_x -= d_right[0] * (coefficient-1.0) * 0.3
-                new_right_elbow_pos_y -= d_right[1] * (coefficient-1.0) * 0.3
-                new_right_elbow_pos_z -= d_right[2] * (coefficient-1.0) * 0.3
-
-            else:
-                new_left_elbow_pos_x += d_left[0] * (coefficient-1.0) * 0.5
-                new_left_elbow_pos_y += d_left[1] * (coefficient-1.0) * 0.4
-                new_left_elbow_pos_z += d_left[2] * (coefficient-1.0) * 0.4
-
-                new_right_elbow_pos_x += d_right[0] * (coefficient-1.0) * 0.5
-                new_right_elbow_pos_y += d_right[1] * (coefficient-1.0) * 0.4
-                new_right_elbow_pos_z += d_right[2] * (coefficient-1.0) * 0.4
+            if(abs(new_right_elbow_pos_z - current_root_position[2]) < 0.15):
+                new_right_elbow_pos_z = current_root_position[2] + 0.15
 
             gen_index = i
 
@@ -929,6 +990,44 @@ class MotionSynthesizer():
             print()
             
 
+    def rule_6(self):
+        print("\n== RULE 6 - NECK ROTATION ==")
+        # Rotate head on the Z axis to make it look down or up
+
+        coefficient_index = 0
+        for i in range(len(self._mocap)):
+            coefficient = self.c6
+            coefficient_index += 1
+
+            pose = self._mocap[i]["frame"]
+            current_neck_rotation = p1.getEulerFromQuaternion([pose[12],pose[13],pose[14],pose[11]])
+            
+            new_neck_rotation_x = current_neck_rotation[0]
+            new_neck_rotation_y = current_neck_rotation[1]
+            new_neck_rotation_z = current_neck_rotation[2]
+
+            # Pos Angle -> head looks up ; Neg Angle -> head looks down
+            new_neck_rotation_z = (coefficient - 1.0) * 1.5 + (self._desired_emotion[0] * 0.5)
+            
+            if(self._desired_emotion[1] > 0.0 and new_neck_rotation_z < -0.1):
+                # Don't let high arousal emotions (like fear or anger) have a slumped neck
+                new_neck_rotation_z = -0.1
+
+            # Clamp neck rotation to avoid broken necks
+            new_neck_rotation_z = max(new_neck_rotation_z, -math.pi/3)
+            new_neck_rotation_z = min(new_neck_rotation_z, math.pi/12)
+
+            desired_rotation = [new_neck_rotation_x, new_neck_rotation_y, new_neck_rotation_z]
+
+            gen_index = i
+
+            print(current_neck_rotation[2])
+            self.generated_mocap[gen_index]['orn']['neck'] = (
+                desired_rotation[0], desired_rotation[1], desired_rotation[2])
+            print(new_neck_rotation_z)
+            print()
+
+
     def rule_1_single(self, frame, coefficient):
         print("\n== RULE 1 SINGLE - PELVIS ==")
 
@@ -938,7 +1037,7 @@ class MotionSynthesizer():
         
         new_root_height = current_root_height
 
-        new_root_height += 1.0 * ((coefficient - 1.0) * 0.1) #0.1 -> dampening factor
+        new_root_height += 1.0 * ((coefficient - 1.0) * 0.08) #0.1 -> dampening factor
 
         generated_pose = (
                 frame["root"][0], new_root_height, frame["root"][2])
@@ -972,34 +1071,34 @@ class MotionSynthesizer():
 
             
         if(self._desired_emotion[0] < 0.0 and self._desired_emotion[2] > 0.0):
-            # Usually, high Dominance have the character arch back to elevate the shoulders. For angry (i.e when the pleasure is also low) this is the opposite
-            dampening_factor_x = 0.25
-            dampening_factor_y = 0.15
-            if(coefficient > 1.0):
-                new_neck_position_x += 1.0 * (((coefficient+0.2) - 1.0) * dampening_factor_x) 
-                new_neck_position_y -= 1.0 * (((coefficient+0.2) - 1.0) * dampening_factor_y) 
+        # Usually, high Dominance have the character arch back to elevate the shoulders. For angry (i.e when the pleasure is also low) this is the opposite
+            if(coefficient < 1.1 and coefficient > 0.9):
+                change_weight_factor_x = 1.5
+                change_weight_factor_y = 1.5
             else:
-                new_neck_position_x -= 1.0 * (((coefficient-0.2) - 1.0) * dampening_factor_x) 
-                new_neck_position_y += 1.0 * (((coefficient-0.2) - 1.0) * dampening_factor_y) 
-        elif(self._desired_emotion[0] < 0.0 and self._desired_emotion[1] < 0.0 and self._desired_emotion[2] < 0.0):
-            if(coefficient > 1.0):
-                dampening_factor_x = 0.3
-                dampening_factor_y = 0.2
-            else:
-                dampening_factor_x = 0.3
-                dampening_factor_y = 0.2
-            new_neck_position_x -= 1.0 * ((coefficient - 1.0) * dampening_factor_x) 
-            new_neck_position_y += 1.0 * ((coefficient - 1.0) * dampening_factor_y) 
+                change_weight_factor_x = 0.12
+                change_weight_factor_y = 0.12
 
+            new_neck_position_x += 1.0 * ((coefficient - 1.0) * change_weight_factor_x) 
+            new_neck_position_y -= 1.0 * ((coefficient - 1.0) * change_weight_factor_y) 
         else:
-            if(coefficient > 1.0):
-                dampening_factor_x = 0.25
-                dampening_factor_y = 0.15
+            if(self._desired_emotion[1] > 0.0 and self._desired_emotion[2] < 0.0):
+                if(coefficient > 1.0):
+                    change_weight_factor_x = 0.025
+                    change_weight_factor_y = 0.025
+                else:
+                    change_weight_factor_x = 0.25
+                    change_weight_factor_y = 0.25
             else:
-                dampening_factor_x = 0.25
-                dampening_factor_y = 0.15
-            new_neck_position_x -= 1.0 * ((coefficient - 1.0) * dampening_factor_x) 
-            new_neck_position_y += 1.0 * ((coefficient - 1.0) * dampening_factor_y) 
+                if(coefficient > 1.0):
+                    change_weight_factor_x = 0.025
+                    change_weight_factor_y = 0.025
+                else:
+                    change_weight_factor_x = 0.1
+                    change_weight_factor_y = 0.1
+
+            new_neck_position_x -= 1.0 * ((coefficient - 1.0) * change_weight_factor_x) 
+            new_neck_position_y += 1.0 * ((coefficient - 1.0) * change_weight_factor_y)
 
         generated_pose = (
                 new_neck_position_x, new_neck_position_y, new_neck_position_z)
@@ -1073,7 +1172,7 @@ class MotionSynthesizer():
         d_right_head = d_right_head / np.linalg.norm(d_right_head)
 
 
-        if(self._desired_emotion[0] < 0.0 and self._desired_emotion[1] < 0.0 and self._desired_emotion[2] < 0.0):
+        if(self._desired_emotion[1] < 0.0 and self._desired_emotion[2] < 0.0):
             # LEFT #
             new_left_hand_position_x -= d_left_head[0] * (coefficient_chest-1.0) * 0.5
             new_left_hand_position_y += d_left_head[1] * (coefficient_chest-1.0) * 0.5
@@ -1083,6 +1182,22 @@ class MotionSynthesizer():
             new_right_hand_position_x -= d_right_head[0] * (coefficient_chest-1.0) * 0.5
             new_right_hand_position_y += d_right_head[1] * (coefficient_chest-1.0) * 0.5
             new_right_hand_position_z -= d_right_head[2] * (coefficient_chest-1.0) * 0.5
+
+            # Left to Elbow #
+            #d_left_elbow = np.asarray([current_left_elbow[0] - new_left_hand_position_x, 
+            #        0.0, 
+            #        current_left_elbow[2] - new_left_hand_position_z])
+            #d_left_elbow = d_left_elbow / np.linalg.norm(d_left_elbow)
+            #new_left_hand_position_x -= d_left_elbow[0] * (coefficient_chest-1.0) * 0.2
+            #new_left_hand_position_z -= d_left_elbow[2] * (coefficient_chest-1.0) * 0.2
+
+            # Right to Elbow #
+            #d_right_elbow = np.asarray([current_right_elbow[0] - new_right_hand_position_x, 
+            #        0.0, 
+            #        current_right_elbow[2] - new_right_hand_position_z])
+            #d_right_elbow = d_right_elbow / np.linalg.norm(d_right_elbow)
+            #new_right_hand_position_x -= d_right_elbow[0] * (coefficient_chest-1.0) * 0.2
+            #new_right_hand_position_z -= d_right_elbow[2] * (coefficient_chest-1.0) * 0.2
 
         else:
             # LEFT #
@@ -1137,31 +1252,19 @@ class MotionSynthesizer():
         new_right_elbow_pos_y = current_right_elbow_pos[1]
         new_right_elbow_pos_z = current_right_elbow_pos[2]
 
-        if((self._desired_emotion[0] < -0.3 and self._desired_emotion[1] > 0.5 and self._desired_emotion[2] < -0.3)): 
-            #Usually, high Arousal emotions have broad elbows, but for afraid that is different
-            new_left_elbow_pos_x -= d_left[0] * (coefficient-1.0) * 0.4
-            new_left_elbow_pos_y -= d_left[1] * (coefficient-1.0) * 0.4
-            new_left_elbow_pos_z -= d_left[2] * (coefficient-1.0) * 0.4
+        new_left_elbow_pos_x += d_left[0] * (coefficient-1.0) * 0.5
+        new_left_elbow_pos_y += d_left[1] * (coefficient-1.0) * 0.5
+        new_left_elbow_pos_z += d_left[2] * (coefficient-1.0) * 0.5
 
-            new_right_elbow_pos_x -= d_right[0] * (coefficient-1.0) * 0.4
-            new_right_elbow_pos_y -= d_right[1] * (coefficient-1.0) * 0.4
-            new_right_elbow_pos_z -= d_right[2] * (coefficient-1.0) * 0.4
-        elif(self._desired_emotion[0] < 0.0 and self._desired_emotion[1] < 0.0 and self._desired_emotion[2] < 0.0):
-            new_left_elbow_pos_x -= d_left[0] * (coefficient-1.0) * 0.3
-            new_left_elbow_pos_y -= d_left[1] * (coefficient-1.0) * 0.3
-            new_left_elbow_pos_z -= d_left[2] * (coefficient-1.0) * 0.3
+        new_right_elbow_pos_x += d_right[0] * (coefficient-1.0) * 0.5
+        new_right_elbow_pos_y += d_right[1] * (coefficient-1.0) * 0.5
+        new_right_elbow_pos_z += d_right[2] * (coefficient-1.0) * 0.5
 
-            new_right_elbow_pos_x -= d_right[0] * (coefficient-1.0) * 0.3
-            new_right_elbow_pos_y -= d_right[1] * (coefficient-1.0) * 0.3
-            new_right_elbow_pos_z -= d_right[2] * (coefficient-1.0) * 0.3
-        else:
-            new_left_elbow_pos_x += d_left[0] * (coefficient-1.0) * 0.5
-            new_left_elbow_pos_y += d_left[1] * (coefficient-1.0) * 0.4
-            new_left_elbow_pos_z += d_left[2] * (coefficient-1.0) * 0.4
+        if(abs(new_left_elbow_pos_z - current_root_position[2]) < 0.15):
+            new_left_elbow_pos_z = current_root_position[2] - 0.15
 
-            new_right_elbow_pos_x += d_right[0] * (coefficient-1.0) * 0.5
-            new_right_elbow_pos_y += d_right[1] * (coefficient-1.0) * 0.4
-            new_right_elbow_pos_z += d_right[2] * (coefficient-1.0) * 0.4
+        if(abs(new_right_elbow_pos_z - current_root_position[2]) < 0.15):
+            new_right_elbow_pos_z = current_root_position[2] + 0.15
 
         generated_pose_l = (
                 new_left_elbow_pos_x, new_left_elbow_pos_y, new_left_elbow_pos_z)
@@ -1227,6 +1330,33 @@ class MotionSynthesizer():
 
         return (generated_pose_l, generated_pose_r)
 
+    def rule_6_single(self, frame, coefficient):
+        print("\n== RULE 6 SINGLE - NECK ROTATION ==")
+
+        coefficient = self.c6
+
+        pose = frame
+        current_neck_rotation = p1.getEulerFromQuaternion([pose[12],pose[13],pose[14],pose[11]])
+            
+        new_neck_rotation_x = current_neck_rotation[0]
+        new_neck_rotation_y = current_neck_rotation[1]
+        new_neck_rotation_z = current_neck_rotation[2]
+
+            
+        # Pos Angle -> head looks up ; Neg Angle -> head looks down
+        new_neck_rotation_z = (coefficient - 1.0) * 1.5 + (self._desired_emotion[0] * 0.5)
+            
+        if(self._desired_emotion[1] > 0.0 and new_neck_rotation_z < -0.1):
+            # Don't let high arousal emotions (like fear or anger) have a slumped neck
+            new_neck_rotation_z = -0.1
+
+        # Clamp neck rotation to avoid broken necks
+        new_neck_rotation_z = max(new_neck_rotation_z, -math.pi/3)
+        new_neck_rotation_z = min(new_neck_rotation_z, math.pi/12)
+
+        desired_rotation = [new_neck_rotation_x, new_neck_rotation_y, new_neck_rotation_z]
+
+        return desired_rotation
 
     """
     def rule_1(self):

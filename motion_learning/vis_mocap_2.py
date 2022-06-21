@@ -144,6 +144,10 @@ class VisMocapEnv():
 
       self._ik_solver.adjustBase(desired_pos["mocap"]["root"][1])   
 
+      desired_neck_rotation = desired_pos["orn"]["neck"]
+      self._ik_solver.adjustNeckRotation(desired_neck_rotation)        
+
+
       pos = [desired_pos["mocap"]["neck"], desired_pos["mocap"]["left_wrist"], desired_pos["mocap"]["right_wrist"], desired_pos["mocap"]["left_elbow"], desired_pos["mocap"]["right_elbow"], desired_pos["mocap"]["left_ankle"], desired_pos["mocap"]["right_ankle"]]
       jointPoses = self._ik_solver.calculateKinematicSolution2(links, pos)
 
@@ -251,7 +255,7 @@ class VisMocapEnv():
         self._no_visual.set_pose(self._char_no_vis, pose, vel)
         frame = self.get_pose_and_links_no_visual()[2]
 
-        gen_pose = self._ms.convert_single_frame(frame, self.counter)
+        gen_pose = self._ms.convert_single_frame(frame, self.counter, pose)
         indices = []
         for i in gen_pose["mocap"]:
           if(i in self.name_to_index_mapping):

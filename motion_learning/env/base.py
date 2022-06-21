@@ -309,7 +309,8 @@ class BaseEnv(ABC):
     if(self._ik_frames != [] and not self._synthesizing):
       frame = self._engine.get_pose_and_links()[2]
 
-      gen_pose = self._ms.convert_single_frame(frame, self.counter)
+      gen_pose = self._ms.convert_single_frame(frame, self.counter, sim_pose)
+
       indices = []
       for i in gen_pose["mocap"]:
         if(i in self.name_to_index_mapping):

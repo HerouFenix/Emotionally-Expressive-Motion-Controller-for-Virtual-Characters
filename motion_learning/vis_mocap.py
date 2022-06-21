@@ -167,7 +167,11 @@ class VisMocapEnv():
                   len(desired_pos)) if desired_pos[index]["index"] == i)
 
         # Adjust Base Height
-        self._ik_solver.adjustBase(desired_pos[gen_index]["mocap"]["root"][1])          
+        self._ik_solver.adjustBase(desired_pos[gen_index]["mocap"]["root"][1])  
+
+        # Adjust Neck Rotation
+        desired_neck_rotation = desired_pos[gen_index]["orn"]["neck"]
+        self._ik_solver.adjustNeckRotation(desired_neck_rotation)        
 
         # Get desired neck, left and right wrist positions
         pos = [desired_pos[gen_index]["mocap"]["neck"], desired_pos[gen_index]["mocap"]["left_wrist"], desired_pos[gen_index]["mocap"]["right_wrist"], desired_pos[gen_index]["mocap"]["left_elbow"], desired_pos[gen_index]["mocap"]["right_elbow"], desired_pos[gen_index]["mocap"]["left_ankle"], desired_pos[gen_index]["mocap"]["right_ankle"]]

@@ -193,6 +193,11 @@ class IKSolver():
 
         return self.calculateKinematicSolution2(index, poses)
 
+    def adjustNeckRotation(self, newNeckRotation):
+        neck_link_z_index = 6
+
+        self.physicsClient.resetJointState(self.charID, neck_link_z_index, newNeckRotation[2])
+
     def getLinkState(self, link_id):
         return self.physicsClient.getLinkState(self.charID, link_id)
 
