@@ -7,7 +7,7 @@
     "engine": "pybullet",
     "contact": "walk",
     "self_collision": true,
-    "enable_draw": true,
+    "enable_draw": false,
     "record_contact": false,
     "record_torques": false,
 
