@@ -87,30 +87,57 @@ class GUIManager():
         self.n_frame = tk.Frame(self.window)
         self.n_frame.pack(fill=tk.X)
 
-        self.n_frame.columnconfigure(0, weight=1)
-        self.n_frame.columnconfigure(1, weight=1)
-        self.n_frame.columnconfigure(2, weight=1)
+        self.n_frame.columnconfigure(0, weight=1, uniform="oof")
+        self.n_frame.columnconfigure(1, weight=1, uniform="oof")
+        self.n_frame.columnconfigure(2, weight=1, uniform="oof")
 
         tk.Label(self.n_frame, text = 'Pleasure:', 
         font =('Verdana 11 bold')).grid(row=1, column=0)
-        self.new_pleasure = tk.Entry(self.n_frame, 
-        font =('Verdana 11'))
-        self.new_pleasure.insert(0,"0.0")
-        self.new_pleasure.grid(row=1, column=1, columnspan=2, sticky=tk.W)
-
+        self.new_pleasure_slider = tk.Scale(
+            self.n_frame,
+            from_= -1.0,
+            to=1.0,
+            orient='horizontal',
+            resolution = 0.01,
+            showvalue=0,
+            length=None
+        )
+        self.new_pleasure_slider.grid(row=1, column=1, sticky=tk.NSEW)
+        self.new_pleasure_label = tk.Label(self.n_frame, text = '0.0', 
+        font =('Verdana 10'))
+        self.new_pleasure_label.grid(row=1, column=2, sticky=tk.NSEW)
+        
         tk.Label(self.n_frame, text = 'Arousal:', 
         font =('Verdana 11 bold')).grid(row=2, column=0)
-        self.new_arousal = tk.Entry(self.n_frame, 
-        font =('Verdana 11'))
-        self.new_arousal.insert(0,"0.0")
-        self.new_arousal.grid(row=2, column=1, columnspan=2, sticky=tk.W)
+        self.new_arousal_slider = tk.Scale(
+            self.n_frame,
+            from_= -1.0,
+            to=1.0,
+            orient='horizontal',
+            resolution = 0.01,
+            showvalue=0,
+            length=None
+        )
+        self.new_arousal_slider.grid(row=2, column=1, sticky=tk.NSEW)
+        self.new_arousal_label = tk.Label(self.n_frame, text = '0.0', 
+        font =('Verdana 10'))
+        self.new_arousal_label.grid(row=2, column=2, sticky=tk.NSEW)
 
         tk.Label(self.n_frame, text = 'Dominance:', 
         font =('Verdana 11 bold')).grid(row=3, column=0)
-        self.new_dominance = tk.Entry(self.n_frame, 
-        font =('Verdana 11'))
-        self.new_dominance.insert(0,"0.0")
-        self.new_dominance.grid(row=3, column=1, columnspan=2, sticky=tk.W)
+        self.new_dominance_slider = tk.Scale(
+            self.n_frame,
+            from_= -1.0,
+            to=1.0,
+            orient='horizontal',
+            resolution = 0.01,
+            showvalue=0,
+            length=None,
+        )
+        self.new_dominance_slider.grid(row=3, column=1, sticky=tk.NSEW)
+        self.new_dominance_label = tk.Label(self.n_frame, text = '0.0', 
+        font =('Verdana 10'))
+        self.new_dominance_label.grid(row=3, column=2, sticky=tk.NSEW)
 
         self.start_motion_synthesis = tk.Button(self.n_frame, text = 'CONFIRM', 
         font =('Verdana 11 bold'))
@@ -175,72 +202,47 @@ class GUIManager():
         self.motion_synthesis.grid(row=3, column=1, sticky=tk.W)
 
     def update(self):
+        self.new_pleasure_label.config(text=str(self.new_pleasure_slider.get()))
+        self.new_arousal_label.config(text=str(self.new_arousal_slider.get()))
+        self.new_dominance_label.config(text=str(self.new_dominance_slider.get()))
+
         self.window.update()
 
     def _change_emotion_by_preset(self, index):
         if(index == 0): # Tired
-            self.new_pleasure.delete(0,tk.END)
-            self.new_pleasure.insert(0,"0.1")
+            self.new_pleasure_slider.set(0.1)
+            self.new_arousal_slider.set(-0.75)
+            self.new_dominance_slider.set(-0.25)
 
-            self.new_arousal.delete(0,tk.END)
-            self.new_arousal.insert(0,"-0.75")
-
-            self.new_dominance.delete(0,tk.END)
-            self.new_dominance.insert(0,"-0.25")
         elif(index == 1): # Confident
-            self.new_pleasure.delete(0,tk.END)
-            self.new_pleasure.insert(0,"0.3")
+            self.new_pleasure_slider.set(0.3)
+            self.new_arousal_slider.set(0.3)
+            self.new_dominance_slider.set(0.9)
 
-            self.new_arousal.delete(0,tk.END)
-            self.new_arousal.insert(0,"0.3")
-
-            self.new_dominance.delete(0,tk.END)
-            self.new_dominance.insert(0,"0.9")
         elif(index == 2): # Angry
-            self.new_pleasure.delete(0,tk.END)
-            self.new_pleasure.insert(0,"-0.5")
+            self.new_pleasure_slider.set(-0.5)
+            self.new_arousal_slider.set(0.8)
+            self.new_dominance_slider.set(0.9)
 
-            self.new_arousal.delete(0,tk.END)
-            self.new_arousal.insert(0,"0.8")
-
-            self.new_dominance.delete(0,tk.END)
-            self.new_dominance.insert(0,"0.9")
         elif(index == 3): # Afraid
-            self.new_pleasure.delete(0,tk.END)
-            self.new_pleasure.insert(0,"-0.6")
+            self.new_pleasure_slider.set(-0.6)
+            self.new_arousal_slider.set(0.7)
+            self.new_dominance_slider.set(-0.8)
 
-            self.new_arousal.delete(0,tk.END)
-            self.new_arousal.insert(0,"0.7")
-
-            self.new_dominance.delete(0,tk.END)
-            self.new_dominance.insert(0,"-0.8")
         elif(index == 4): # Happy
-            self.new_pleasure.delete(0,tk.END)
-            self.new_pleasure.insert(0,"0.8")
+            self.new_pleasure_slider.set(0.8)
+            self.new_arousal_slider.set(0.5)
+            self.new_dominance_slider.set(0.15)
 
-            self.new_arousal.delete(0,tk.END)
-            self.new_arousal.insert(0,"0.5")
-
-            self.new_dominance.delete(0,tk.END)
-            self.new_dominance.insert(0,"0.15")
         elif(index == 5): # Sad
-            self.new_pleasure.delete(0,tk.END)
-            self.new_pleasure.insert(0,"-0.6")
+            self.new_pleasure_slider.set(-0.6)
+            self.new_arousal_slider.set(-0.4)
+            self.new_dominance_slider.set(-0.3)
 
-            self.new_arousal.delete(0,tk.END)
-            self.new_arousal.insert(0,"-0.4")
-
-            self.new_dominance.delete(0,tk.END)
-            self.new_dominance.insert(0,"-0.3")
         else: # Neutral
-            self.new_pleasure.delete(0,tk.END)
-            self.new_pleasure.insert(0,"0.05")
-
-            self.new_arousal.delete(0,tk.END)
-            self.new_arousal.insert(0,"-0.1")
-
-            self.new_dominance.delete(0,tk.END)
-            self.new_dominance.insert(0,"0.0")
+            self.new_pleasure_slider.set(0.05)
+            self.new_arousal_slider.set(-0.1)
+            self.new_dominance_slider.set(0.0)
 
     def _find_closest_emotion(self, pad):
         p, a, d = pad
@@ -290,10 +292,11 @@ class GUIManager():
             self.motion_synthesis.config(text="In Progress", fg=COLOURS['yellow'])
 
     def get_pad(self):
-        pleasure = float(self.new_pleasure.get())
-        arousal = float(self.new_arousal.get())
-        dominance = float(self.new_dominance.get())
+        pleasure = float(self.new_pleasure_slider.get())
+        arousal = float(self.new_arousal_slider.get())
+        dominance = float(self.new_dominance_slider.get())
 
+        """
         if(pleasure > 1.0):
             pleasure = 1.0
             self.new_pleasure.delete(0,tk.END)
@@ -320,6 +323,7 @@ class GUIManager():
             dominance = -1.0
             self.new_dominance.delete(0,tk.END)
             self.new_dominance.insert(0,"-1.0")
+        """
 
         print([pleasure, arousal, dominance])
         return [pleasure, arousal, dominance]

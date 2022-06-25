@@ -223,6 +223,8 @@ class MotionSynthesizer():
             self._models = {}
             self._models_type = models
 
+            #for filename in os.listdir("../motion_synthesizer/models/bandai/xgb/"):
+            #    f = os.path.join("../motion_synthesizer/models/bandai/xgb/", filename)
             for filename in os.listdir("../motion_synthesizer/models/bandai_kin/5frame/xgb/"):
                 f = os.path.join("../motion_synthesizer/models/bandai_kin/5frame/xgb/", filename)
                 if os.path.isfile(f):
@@ -237,9 +239,12 @@ class MotionSynthesizer():
             self._models = {"ae": None, "xgb": {}}
             self._models_type = models
 
+            #ae_model = keras.models.load_model('../motion_synthesizer/models/bandai/ae/autoencoder_5/')
             ae_model = keras.models.load_model('../motion_synthesizer/models/bandai_kin/5frame/ae/autoencoder_5/')
             self._models["ae"] = ae_model
 
+            #for filename in os.listdir("../motion_synthesizer/models/bandai/ae/"):
+            #    f = os.path.join("../motion_synthesizer/models/bandai/ae/", filename)
             for filename in os.listdir("../motion_synthesizer/models/bandai_kin/5frame/ae/"):
                 f = os.path.join("../motion_synthesizer/models/bandai_kin/5frame/ae/", filename)
                 if os.path.isfile(f):
@@ -398,7 +403,7 @@ class MotionSynthesizer():
 
         # Check if we have a "close enough" preset emotion
         emotion, dist = self._find_closest_emotion(pad)
-        if(dist <= 0.03):
+        if(dist <= 0.02):
             lma = PRESET_EMOTIONS[emotion]
             pad = np.asarray([emotion[0], emotion[1], emotion[2]])
             self._desired_emotion = pad

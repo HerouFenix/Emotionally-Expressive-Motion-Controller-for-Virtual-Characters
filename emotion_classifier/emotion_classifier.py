@@ -13,18 +13,22 @@ xgb.set_config(verbosity=0)
 class EmotionClassifier():
     def __init__(self):
         self._model_p = xgb.XGBRegressor(verbosity=0)
+        #self._model_p.load_model("../emotion_classifier/models/l2p_dance_model_kin.json")
         self._model_p.load_model("../emotion_classifier/models/bandai_l2p_model.json")
 
         self._model_a = xgb.XGBRegressor(verbosity=0)
+        #self._model_a.load_model("../emotion_classifier/models/l2a_dance_model_kin.json")
         self._model_a.load_model("../emotion_classifier/models/bandai_l2a_model.json")
 
         self._model_d = xgb.XGBRegressor(verbosity=0)
+        #self._model_d.load_model("../emotion_classifier/models/l2d_dance_model_kin.json")
         self._model_d.load_model("../emotion_classifier/models/bandai_l2d_model.json")
 
         self.p_predictions = []
         self.a_predictions = []
         self.d_predictions = []
         
+        #self.normalizer = joblib.load(r'../emotion_classifier/models/scalers/Fs_B_O_S_DANCE_WALK_KIN_0.5sec.pkl') 
         self.normalizer = joblib.load(r'../emotion_classifier/models/scalers/S_BANDAI_5frame.pkl') 
 
         self.predicted_p = 0.0
@@ -165,21 +169,21 @@ class EmotionClassifier():
                 largest_d = self.d_predictions[i]
                 max_d_i = i
 
-        if(max_p_i != -1):
+        if(max_p_i != -1 ):
             self.p_predictions.pop(max_p_i)
-            self.predicted_p = (sum(self.p_predictions)/len(self.p_predictions)) * 0.6 + largest_p * 0.4
+            self.predicted_p = (sum(self.p_predictions)/len(self.p_predictions)) * 0.5 + largest_p * 0.5
         else:
             self.predicted_p = sum(self.p_predictions)/len(self.p_predictions)
 
         if(max_a_i != -1):
             self.a_predictions.pop(max_a_i)
-            self.predicted_a = (sum(self.a_predictions)/len(self.a_predictions)) * 0.6 + largest_a * 0.4
+            self.predicted_a = (sum(self.a_predictions)/len(self.a_predictions)) * 0.5 + largest_a * 0.5
         else:
             self.predicted_a = sum(self.a_predictions)/len(self.a_predictions)
 
         if(max_d_i != -1):
             self.d_predictions.pop(max_d_i)
-            self.predicted_d = (sum(self.d_predictions)/len(self.d_predictions)) * 0.6 + largest_d * 0.4
+            self.predicted_d = (sum(self.d_predictions)/len(self.d_predictions)) * 0.5 + largest_d * 0.5
         else:
             self.predicted_d = sum(self.d_predictions)/len(self.d_predictions)
 
