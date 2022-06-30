@@ -98,6 +98,10 @@ class BaseEnv(ABC):
       self._kin_char = self._visual.add_character("kin", [44/255, 160/255, 44/255, 1])
 
       self._visual.camera_follow(self._sim_char, 2, 180, 0)
+
+      self._no_visual = HumanoidNoVis(self._skeleton_2, self._model)
+      self._pybullet_client_no_vis = self._no_visual._pybullet_client
+      self._char_no_vis = self._no_visual.add_character("mocap", [44/255, 160/255, 44/255, 1])
       
       # TODO: REMOVE THIS (DEBUG)
       #self._left_wrist_height = self._visual._pybullet_client.addUserDebugParameter("lWrist y", -2, 2, 0.0)
@@ -307,7 +311,9 @@ class BaseEnv(ABC):
 
     # Inverse Kinematics #
     if(self._ik_frames != [] and not self._synthesizing):
-      frame = self._engine.get_pose_and_links()[2]
+      self._no_visual.set_pose(self._char_no_vis, sim_pose, sim_vel)
+      frame = self.get_pose_and_links_no_visual()[2]
+      #frame = self._engine.get_pose_and_links()[2]
 
       gen_pose = self._ms.convert_single_frame(frame, self.counter, sim_pose)
 
@@ -327,6 +333,68 @@ class BaseEnv(ABC):
       self._visual.camera_follow(self._sim_char)
     
     self.counter += 1
+
+  def get_pose_and_links_no_visual(self):
+      return self._get_full_model_pose_no_vis(self._no_visual.characters["mocap"])
+
+  def _get_full_model_pose_no_vis(self, phys_model):
+      """ Get current pose and velocity expressed in general coordinate
+        Unlike _get_model_pose it also returns the Position and Velocity of each link/joint.
+        Inputs:
+          phys_model
+
+        Outputs:
+          pose
+          vel
+      """
+      pose = []
+      vel = []
+
+      links_pos = {}
+      links_orn = {}
+
+      vel_dict = {}
+
+      # root position/orientation and vel/angvel
+      pos, orn = self._pybullet_client_no_vis.getBasePositionAndOrientation(self._no_visual.characters["mocap"])
+      linvel, angvel = self._pybullet_client_no_vis.getBaseVelocity(self._no_visual.characters["mocap"])
+      pose += pos
+      if orn[3] < 0:
+        orn = [-orn[0], -orn[1], -orn[2], -orn[3]]
+      pose.append(orn[3])  # w
+      pose += orn[:3] # x, y, z
+      vel += linvel
+      vel += angvel
+
+      vel_dict["root"] = [linvel, angvel]
+
+      for i in range(self._skeleton_2.num_joints):
+        j_info = self._pybullet_client_no_vis.getJointStateMultiDof(phys_model, i)
+        orn = j_info[0]
+        if len(orn) == 4:
+          pose.append(orn[3])  # w
+          pose += orn[:3] # x, y, z
+        else:
+          pose += orn
+        vel += j_info[1]
+
+        l_info = self._pybullet_client_no_vis.getJointInfo(phys_model, i)
+        
+        if(not l_info[12].decode('UTF-8') == "root"):
+          vel_dict[l_info[12].decode('UTF-8')] = j_info[1]
+        
+        link_name = l_info[12].decode('UTF-8')
+        
+        l_info = self._pybullet_client_no_vis.getLinkState(phys_model, i)
+        
+        links_pos[link_name] = l_info[4]
+        links_orn[link_name] = l_info[5]
+
+      pose = np.array(pose)
+      vel = self._skeleton_2.padVel(vel)
+      
+      return pose, vel, links_pos, links_orn, vel_dict
+
 
   def update_contact_forces(self):
     # draw contact forces

@@ -2,7 +2,7 @@ import os.path
 import tkinter as tk
 
 EMOTION_COORDINATES = {
-    (0.05, -0.1, 0.0): "Neutral", # Normal bandai 1/2
+    (0.05, -0.05, 0.0): "Neutral", # Normal bandai 1/2
     
     (0.1, -0.7, -0.2): "Tired", # Tired bandai 1
     (0.1, -0.75, -0.25): "Tired", # Exhausted bandai 2
@@ -25,12 +25,12 @@ EMOTION_COORDINATES = {
     (0.1, 0.6, 0.4): "Active", # Active bandai 1/2
     
     ## Kin ##
-    (-0.5, 0.7, 0.9): "Angry", 
-    (0.6, 0.5, 0.2): "Happy", 
-    (-0.6, -0.3, -0.3): "Sad", 
+    #(-0.5, 0.7, 0.9): "Angry", 
+    #(0.6, 0.5, 0.2): "Happy", 
+    #(-0.6, -0.3, -0.3): "Sad", 
     #(-0.4, 0.25, -0.1): "Disgusted" , 
-    (-0.5, 0.7, -0.8): "Afraid", 
-    (0.0, 0.0, 0.0): "Neutral"  
+    #(-0.5, 0.7, -0.8): "Afraid", 
+    #(0.0, 0.0, 0.0): "Neutral"  
 }
 
 COLOURS = {

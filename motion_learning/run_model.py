@@ -129,6 +129,9 @@ def test_model(env, model, select_set=None, record=False, random=True, record_lm
 
     emotion_predictor = EmotionClassifier()
 
+    loading_emotion.config(fg='green', text="Loaded!")
+    window.update()
+
     ms = MotionSynthesizer(ms_models)
     env._ms = ms
 

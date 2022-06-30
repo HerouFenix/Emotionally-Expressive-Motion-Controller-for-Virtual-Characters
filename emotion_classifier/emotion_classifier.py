@@ -14,22 +14,22 @@ class EmotionClassifier():
     def __init__(self):
         self._model_p = xgb.XGBRegressor(verbosity=0)
         #self._model_p.load_model("../emotion_classifier/models/l2p_dance_model_kin.json")
-        self._model_p.load_model("../emotion_classifier/models/bandai_l2p_model.json")
+        self._model_p.load_model("../emotion_classifier/models/bandai_l2p_model_FINAL.json")
 
         self._model_a = xgb.XGBRegressor(verbosity=0)
         #self._model_a.load_model("../emotion_classifier/models/l2a_dance_model_kin.json")
-        self._model_a.load_model("../emotion_classifier/models/bandai_l2a_model.json")
+        self._model_a.load_model("../emotion_classifier/models/bandai_l2a_model_FINAL.json")
 
         self._model_d = xgb.XGBRegressor(verbosity=0)
         #self._model_d.load_model("../emotion_classifier/models/l2d_dance_model_kin.json")
-        self._model_d.load_model("../emotion_classifier/models/bandai_l2d_model.json")
+        self._model_d.load_model("../emotion_classifier/models/bandai_l2d_model_FINAL.json")
 
         self.p_predictions = []
         self.a_predictions = []
         self.d_predictions = []
         
         #self.normalizer = joblib.load(r'../emotion_classifier/models/scalers/Fs_B_O_S_DANCE_WALK_KIN_0.5sec.pkl') 
-        self.normalizer = joblib.load(r'../emotion_classifier/models/scalers/S_BANDAI_5frame.pkl') 
+        self.normalizer = joblib.load(r'../emotion_classifier/models/scalers/S_BANDAI_5frame_FINAL.pkl') 
 
         self.predicted_p = 0.0
         self.predicted_a = 0.0

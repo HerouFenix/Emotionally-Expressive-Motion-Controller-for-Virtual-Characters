@@ -2,7 +2,7 @@
   "env_name": "spacetime",
   "env_args":
   {
-    "task": "bandaiwalk"
+    "task": "walk"
   },
-  "ckpt": "data/policies/bandai_walk_policy/final.tar"
+  "ckpt": "data/policies/walk/final.tar"
 }
