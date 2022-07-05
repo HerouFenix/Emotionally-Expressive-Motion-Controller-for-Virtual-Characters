@@ -291,7 +291,7 @@ class MotionSynthesizer():
 
         self._reference = []
 
-        if(models=="direct" or models=="DIRECT"):
+        if(models=="direct" or models=="DIRECT" or models == "xgb" or models == "XGB"):
             self._models = {}
             self._models_type = models
 
@@ -475,11 +475,11 @@ class MotionSynthesizer():
 
         # Check if we have a "close enough" preset emotion
         emotion, dist = self._find_closest_emotion(pad)
-        if(dist <= 0.01 ):
+        if(dist <= 0.01):
             lma = PRESET_EMOTIONS[emotion]
             pad = np.asarray([emotion[0], emotion[1], emotion[2]])
             self._desired_emotion = pad
-        elif(self._models_type == "direct" or self._models_type == "DIRECT"):
+        elif(self._models_type == "direct" or self._models_type == "DIRECT" or self._models_type == "xgb" or self._models_type == "XGB"):
             pad_predict = np.asarray([[pad[0], pad[1], pad[2]]])
             
             pad = np.asarray([pad[0], pad[1], pad[2]])
