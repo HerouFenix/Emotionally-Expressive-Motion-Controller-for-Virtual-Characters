@@ -57,10 +57,10 @@ We used a subset of the [Bandai-Namco-Research-Motiondataset](http://https://git
 `sudo apt install cmake`
 
 - **Bullet**
-	 Download Version 2.89 from https://github.com/bulletphysics/bullet3/releases
-	 `./build_cmake_pybullet_double.sh`
-	 `cd build_cmake`
-	 `sudo make install`
+	- Download Version 2.89 from https://github.com/bulletphysics/bullet3/releases
+	-  `./build_cmake_pybullet_double.sh`
+	-  `cd build_cmake`
+	-  `sudo make install`
 
 - **Eigen**
 	 Download Version 3.37 from http://www.eigen.tuxfamily.org/index.php?title=Main_Page
