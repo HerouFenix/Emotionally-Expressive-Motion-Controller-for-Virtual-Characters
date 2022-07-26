@@ -3,7 +3,7 @@
 ## Introduction
 This repository contains the full code basis for the Master Thesis Project "*Emotional Identification and Tweaking of Kinematic and Policy-Controlled Physics Enabled Virtual Characters*"
 
-[![Showcase Pic](showcase_pic.png)
+![Showcase Pic](showcase_pic.png)
 
 This project consists in a system capable of visualizing Motion Capture data, automatically analyze the character's motion to predict which emotion its trying to express using Pleasure, Arousal and Dominance coordinates and allow for the editing and tweaking of the desired expressed emotion by users, with motion changes being synthesized and applied to the character in real time.  The system was trained and designed with a focus on Locomotion animations such as Walking, Running and Dashing but it can still be applied to other types of animations although results may vary.
 
