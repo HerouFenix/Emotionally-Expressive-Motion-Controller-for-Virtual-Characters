@@ -77,7 +77,7 @@ We used a subset of the [Bandai-Namco-Research-Motiondataset](http://https://git
 	- `sudo make install`
 
 ### Python
-Install **Python3.8 **or Python3.7
+Install **Python3.8** or Python3.7
 Install all other Python Dependencies using Pip
 
 ### OS
