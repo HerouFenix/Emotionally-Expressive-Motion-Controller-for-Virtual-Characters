@@ -63,18 +63,18 @@ We used a subset of the [Bandai-Namco-Research-Motiondataset](http://https://git
 	-  `sudo make install`
 
 - **Eigen**
-	 Download Version 3.37 from http://www.eigen.tuxfamily.org/index.php?title=Main_Page
-	 Extract the downloaded package somewhere and navigate into the folder
-	 `mkdir build && cd build`
-	 `cmake ..`
-	 `sudo make install`
+	- Download Version 3.37 from http://www.eigen.tuxfamily.org/index.php?title=Main_Page
+	- Extract the downloaded package somewhere and navigate into the folder
+	- `mkdir build && cd build`
+	- `cmake ..`
+	- `sudo make install`
 
 - **swig**
-	 Download the latest version from http://www.swig.org/
-	 Extract the downloaded package somewhere and navigate into the folder
-	 `./configure --without-pcre`
-	 `make`
-	 `sudo make install`
+	- Download the latest version from http://www.swig.org/
+	- Extract the downloaded package somewhere and navigate into the folder
+	- `./configure --without-pcre`
+	- `make`
+	- `sudo make install`
 
 ### Python
 Install **Python3.8 **or Python3.7
@@ -84,7 +84,7 @@ Install all other Python Dependencies using Pip
 This work was developed on xUbuntu. It should still be able to run on other Operating Systems, as long as the dependencies are properly installed.
 
 ## Installation
-Before usage the Kinematic folder located within the Motion Learning directory must be compiled
+Before usage the Kinematic folder located within the Motion Learning directory must be compiled:
 
 `cd motion_learning/Kinematic && mkdir build && cd build`
 
