@@ -132,6 +132,9 @@ You can specify the type of Motion Synthesis to be used - Direct, AutoEncoder or
 
 **Example:**  `python3 run_model.py args/demo_ablation_walk_07.json --ms=ae`
 
+
+
+
 ### Converting BVH files into a DeepMimic friendly format
 1. Navigate to the Motion Learning folder - `cd motion_learning`
 2. Run the following command:
@@ -139,6 +142,5 @@ You can specify the type of Motion Synthesis to be used - Direct, AutoEncoder or
 `python3 run_model.py <PATH_TO_ARGS_FILE>  --ms=<MOTION SYNTHESIS OPTION>`
 
 You can specify the type of Motion Synthesis to be used - Direct, AutoEncoder or None - providing the `--ms` argument with the values` 'direct'`, `'ae'` or `''`
-
 
 **Example:**  `python3 run_model.py args/demo_ablation_walk_07.json --ms=ae`
