@@ -3,7 +3,7 @@
 ## Introduction
 This repository contains the full code basis for the Master Thesis Project "*Emotional Identification and Tweaking of Kinematic and Policy-Controlled Physics Enabled Virtual Characters*"
 
-[![Showcase Pic](showcase_pic.png)](showcase_pic.png)
+[![Showcase Pic](showcase_pic.png)
 
 This project consists in a system capable of visualizing Motion Capture data, automatically analyze the character's motion to predict which emotion its trying to express using Pleasure, Arousal and Dominance coordinates and allow for the editing and tweaking of the desired expressed emotion by users, with motion changes being synthesized and applied to the character in real time.  The system was trained and designed with a focus on Locomotion animations such as Walking, Running and Dashing but it can still be applied to other types of animations although results may vary.
 
@@ -91,6 +91,17 @@ Before usage the Kinematic folder located within the Motion Learning directory m
 `cmake .. -DEIGEN_INCLUDE_PATH=<path_to_eigen_src_dir> -DPYTHON_INCLUDE_PATH=<path_to_python_include_dir>`
 
 `make -j8`
+
+You also have to manually add the trained machine learning models as these were too large to be included within the repository:
+- **Emotion Classifier Models**
+	1. Download the *emotion_classifier_models.tar.gz* file from [https://www.dropbox.com/sh/2zc2tn0zwwjydvs/AABAJUMMXmk8ruee5OPspOWUa?dl=0](http://https://www.dropbox.com/sh/2zc2tn0zwwjydvs/AABAJUMMXmk8ruee5OPspOWUa?dl=0 "https://www.dropbox.com/sh/2zc2tn0zwwjydvs/AABAJUMMXmk8ruee5OPspOWUa?dl=0")
+	2. **Extract on the emotion_classifier/models/ folder**
+	All files ending in .json should be placed in the emotion_classifier/models/
+	All files ending in .pkl should be placed in the emotion_classifier/models/scalers
+
+- **Motion Synthesis Models**
+	1. Download the *motion_synthesis_models.tar.gz* file from [https://www.dropbox.com/sh/2zc2tn0zwwjydvs/AABAJUMMXmk8ruee5OPspOWUa?dl=0](http://https://www.dropbox.com/sh/2zc2tn0zwwjydvs/AABAJUMMXmk8ruee5OPspOWUa?dl=0 "https://www.dropbox.com/sh/2zc2tn0zwwjydvs/AABAJUMMXmk8ruee5OPspOWUa?dl=0")
+	2. **Extract on the motion_synthesizer/models/ folder**
 
 ## Usage
 ### Visualization, Emotion Identification and Tweaking - Kinematic Character
