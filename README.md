@@ -96,13 +96,13 @@ Before usage the Kinematic folder located within the Motion Learning directory m
 You also have to manually add the trained machine learning models as these were too large to be included within the repository:
 - **Emotion Classifier Models**
 	1. Download the *emotion_classifier_models.tar.gz* file from [https://www.dropbox.com/sh/2zc2tn0zwwjydvs/AABAJUMMXmk8ruee5OPspOWUa?dl=0](http://https://www.dropbox.com/sh/2zc2tn0zwwjydvs/AABAJUMMXmk8ruee5OPspOWUa?dl=0 "https://www.dropbox.com/sh/2zc2tn0zwwjydvs/AABAJUMMXmk8ruee5OPspOWUa?dl=0")
-	2. **Extract on the emotion_classifier/models/ folder**
+	2. **Extract into the emotion_classifier/models/ folder**
 	- All files ending in .json should be placed in the emotion_classifier/models/
 	- All files ending in .pkl should be placed in the emotion_classifier/models/scalers
 
 - **Motion Synthesis Models**
 	1. Download the *motion_synthesis_models.tar.gz* file from [https://www.dropbox.com/sh/2zc2tn0zwwjydvs/AABAJUMMXmk8ruee5OPspOWUa?dl=0](http://https://www.dropbox.com/sh/2zc2tn0zwwjydvs/AABAJUMMXmk8ruee5OPspOWUa?dl=0 "https://www.dropbox.com/sh/2zc2tn0zwwjydvs/AABAJUMMXmk8ruee5OPspOWUa?dl=0")
-	2. **Extract on the motion_synthesizer/models/ folder**
+	2. **Extract into the motion_synthesizer/models/ folder**
 
 ## Usage
 ### Visualization, Emotion Identification and Tweaking - Kinematic Character
