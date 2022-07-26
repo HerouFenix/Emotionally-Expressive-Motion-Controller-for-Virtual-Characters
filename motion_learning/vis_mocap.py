@@ -534,10 +534,10 @@ if __name__=="__main__":
   parser.add_argument("--record_lma", type=str, default='', help="specify a file name if you want to store the lma features on a file")
   parser.add_argument("--record_mocap", type=str, default='', help="specify a file name if you want to store the mocap on a file")
 
-  parser.add_argument("--ms_models", type=str, default='direct', help="specify the motion synthesis models - '' , direct (default), ae")
+  parser.add_argument("--ms", type=str, default='direct', help="specify the motion synthesis models - '' , direct (default), ae")
   
   parser.add_argument("--predict_emotion",default=True, action="store_true" , help="specify whether you want to output the predicted emotional coordinates")
 
   args = parser.parse_args()
 
-  show_mocap(args.mocap, args.model, args.record_lma, args.predict_emotion, args.record_mocap, args.ms_models)
+  show_mocap(args.mocap, args.model, args.record_lma, args.predict_emotion, args.record_mocap, args.ms)

@@ -339,7 +339,7 @@ if __name__=="__main__":
   parser.add_argument("--record_lma",default='', action="store_true", help="specify a file name if you want to store the lma features on a file")
   parser.add_argument("--predict_emotion",default=True, action="store_true" , help="specify whether you want to output the predicted emotional coordinates")
 
-  parser.add_argument("--ms_models", type=str, default='direct', help="specify the motion synthesis models - '' , direct (default), ae")
+  parser.add_argument("--ms", type=str, default='direct', help="specify the motion synthesis models - '' , direct (default), ae")
 
   args = parser.parse_args()
 
@@ -370,4 +370,4 @@ if __name__=="__main__":
     select_set = data["select_set"]
   else:
     select_set = None
-  test_model(test_env, model, select_set, args.record, args.random, args.record_lma, args.predict_emotion, args.ms_models)
+  test_model(test_env, model, select_set, args.record, args.random, args.record_lma, args.predict_emotion, args.ms)
