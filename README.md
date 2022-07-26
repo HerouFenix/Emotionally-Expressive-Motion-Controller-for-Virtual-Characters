@@ -206,5 +206,4 @@ You can extract the Laban Movement Analysis Features from all Deepmimic-friendly
 This work was created by **Diogo Silva** for the acquisition of a Masters in Computer Science and Engineering at Instituto Superior Técnico (2022).
 The project was supervised by Prof. Pedro Santos and Prof. João Dias
 
-![IST Pic](./IST_C.png)
-
+<img src="./IST_C.png" alt="drawing" width="200"/>
