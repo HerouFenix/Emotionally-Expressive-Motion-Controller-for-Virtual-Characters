@@ -166,20 +166,6 @@ You can specify several training parameters such as number of iterations, type o
 ------------
 
 
-### Visualization, Emotion Identification and Tweaking - Policy-Controlled Character
-1. Navigate to the Motion Learning folder - `cd motion_learning`
-2. Run the following command:
-
-`python3 run_model.py <PATH_TO_ARGS_FILE>  --ms=<MOTION SYNTHESIS OPTION>`
-
-You can specify the type of Motion Synthesis to be used - Direct, AutoEncoder or None - providing the `--ms` argument with the values` 'direct'`, `'ae'` or `''`
-
-
-**Example:**  `python3 run_model.py args/demo_ablation_walk_07.json --ms=ae`
-
-------------
-
-
 ### Converting BVH files into a DeepMimic friendly format
 1. Navigate to the Mocap Converter folder - `cd mocap_converter`
 2. Run the following command: `python3 bvh_converter.py`
