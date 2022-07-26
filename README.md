@@ -7,7 +7,7 @@ This repository contains the full code basis for the Master Thesis Project "*Emo
 
 This project consists in a system capable of visualizing Motion Capture data, automatically analyze the character's motion to predict which emotion its trying to express using Pleasure, Arousal and Dominance coordinates and allow for the editing and tweaking of the desired expressed emotion by users, with motion changes being synthesized and applied to the character in real time.  The system was trained and designed with a focus on Locomotion animations such as Walking, Running and Dashing but it can still be applied to other types of animations although results may vary.
 
-Using a codebasis from [Learning and Exploring Motor Skills with Spacetime Bounds](http://https://github.com/milkpku/spacetimeBounds "Learning and Exploring Motor Skills with Spacetime Bounds") our system can also learn to mimic motions using physics-enabled virtual characters. The aforementioned emotional identification and tweaking operations can be applied to either Kinematic or Policy Controlled Physics-Enabled characters.
+Using a codebasis from [Learning and Exploring Motor Skills with Spacetime Bounds](http://https://github.com/milkpku/spacetimeBounds "Learning and Exploring Motor Skills with Spacetime Bounds") our system can also learn to mimic motions through Deep Reinforcement Learning using physics-enabled virtual characters. The aforementioned emotional identification and tweaking operations can be applied to either Kinematic or Policy Controlled Physics-Enabled characters.
 
 ![Showcase Gif](./showcase_gif.gif)
 
