@@ -181,10 +181,10 @@ You can extract the Laban Movement Analysis Features from all Deepmimic-friendly
 1. Navigate to the LMA Extractor folder - `cd lma_extractor`
 2. Open the file `mass_kin_lma_extractor.py` with a text editor
 3. Alter the variables:
-	*input_directory* - The path to the directory containing your MoCap files
-	*output_directory* - The path to the directory where your files with the LMA Features will be stored
-	*e_meta_file_path* - The path to the generated Meta File containing the emotions of all files
-	*f_meta_file_path* - The path to the generated Meta File contianing the names of all generated files
+ - *input_directory* - The path to the directory containing your MoCap files
+ - *output_directory* - The path to the directory where your files with the LMA Features will be stored
+ - *e_meta_file_path* - The path to the generated Meta File containing the emotions of all files
+ - *f_meta_file_path* - The path to the generated Meta File contianing the names of all generated files
 
 > **Note**: For this to work, its important that your MoCap files follow the naming scheme *emotion_filename*
 
