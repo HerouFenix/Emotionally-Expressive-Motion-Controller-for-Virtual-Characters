@@ -203,5 +203,6 @@ You can extract the Laban Movement Analysis Features from all Deepmimic-friendly
 > **Note**: For this to work, its important that your MoCap files follow the naming scheme *emotion_filename*
 
 ## Author
-This work was created for the acquisition of a Masters in Computer Science and Engineering at Instituto Superior Técnico (2022) by **Diogo Silva**
+This work was created by **Diogo Silva** for the acquisition of a Masters in Computer Science and Engineering at Instituto Superior Técnico (2022).
+The project was supervised by Prof. Pedro Santos and Prof. João Dias
 
