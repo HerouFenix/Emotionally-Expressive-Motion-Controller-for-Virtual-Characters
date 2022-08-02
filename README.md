@@ -1,7 +1,7 @@
 # Emotional Identification and Tweaking of Kinematic and Policy-Controlled Physics Enabled Virtual Characters
 
 ## Introduction
-This repository contains the full code basis for the Master Thesis Project "*Emotional Identification and Tweaking of Kinematic and Policy-Controlled Physics Enabled Virtual Characters*"
+This repository contains the full code basis for the Master Thesis Project "*Emotionally Expressive Motion Controller for Virtual Character Locomotion Animations*"
 
 ![Showcase Pic](showcase_pic.png)
 
