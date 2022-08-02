@@ -19,7 +19,7 @@ Using a codebasis from [Learning and Exploring Motor Skills with Spacetime Bound
 - [Video Clips](https://www.youtube.com/playlist?list=PLBchdrsdyMe_y7oUAzumcPc3P5ft3SMi4)
 
 ## Dataset
-We used a subset of the [Bandai-Namco-Research-Motiondataset](http://https://github.com/BandaiNamcoResearchInc/Bandai-Namco-Research-Motiondataset "Bandai-Namco-Research-Motiondataset") containing only Locomotion animations - Walking, Running and Dashes.
+We used a subset of the [Bandai-Namco-Research-Motiondataset](https://github.com/BandaiNamcoResearchInc/Bandai-Namco-Research-Motiondataset "Bandai-Namco-Research-Motiondataset") containing only Locomotion animations - Walking, Running and Dashes.
 
 ## Dependencies
 |Name   | Version  | Type |
