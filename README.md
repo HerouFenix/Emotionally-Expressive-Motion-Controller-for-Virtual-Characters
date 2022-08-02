@@ -12,11 +12,10 @@ Using a codebasis from [Learning and Exploring Motor Skills with Spacetime Bound
 ![Showcase Gif](./showcase_gif.gif)
 
 ## Links
-- [Website](http://ass "Website")
+- [Website](https://heroufenix.github.io/expressive_animations_web/ "Website")
 - [Paper](http://ass "Paper")
 - [Thesis](http://ass "Thesis")
 - [Video](http://ass "Video")
-- [Results](http://ass "Results")
 - [Video Clips](https://www.youtube.com/playlist?list=PLBchdrsdyMe_y7oUAzumcPc3P5ft3SMi4)
 
 ## Dataset
