@@ -132,6 +132,7 @@ class VisMocapEnv():
       color = [44/255, 160/255, 44/255, 1] # ref
       self._char = self._visual.add_character("mocap", color)
 
+      
       if(self.show_reference):
         self._visual.camera_follow(self._char, 2, 180, 0)
         self._char_ref = self._visual.add_character("ref", [227/255, 170/255, 14/255, 1])
@@ -486,7 +487,7 @@ class VisMocapEnv():
 
 
 def show_mocap(mocap_file, model, record_lma='', predict_emotion=True, record_mocap='', ms_models = '', show_reference = False):
-  env = VisMocapEnv(mocap_file, None, model, show_reference)
+  env = VisMocapEnv(mocap_file, None, model, show_reference=show_reference)
   #env._mocap.show_com()
   env.reset()
   if(record_lma != ""):
