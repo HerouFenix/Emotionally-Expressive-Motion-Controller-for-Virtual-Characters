@@ -39,13 +39,15 @@ SIM_STEPTIME  = ACT_STEPTIME / SUBSTEPS
 ###
 
 class VisMocapEnv():
-    def __init__(self, mocap_file, pybullet_client=None, model="humanoid3d", motion_synthesizer = None):
+    def __init__(self, mocap_file, pybullet_client=None, model="humanoid3d", motion_synthesizer = None, show_reference = False):
       self._isInitialized = False
       self.rand_state = np.random.RandomState()
       self._motion_file = mocap_file
       self.enable_draw = True
       self.follow_character = True
       self._model = model
+      self.show_reference = show_reference
+      
       self.init()
       self.has_looped = False
       self._previous_mocap_phase = 0.0
@@ -55,6 +57,7 @@ class VisMocapEnv():
 
       self._synthesizing = False
       self._synthesized = False
+
 
       # INVERSE KINEMATICS #
       self._ik_solver = IKSolver()
@@ -128,7 +131,12 @@ class VisMocapEnv():
       #color = [227/255, 170/255, 14/255, 1] # sim
       color = [44/255, 160/255, 44/255, 1] # ref
       self._char = self._visual.add_character("mocap", color)
-      self._visual.camera_follow(self._char, 2, 0, 0)
+
+      if(self.show_reference):
+        self._visual.camera_follow(self._char, 2, 180, 0)
+        self._char_ref = self._visual.add_character("ref", [227/255, 170/255, 14/255, 1])
+      else:
+        self._visual.camera_follow(self._char, 2, 0, 0)
 
       self._no_visual = HumanoidNoVis(self._skeleton_2, self._model)
       self._char_no_vis = self._no_visual.add_character("mocap", color)
@@ -252,6 +260,11 @@ class VisMocapEnv():
       count, pose, vel = self._mocap.slerp(self.t)
       pose[:3] += count * self._mocap._cyc_offset
 
+      if(self.show_reference):
+        ref_pose = pose.copy()
+        ref_pose[0] += 1.5
+        self._visual.set_pose(self._char_ref, ref_pose, vel)
+
       if(self._synthesized):
         self._no_visual.set_pose(self._char_no_vis, pose, vel)
         frame = self.get_pose_and_links_no_visual()[2]
@@ -267,6 +280,7 @@ class VisMocapEnv():
         self._visual.set_pose(self._char, pose, vel)
       else:
         self._visual.set_pose(self._char, pose, vel)
+
 
       self.counter += 1
 
@@ -471,8 +485,8 @@ class VisMocapEnv():
       return pose, vel, links_pos, links_orn, vel_dict
 
 
-def show_mocap(mocap_file, model, record_lma='', predict_emotion=True, record_mocap='', ms_models = ''):
-  env = VisMocapEnv(mocap_file, None, model)
+def show_mocap(mocap_file, model, record_lma='', predict_emotion=True, record_mocap='', ms_models = '', show_reference = False):
+  env = VisMocapEnv(mocap_file, None, model, show_reference)
   #env._mocap.show_com()
   env.reset()
   if(record_lma != ""):
@@ -635,6 +649,8 @@ if __name__=="__main__":
   
   parser.add_argument("--predict_emotion",default=True, action="store_true" , help="specify whether you want to output the predicted emotional coordinates")
 
+  parser.add_argument("--show_reference",default=False, help="specify whether you want to show a reference character that will always perform the baseline motion")
+
   args = parser.parse_args()
 
-  show_mocap(args.mocap, args.model, args.record_lma, args.predict_emotion, args.record_mocap, args.ms)
+  show_mocap(args.mocap, args.model, args.record_lma, args.predict_emotion, args.record_mocap, args.ms, args.show_reference)

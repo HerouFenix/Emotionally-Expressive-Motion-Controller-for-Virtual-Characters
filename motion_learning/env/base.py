@@ -92,10 +92,10 @@ class BaseEnv(ABC):
       # visual part
       self._visual = HumanoidVis(self._skeleton, self._model)
       cnt, pose, vel = self._mocap.slerp(0)
-      self._sim_char = self._visual.add_character("sim", [227/255, 170/255, 14/255, 1])
+      self._sim_char = self._visual.add_character("sim", [44/255, 160/255, 44/255, 1])
 
       #self._kin_char = self._visual.add_character("kin", [1, 1, 1, 0.4])
-      self._kin_char = self._visual.add_character("kin", [44/255, 160/255, 44/255, 1])
+      self._kin_char = self._visual.add_character("kin", [227/255, 170/255, 14/255, 1])
 
       self._visual.camera_follow(self._sim_char, 2, 180, 0)
 
