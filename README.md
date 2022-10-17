@@ -1,7 +1,7 @@
-# Emotional Identification and Tweaking of Kinematic and Policy-Controlled Physics Enabled Virtual Characters
+# Emotionally Expressive Motion Controller for Virtual Character Locomotion Animations 
 
 ## Introduction
-This repository contains the full code basis for the Master Thesis Project "*Emotional Identification and Tweaking of Kinematic and Policy-Controlled Physics Enabled Virtual Characters*"
+This repository contains the full code basis for the Master Thesis Project "*Emotionally Expressive Motion Controller for Virtual Character Locomotion Animations*"
 
 ![Showcase Pic](showcase_pic.png)
 
@@ -12,15 +12,14 @@ Using a codebasis from [Learning and Exploring Motor Skills with Spacetime Bound
 ![Showcase Gif](./showcase_gif.gif)
 
 ## Links
-- [Website](http://ass "Website")
+- [Website](https://heroufenix.github.io/expressive_animations_web/ "Website")
 - [Paper](http://ass "Paper")
 - [Thesis](http://ass "Thesis")
 - [Video](http://ass "Video")
-- [Results](http://ass "Results")
 - [Video Clips](https://www.youtube.com/playlist?list=PLBchdrsdyMe_y7oUAzumcPc3P5ft3SMi4)
 
 ## Dataset
-We used a subset of the [Bandai-Namco-Research-Motiondataset](http://https://github.com/BandaiNamcoResearchInc/Bandai-Namco-Research-Motiondataset "Bandai-Namco-Research-Motiondataset") containing only Locomotion animations - Walking, Running and Dashes.
+We used a subset of the [Bandai-Namco-Research-Motiondataset](https://github.com/BandaiNamcoResearchInc/Bandai-Namco-Research-Motiondataset "Bandai-Namco-Research-Motiondataset") containing only Locomotion animations - Walking, Running and Dashes.
 
 ## Dependencies
 |Name   | Version  | Type |
@@ -57,34 +56,35 @@ We used a subset of the [Bandai-Namco-Research-Motiondataset](http://https://git
 `sudo apt install cmake`
 
 - **Bullet**
-	 Download Version 2.89 from https://github.com/bulletphysics/bullet3/releases
-	 `./build_cmake_pybullet_double.sh`
-	 `cd build_cmake`
-	 `sudo make install`
+	- Download Version 2.89 from https://github.com/bulletphysics/bullet3/releases
+	-  `./build_cmake_pybullet_double.sh`
+	-  `cd build_cmake`
+	-  `sudo make install`
 
 - **Eigen**
-	 Download Version 3.37 from http://www.eigen.tuxfamily.org/index.php?title=Main_Page
-	 Extract the downloaded package somewhere and navigate into the folder
-	 `mkdir build && cd build`
-	 `cmake ..`
-	 `sudo make install`
+	- Download Version 3.37 from http://www.eigen.tuxfamily.org/index.php?title=Main_Page
+	- Extract the downloaded package somewhere and navigate into the folder
+	- `mkdir build && cd build`
+	- `cmake ..`
+	- `sudo make install`
 
 - **swig**
-	 Download the latest version from http://www.swig.org/
-	 Extract the downloaded package somewhere and navigate into the folder
-	 `./configure --without-pcre`
-	 `make`
-	 `sudo make install`
+	- Download the latest version from http://www.swig.org/
+	- Extract the downloaded package somewhere and navigate into the folder
+	- `./configure --without-pcre`
+	- `make`
+	- `sudo make install`
 
 ### Python
-Install **Python3.8 **or Python3.7
+Install **Python3.8** or Python3.7
+
 Install all other Python Dependencies using Pip
 
 ### OS
 This work was developed on xUbuntu. It should still be able to run on other Operating Systems, as long as the dependencies are properly installed.
 
 ## Installation
-Before usage the Kinematic folder located within the Motion Learning directory must be compiled
+Before usage the Kinematic folder located within the Motion Learning directory must be compiled:
 
 `cd motion_learning/Kinematic && mkdir build && cd build`
 
@@ -95,13 +95,13 @@ Before usage the Kinematic folder located within the Motion Learning directory m
 You also have to manually add the trained machine learning models as these were too large to be included within the repository:
 - **Emotion Classifier Models**
 	1. Download the *emotion_classifier_models.tar.gz* file from [https://www.dropbox.com/sh/2zc2tn0zwwjydvs/AABAJUMMXmk8ruee5OPspOWUa?dl=0](http://https://www.dropbox.com/sh/2zc2tn0zwwjydvs/AABAJUMMXmk8ruee5OPspOWUa?dl=0 "https://www.dropbox.com/sh/2zc2tn0zwwjydvs/AABAJUMMXmk8ruee5OPspOWUa?dl=0")
-	2. **Extract on the emotion_classifier/models/ folder**
-	All files ending in .json should be placed in the emotion_classifier/models/
-	All files ending in .pkl should be placed in the emotion_classifier/models/scalers
+	2. **Extract into the emotion_classifier/models/ folder**
+	- All files ending in .json should be placed in the emotion_classifier/models/
+	- All files ending in .pkl should be placed in the emotion_classifier/models/scalers
 
 - **Motion Synthesis Models**
 	1. Download the *motion_synthesis_models.tar.gz* file from [https://www.dropbox.com/sh/2zc2tn0zwwjydvs/AABAJUMMXmk8ruee5OPspOWUa?dl=0](http://https://www.dropbox.com/sh/2zc2tn0zwwjydvs/AABAJUMMXmk8ruee5OPspOWUa?dl=0 "https://www.dropbox.com/sh/2zc2tn0zwwjydvs/AABAJUMMXmk8ruee5OPspOWUa?dl=0")
-	2. **Extract on the motion_synthesizer/models/ folder**
+	2. **Extract into the motion_synthesizer/models/ folder**
 
 ## Usage
 ### Visualization, Emotion Identification and Tweaking - Kinematic Character
@@ -166,20 +166,6 @@ You can specify several training parameters such as number of iterations, type o
 ------------
 
 
-### Visualization, Emotion Identification and Tweaking - Policy-Controlled Character
-1. Navigate to the Motion Learning folder - `cd motion_learning`
-2. Run the following command:
-
-`python3 run_model.py <PATH_TO_ARGS_FILE>  --ms=<MOTION SYNTHESIS OPTION>`
-
-You can specify the type of Motion Synthesis to be used - Direct, AutoEncoder or None - providing the `--ms` argument with the values` 'direct'`, `'ae'` or `''`
-
-
-**Example:**  `python3 run_model.py args/demo_ablation_walk_07.json --ms=ae`
-
-------------
-
-
 ### Converting BVH files into a DeepMimic friendly format
 1. Navigate to the Mocap Converter folder - `cd mocap_converter`
 2. Run the following command: `python3 bvh_converter.py`
@@ -195,10 +181,10 @@ You can extract the Laban Movement Analysis Features from all Deepmimic-friendly
 1. Navigate to the LMA Extractor folder - `cd lma_extractor`
 2. Open the file `mass_kin_lma_extractor.py` with a text editor
 3. Alter the variables:
-	*input_directory* - The path to the directory containing your MoCap files
-	*output_directory* - The path to the directory where your files with the LMA Features will be stored
-	*e_meta_file_path* - The path to the generated Meta File containing the emotions of all files
-	*f_meta_file_path* - The path to the generated Meta File contianing the names of all generated files
+ - *input_directory* - The path to the directory containing your MoCap files
+ - *output_directory* - The path to the directory where your files with the LMA Features will be stored
+ - *e_meta_file_path* - The path to the generated Meta File containing the emotions of all files
+ - *f_meta_file_path* - The path to the generated Meta File contianing the names of all generated files
 
 > **Note**: For this to work, its important that your MoCap files follow the naming scheme *emotion_filename*
 
@@ -206,5 +192,4 @@ You can extract the Laban Movement Analysis Features from all Deepmimic-friendly
 This work was created by **Diogo Silva** for the acquisition of a Masters in Computer Science and Engineering at Instituto Superior Técnico (2022).
 The project was supervised by Prof. Pedro Santos and Prof. João Dias
 
-![IST Pic](./IST_C.png)
-
+<img src="./IST_C.png" alt="drawing" width="400"/>
