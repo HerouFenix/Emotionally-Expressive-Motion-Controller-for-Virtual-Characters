@@ -13,9 +13,9 @@ Using a codebasis from [Learning and Exploring Motor Skills with Spacetime Bound
 
 ## Links
 - [Website](https://heroufenix.github.io/expressive_animations_web/ "Website")
-- [Paper](http://ass "Paper")
+- [Paper](https://heroufenix.github.io/expressive_animations_web/ISM_2022_Emotionally_Expressive_Controller_FINAL.pdf "Paper")
 - [Thesis](http://ass "Thesis")
-- [Video](http://ass "Video")
+- [Video](http://ass](https://www.youtube.com/watch?v=QOfVkoZa5HM&feature=youtu.be&themeRefresh=1) "Video")
 - [Video Clips](https://www.youtube.com/playlist?list=PLBchdrsdyMe_y7oUAzumcPc3P5ft3SMi4)
 
 ## Dataset
@@ -117,7 +117,7 @@ You can specify the type of Motion Synthesis to be used - Direct, AutoEncoder or
 - *--ms* - Optional (Default - '') - Specifies the type of Motion Synthesis methoodlogy to be used - *ae*, *xgb*, *direct*, *''*
 - *--record_lma* - Optional (Default - False) - Specify a file name if you want to store the recorded LMA Features on a file
 - *--record_mocap* - Optional (Default - False) - Specify a file name if you want to store the recorded Mocap on a file
-
+- *--show_reference* - Optional (Default - False) - Specify whether or not to spawn an additional reference character that will always showcase the baseline animation
 
 **Example:**  `python3 vis_mocap_2.py --mocap="mocap/bandai_neutral.txt" --ms=ae`
 
