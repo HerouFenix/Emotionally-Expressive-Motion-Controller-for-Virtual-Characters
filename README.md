@@ -15,7 +15,7 @@ Using a codebasis from [Learning and Exploring Motor Skills with Spacetime Bound
 - [Website](https://heroufenix.github.io/expressive_animations_web/ "Website")
 - [Paper](https://heroufenix.github.io/expressive_animations_web/ISM_2022_Emotionally_Expressive_Controller_FINAL.pdf "Paper")
 - [Thesis](http://ass "Thesis")
-- [Video](http://ass](https://www.youtube.com/watch?v=QOfVkoZa5HM&feature=youtu.be&themeRefresh=1) "Video")
+- [Video](https://www.youtube.com/watch?v=QOfVkoZa5HM&feature=youtu.be&themeRefresh=1 "Video")
 - [Video Clips](https://www.youtube.com/playlist?list=PLBchdrsdyMe_y7oUAzumcPc3P5ft3SMi4)
 
 ## Dataset
