@@ -143,7 +143,7 @@ You can specify the type of Motion Synthesis to be used - Direct, AutoEncoder or
 - *--record_lma* - Optional (Default - False) - Specify a file name if you want to store the recorded LMA Features on a file
 - *--record_mocap* - Optional (Default - False) - Specify a file name if you want to store the recorded Mocap on a file
 
-**Example:**  `python3 run_model.py args/demo_ablation_walk_07.json --ms=ae`
+**Example:**  `python3 run_model.py args/demo_ablation_walk_03.json --ms=ae`
 
 
 > **Note**: Alternatively, you can use **vis_mocap.py** instead. All this changes is that motion synthesis is computed as a batch rather than on a per-frame basis
